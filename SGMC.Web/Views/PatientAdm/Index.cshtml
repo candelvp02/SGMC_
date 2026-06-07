@@ -4,111 +4,174 @@
     ViewData["Title"] = "Gestión de Pacientes";
 }
 
-<div class="container mt-4">
-    <h1>Gestión de Pacientes</h1>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Título -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900">Gestión de Pacientes</h1>
+        <p class="text-gray-600 mt-2">Administra todos los pacientes del sistema</p>
+    </div>
 
+    <!-- Mensajes de éxito/error -->
     @if (TempData["SuccessMessage"] != null)
     {
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            @TempData["SuccessMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <div class="mb-4 bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded-lg shadow-sm" role="alert">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <i class="fas fa-check-circle mr-2 text-green-500"></i>
+                    <span>@TempData["SuccessMessage"]</span>
+                </div>
+                <button type="button" class="text-green-700 hover:text-green-900" onclick="this.parentElement.parentElement.remove()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
         </div>
     }
 
     @if (TempData["ErrorMessage"] != null)
     {
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            @TempData["ErrorMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <div class="mb-4 bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg shadow-sm" role="alert">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <i class="fas fa-exclamation-circle mr-2 text-red-500"></i>
+                    <span>@TempData["ErrorMessage"]</span>
+                </div>
+                <button type="button" class="text-red-700 hover:text-red-900" onclick="this.parentElement.parentElement.remove()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
         </div>
     }
 
     @if (ViewBag.ErrorMessage != null)
     {
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            @ViewBag.ErrorMessage
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <div class="mb-4 bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg shadow-sm" role="alert">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <i class="fas fa-exclamation-circle mr-2 text-red-500"></i>
+                    <span>@ViewBag.ErrorMessage</span>
+                </div>
+                <button type="button" class="text-red-700 hover:text-red-900" onclick="this.parentElement.parentElement.remove()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
         </div>
     }
 
-    <div class="mb-3">
-        <a asp-action="Create" class="btn btn-primary">
-            <i class="bi bi-plus-circle"></i> Crear Nuevo Paciente
+    <!-- Botón Crear Nuevo Paciente -->
+    <div class="mb-6">
+        <a asp-action="Create" class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition duration-200 ease-in-out transform hover:scale-105 shadow-md">
+            <i class="fas fa-plus-circle mr-2"></i>
+            Crear Nuevo Paciente
         </a>
     </div>
 
-    <div class="card">
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-striped table-hover">
-                    <thead class="table-dark">
-                        <tr>
-                            <th>ID</th>
-                            <th>Nombre Completo</th>
-                            <th>Cédula</th>
-                            <th>Teléfono</th>
-                            <th>Tipo de Sangre</th>
-                            <th>Proveedor de Seguro</th>
-                            <th>Estado</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @if (Model != null && Model.Any())
+    <!-- Tabla de Pacientes -->
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-800 text-white">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">ID</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Nombre Completo</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Cédula</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Teléfono</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Tipo de Sangre</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Proveedor de Seguro</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Estado</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    @if (Model != null && Model.Any())
+                    {
+                        @foreach (var patient in Model)
                         {
-                            @foreach (var patient in Model)
-                            {
-                                <tr>
-                                    <td>@patient.PatientId</td>
-                                    <td>@patient.FullName</td>
-                                    <td>@patient.IdentificationNumber</td>
-                                    <td>@patient.PhoneNumber</td>
-                                    <td>
-                                        <span class="badge bg-info">@patient.BloodType</span>
-                                    </td>
-                                    <td>@patient.InsuranceProviderName</td>
-                                    <td>
-                                        @if (patient.IsActive)
-                                        {
-                                            <span class="badge bg-success">Activo</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="badge bg-danger">Inactivo</span>
-                                        }
-                                    </td>
-                                    <td>
-                                        <div class="btn-group" role="group">
-                                            <a asp-action="Details" asp-route-id="@patient.PatientId"
-                                               class="btn btn-sm btn-info" title="Ver Detalles">
-                                                <i class="bi bi-eye"></i>
-                                            </a>
-                                            <a asp-action="Edit" asp-route-id="@patient.PatientId"
-                                               class="btn btn-sm btn-warning" title="Editar">
-                                                <i class="bi bi-pencil"></i>
-                                            </a>
-                                            <a asp-action="Delete" asp-route-id="@patient.PatientId"
-                                               class="btn btn-sm btn-danger" title="Desactivar">
-                                                <i class="bi bi-trash"></i>
-                                            </a>
-                                        </div>
-                                    </td>
-                                </tr>
-                            }
-                        }
-                        else
-                        {
-                            <tr>
-                                <td colspan="8" class="text-center">No hay pacientes registrados</td>
+                            <tr class="hover:bg-gray-50 transition duration-150">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    @patient.PatientId
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                    @patient.FullName
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                    @patient.IdentificationNumber
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                    @patient.PhoneNumber
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                        @patient.BloodType
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                    @patient.InsuranceProviderName
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    @if (patient.IsActive)
+                                    {
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                            <span class="w-1.5 h-1.5 bg-green-500 rounded-full mr-1.5"></span>
+                                            Activo
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                            <span class="w-1.5 h-1.5 bg-red-500 rounded-full mr-1.5"></span>
+                                            Inactivo
+                                        </span>
+                                    }
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    <div class="flex gap-2">
+                                        <a asp-action="Details" asp-route-id="@patient.PatientId"
+                                           class="inline-flex items-center px-2.5 py-1.5 bg-blue-500 hover:bg-blue-600 text-white text-xs font-medium rounded transition"
+                                           title="Ver Detalles">
+                                            <i class="fas fa-eye mr-1"></i>
+                                            Ver
+                                        </a>
+                                        <a asp-action="Edit" asp-route-id="@patient.PatientId"
+                                           class="inline-flex items-center px-2.5 py-1.5 bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-medium rounded transition"
+                                           title="Editar">
+                                            <i class="fas fa-pencil-alt mr-1"></i>
+                                            Editar
+                                        </a>
+                                        <a asp-action="Delete" asp-route-id="@patient.PatientId"
+                                           class="inline-flex items-center px-2.5 py-1.5 bg-red-500 hover:bg-red-600 text-white text-xs font-medium rounded transition"
+                                           title="Desactivar">
+                                            <i class="fas fa-trash mr-1"></i>
+                                            Eliminar
+                                        </a>
+                                    </div>
+                                </td>
                             </tr>
                         }
-                    </tbody>
-                </table>
-            </div>
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="8" class="px-6 py-12 text-center text-gray-500">
+                                <i class="fas fa-user-slash text-4xl mb-2 block"></i>
+                                <p class="text-lg">No hay pacientes registrados</p>
+                                <p class="text-sm mt-1">Comienza creando un nuevo paciente</p>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
         </div>
     </div>
+
+    <!-- Contador de registros (opcional) -->
+    @if (Model != null && Model.Any())
+    {
+        <div class="mt-4 text-sm text-gray-600">
+            Total de pacientes: <span class="font-semibold">@Model.Count()</span>
+        </div>
+    }
 </div>
 
 @section Styles {
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 }

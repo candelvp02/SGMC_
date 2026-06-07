@@ -6,7 +6,7 @@ namespace SGMC.Application.Interfaces.Service
 {
     public interface IUserService
     {
-        // Auth y registro (RF3.1.1)
+        // Auth y registro
         Task<OperationResult<UserDto>> AuthenticateAsync(LoginDto dto);
         Task<OperationResult<UserDto>> RegisterAsync(RegisterUserDto dto);
         Task<OperationResult> RequestPasswordResetAsync(string email);
@@ -22,9 +22,10 @@ namespace SGMC.Application.Interfaces.Service
         Task<OperationResult<List<UserDto>>> GetByRoleAsync(short roleId);
         Task<OperationResult<List<UserDto>>> GetActiveUsersAsync();
         Task<OperationResult<List<UserDto>>> GetAllAsync();
+        Task<OperationResult<List<UserDto>>> SearchAsync(string query);
 
-        // CRUD
-        Task<OperationResult> DeleteAsync(int id);
+        // Gestión administrativa
         Task<OperationResult> DeactivateAsync(int id);
+        Task<OperationResult> ChangeRoleAsync(int userId, int roleId);
     }
 }
