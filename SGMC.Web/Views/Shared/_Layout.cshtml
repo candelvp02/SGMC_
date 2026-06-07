@@ -5,191 +5,222 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - HealtSync</title>
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" />
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
 
-    @await RenderSectionAsync("Styles", required: false)
+    <!-- Tailwind CSS Custom Configuration -->
+    <script>
+        tailwind.config = {
+        theme: {
+        extend: {
+        colors: {
+        primary: '#0d6efd',
+        secondary: '#6c757d',
+        success: '#198754',
+        danger: '#dc3545',
+        warning: '#ffc107',
+        info: '#0dcaf0',
+        }
+        }
+        }
+        }
+    </script>
+
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
-        :root {
-            --primary-color: #0d6efd;
-            --secondary-color: #6c757d;
-            --success-color: #198754;
-            --danger-color: #dc3545;
-            --warning-color: #ffc107;
-            --info-color: #0dcaf0;
+        .sidebar-transition {
+        transition: all 0.3s ease;
+        }
+
+        .nav-link-hover {
+        transition: all 0.3s ease;
+        }
+
+        .nav-link-hover:hover {
+        transform: translateX(5px);
+        }
+
+        .sidebar-scroll {
+        scrollbar-width: thin;
+        scrollbar-color: #495057 #343a40;
+        }
+
+        .sidebar-scroll::-webkit-scrollbar {
+        width: 6px;
+        }
+
+        .sidebar-scroll::-webkit-scrollbar-track {
+        background: #343a40;
+        }
+
+        .sidebar-scroll::-webkit-scrollbar-thumb {
+        background-color: #495057;
+        border-radius: 3px;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f8f9fa;
-        }
-
-        .navbar {
-            box-shadow: 0 2px 4px rgba(0,0,0,.1);
-        }
-
-        .sidebar {
-            min-height: calc(100vh - 56px);
-            background-color: #343a40;
-            padding-top: 20px;
-        }
-
-            .sidebar .nav-link {
-                color: #fff;
-                padding: 12px 20px;
-                border-radius: 5px;
-                margin-bottom: 5px;
-                transition: all 0.3s ease;
-            }
-
-                .sidebar .nav-link:hover {
-                    background-color: #495057;
-                    transform: translateX(5px);
-                }
-
-                .sidebar .nav-link.active {
-                    background-color: var(--primary-color);
-                }
-
-                .sidebar .nav-link i {
-                    margin-right: 10px;
-                    font-size: 1.2rem;
-                }
-
-        .content-wrapper {
-            padding: 20px;
-        }
-
-        .card {
-            box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
-            border: none;
-            margin-bottom: 20px;
-        }
-
-        .card-header {
-            font-weight: 600;
-            border-bottom: 2px solid rgba(0,0,0,.125);
-        }
-
-        .page-title {
-            color: #495057;
-            font-weight: 600;
-            margin-bottom: 20px;
-        }
-
-        footer {
-            background-color: #343a40;
-            color: #fff;
-            padding: 20px 0;
-            margin-top: 40px;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
     </style>
+
+    @await RenderSectionAsync("Styles", required: false)
 </head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="/">
-                <i class="bi bi-heart-pulse-fill"></i> HealtSync
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+<body class="bg-gray-100">
 
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
+    <!-- Navbar -->
+    <nav class="bg-gray-900 text-white shadow-md">
+        <div class="px-4">
+            <div class="flex justify-between items-center py-3">
+                <!-- Logo/Brand -->
+                <a class="flex items-center gap-2 text-xl font-semibold hover:text-blue-300 transition" href="/">
+                    <i class="fas fa-heartbeat text-blue-500"></i>
+                    <span>HealtSync</span>
+                </a>
 
-                        <a class="nav-link" href="#">
-                            <i class="bi bi-person-circle"></i> Administrador
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
-                        </a>
+                <!-- Botón hamburguesa para móvil -->
+                <button class="md:hidden text-white focus:outline-none" type="button" id="mobileMenuButton">
+                    <i class="fas fa-bars text-2xl"></i>
+                </button>
 
-                    </li>
-                </ul>
+                <!-- Menú de usuario (escritorio) -->
+                <div class="hidden md:flex items-center gap-4">
+                    <span class="flex items-center gap-2 text-gray-300">
+                        <i class="fas fa-user-circle text-xl"></i>
+                        <span>@User.Identity?.Name</span>
+                    </span>
+                    <form asp-controller="Account" asp-action="Logout" method="post" style="display:inline">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="flex items-center gap-2 hover:text-red-400 transition">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>Cerrar Sesión</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Menú de usuario (móvil) -->
+            <div class="hidden md:hidden pb-3" id="mobileMenu">
+                <span class="flex items-center gap-2 py-2 text-gray-300">
+                    <i class="fas fa-user-circle"></i>
+                    <span>@User.Identity?.Name</span>
+                </span>
+                <form asp-controller="Account" asp-action="Logout" method="post" style="display:inline">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="flex items-center gap-2 py-2 hover:text-red-400 transition">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Cerrar Sesión</span>
+                    </button>
+                </form>
             </div>
         </div>
     </nav>
 
-    <div class="container-fluid">
-        <div class="row">
-            <nav class="col-md-3 col-lg-2 d-md-block sidebar">
+    <div class="flex flex-col md:flex-row">
+        <!-- Sidebar -->
+        <nav class="bg-gray-800 text-white w-full md:w-64 md:min-h-[calc(100vh-56px)] sidebar-scroll">
+            <div class="sticky top-0 p-4">
+                <ul class="space-y-2">
+                    <li>
+                        <a class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-700 hover:translate-x-1 transition-all duration-300"
+                           asp-controller="Home" asp-action="Index">
+                            <i class="fas fa-home text-lg"></i>
+                            <span>Inicio</span>
+                        </a>
+                    </li>
 
-                <div class="position-sticky">
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="Home" asp-action="Index">
-
-                                <i class="bi bi-house-door"></i> Inicio
+                    @if (User.IsInRole("Médico"))
+                    {
+                        <li>
+                            <a class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-700 hover:translate-x-1 transition-all duration-300"
+                               asp-controller="DoctorInbox" asp-action="Index">
+                                <i class="fas fa-inbox text-lg"></i>
+                                <span>Mis Solicitudes</span>
                             </a>
                         </li>
-                        <li class="nav-item">
+                    }
 
-                            <a class="nav-link" asp-controller="PatientAdm" asp-action="Index">
-                                <i class="bi bi-people"></i> Pacientes
-                            </a>
-
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="Doctor" asp-action="Index">
-                                <i class="bi bi-person-badge"></i> Doctores
-                            </a>
-                        </li>
-                        <li class="nav-item">
-
-                            <a class="nav-link" asp-controller="AppointmentAdm" asp-action="Index">
-                                <i class="bi bi-calendar-check"></i> Citas
+                    @if (User.IsInRole("Administrador"))
+                    {
+                        <li>
+                            <a class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-700 hover:translate-x-1 transition-all duration-300"
+                               asp-controller="PatientAdm" asp-action="Index">
+                                <i class="fas fa-users text-lg"></i>
+                                <span>Pacientes</span>
                             </a>
                         </li>
-
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="SpecialtyAdm" asp-action="Index">
-                                <i class="bi bi-hospital"></i> Especialidades
-
+                        <li>
+                            <a class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-700 hover:translate-x-1 transition-all duration-300"
+                               asp-controller="Doctor" asp-action="Index">
+                                <i class="fas fa-id-badge text-lg"></i>
+                                <span>Doctores</span>
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="InsuranceProviderAdm" asp-action="Index">
-
-                                <i class="bi bi-shield-check"></i> Seguros
+                        <li>
+                            <a class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-700 hover:translate-x-1 transition-all duration-300"
+                               asp-controller="User" asp-action="Index">
+                                <i class="fas fa-user-shield text-lg"></i>
+                                <span>Usuarios</span>
                             </a>
                         </li>
-
-                        <li class="nav-item">
-                            <hr class="text-white" />
-                        </li>
-                        <li class="nav-item">
-
-                            <a class="nav-link" asp-controller="Report" asp-action="Index">
-                                <i class="bi bi-graph-up"></i> Reportes
+                        <li>
+                            <a class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-700 hover:translate-x-1 transition-all duration-300"
+                               asp-controller="AppointmentAdm" asp-action="Index">
+                                <i class="fas fa-calendar-check text-lg"></i>
+                                <span>Citas</span>
                             </a>
-
                         </li>
-                    </ul>
-                </div>
-            </nav>
+                        <li>
+                            <a class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-700 hover:translate-x-1 transition-all duration-300"
+                               asp-controller="SpecialtyAdm" asp-action="Index">
+                                <i class="fas fa-hospital text-lg"></i>
+                                <span>Especialidades</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-700 hover:translate-x-1 transition-all duration-300"
+                               asp-controller="InsuranceProviderAdm" asp-action="Index">
+                                <i class="fas fa-shield-alt text-lg"></i>
+                                <span>Seguros</span>
+                            </a>
+                        </li>
+                        <li class="pt-4 mt-2 border-t border-gray-700">
+                            <a class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-700 hover:translate-x-1 transition-all duration-300"
+                               asp-controller="Report" asp-action="Index">
+                                <i class="fas fa-chart-line text-lg"></i>
+                                <span>Reportes</span>
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </nav>
 
-            <main class="col-md-9 ms-sm-auto col-lg-10 content-wrapper">
-
-                @RenderBody()
-            </main>
-        </div>
+        <!-- Main Content -->
+        <main class="flex-1 p-6">
+            @RenderBody()
+        </main>
     </div>
 
-    <footer class="text-center">
-        <div class="container">
-            <p class="mb-0">
-                &copy;
-                2025 HealtSync - Sistema de Gestión Médica. Todos los derechos reservados.
-            </p>
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white text-center py-5">
+        <div class="container mx-auto px-4">
+            <p>&copy; 2025 HealtSync - Sistema de Gestión Médica. Todos los derechos reservados.</p>
         </div>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- JavaScript para menú móvil -->
+    <script>
+        const mobileMenuButton = document.getElementById('mobileMenuButton');
+        const mobileMenu = document.getElementById('mobileMenu');
+
+        if (mobileMenuButton && mobileMenu) {
+        mobileMenuButton.addEventListener('click', () => {
+        mobileMenu.classList.toggle('hidden');
+        });
+        }
+    </script>
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>

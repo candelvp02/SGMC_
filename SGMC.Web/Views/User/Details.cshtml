@@ -4,43 +4,145 @@
     ViewData["Title"] = "Detalles del Usuario";
 }
 
-<h1>Detalles del Usuario</h1>
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Título -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900">Detalles del Usuario</h1>
+        <p class="text-gray-600 mt-2">Información completa del usuario del sistema</p>
+    </div>
 
-@if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
-{
-    <div class="alert alert-danger">@ViewBag.ErrorMessage</div>
+    <!-- Mensajes de error -->
+    @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
+    {
+        <div class="mb-6 bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg shadow-sm">
+            <div class="flex items-center">
+                <i class="fas fa-exclamation-circle mr-2 text-red-500"></i>
+                <span>@ViewBag.ErrorMessage</span>
+            </div>
+        </div>
+    }
+
+    <!-- Tarjeta de Detalles -->
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div class="border-b border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4">
+            <h3 class="text-lg font-semibold text-gray-900">Información del Usuario</h3>
+        </div>
+
+        <div class="p-6">
+            <dl class="divide-y divide-gray-200">
+
+                <!-- Nombre Completo -->
+                <div class="py-4 flex flex-col sm:flex-row">
+                    <dt class="sm:w-1/3 text-sm font-medium text-gray-500 mb-1 sm:mb-0">
+                        Nombre Completo
+                    </dt>
+                    <dd class="sm:w-2/3 text-sm text-gray-900 font-medium">
+                        @Model.FullName
+                    </dd>
+                </div>
+
+                <!-- Email -->
+                <div class="py-4 flex flex-col sm:flex-row">
+                    <dt class="sm:w-1/3 text-sm font-medium text-gray-500 mb-1 sm:mb-0">
+                        Correo Electrónico
+                    </dt>
+                    <dd class="sm:w-2/3 text-sm text-gray-900">
+                        @Model.Email
+                    </dd>
+                </div>
+
+                <!-- Rol -->
+                <div class="py-4 flex flex-col sm:flex-row">
+                    <dt class="sm:w-1/3 text-sm font-medium text-gray-500 mb-1 sm:mb-0">
+                        Rol
+                    </dt>
+                    <dd class="sm:w-2/3">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                            @Model.RoleName
+                        </span>
+                    </dd>
+                </div>
+
+                <!-- Estado -->
+                <div class="py-4 flex flex-col sm:flex-row">
+                    <dt class="sm:w-1/3 text-sm font-medium text-gray-500 mb-1 sm:mb-0">
+                        Estado
+                    </dt>
+                    <dd class="sm:w-2/3">
+                        @if (Model.IsActive)
+                        {
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                <span class="w-1.5 h-1.5 bg-green-500 rounded-full mr-1.5"></span>
+                                Activo
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                <span class="w-1.5 h-1.5 bg-red-500 rounded-full mr-1.5"></span>
+                                Inactivo
+                            </span>
+                        }
+                    </dd>
+                </div>
+
+                <!-- Fecha de Creación -->
+                <div class="py-4 flex flex-col sm:flex-row">
+                    <dt class="sm:w-1/3 text-sm font-medium text-gray-500 mb-1 sm:mb-0">
+                        Fecha de Registro
+                    </dt>
+                    <dd class="sm:w-2/3 text-sm text-gray-900">
+                        @(Model.CreatedAt?.ToString("dd/MM/yyyy HH:mm") ?? "—")
+                    </dd>
+                </div>
+
+                <!-- Última Actualización -->
+                <div class="py-4 flex flex-col sm:flex-row">
+                    <dt class="sm:w-1/3 text-sm font-medium text-gray-500 mb-1 sm:mb-0">
+                        Última Actualización
+                    </dt>
+                    <dd class="sm:w-2/3 text-sm text-gray-900">
+                        @(Model.UpdatedAt?.ToString("dd/MM/yyyy HH:mm") ?? "—")
+                    </dd>
+                </div>
+
+            </dl>
+        </div>
+    </div>
+
+    <!-- Botones de Acción -->
+    <div class="mt-6 flex flex-wrap gap-3">
+        <a asp-action="Edit" asp-route-id="@Model.UserId"
+           class="inline-flex items-center px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white font-medium rounded-lg transition duration-200 shadow-md">
+            <i class="fas fa-edit mr-2"></i>
+            Editar
+        </a>
+        <a asp-action="ChangePassword" asp-route-id="@Model.UserId"
+           class="inline-flex items-center px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white font-medium rounded-lg transition duration-200 shadow-md">
+            <i class="fas fa-key mr-2"></i>
+            Cambiar Contraseña
+        </a>
+        <a asp-action="Index"
+           class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition duration-200 shadow-md">
+            <i class="fas fa-arrow-left mr-2"></i>
+            Volver a la Lista
+        </a>
+    </div>
+
+    <!-- Info adicional -->
+    <div class="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div class="flex items-start">
+            <i class="fas fa-info-circle text-blue-500 mt-0.5 mr-3"></i>
+            <div>
+                <h4 class="text-sm font-semibold text-blue-800">Información del Sistema</h4>
+                <p class="text-sm text-blue-600 mt-1">
+                    Para cambiar la contraseña o desactivar este usuario, utilice los botones de acción disponibles.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 }
-
-<div>
-    <hr />
-    <dl class="row">
-        <dt class="col-sm-3">ID de Usuario</dt>
-        <dd class="col-sm-9">@Model.UserId</dd>
-
-        <dt class="col-sm-3">Email</dt>
-        <dd class="col-sm-9">@Model.Email</dd>
-
-        <dt class="col-sm-3">Rol</dt>
-        <dd class="col-sm-9">@Model.RoleName</dd>
-
-        <dt class="col-sm-3">Estado</dt>
-        <dd class="col-sm-9">
-            @if (Model.IsActive)
-            {
-                <span class="badge bg-success">Activo</span>
-            }
-            else
-            {
-                <span class="badge bg-danger">Inactivo</span>
-            }
-        </dd>
-
-        <dt class="col-sm-3">Fecha de Creación</dt>
-        <dd class="col-sm-9">@Model.CreatedAt?.ToString("dd/MM/yyyy HH:mm")</dd>
-    </dl>
-</div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model.UserId" class="btn btn-warning">Editar</a>
-    <a asp-action="ChangePassword" asp-route-id="@Model.UserId" class="btn btn-secondary">Cambiar Contraseña</a>
-    <a asp-action="Index" class="btn btn-secondary">Volver a la Lista</a>
-</div>

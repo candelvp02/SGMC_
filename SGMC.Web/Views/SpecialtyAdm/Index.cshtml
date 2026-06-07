@@ -1,50 +1,164 @@
 ﻿@model IEnumerable<SGMC.Application.Dto.Medical.SpecialtyDto>
+
 @{
     ViewData["Title"] = "Especialidades";
 }
 
-<h1>Gestión de Especialidades</h1>
-<p><a asp-action="Create" class="btn btn-primary">Crear Nueva Especialidad</a></p>
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-@if (TempData["SuccessMessage"] != null)
-{
-    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
-}
-@if (ViewBag.ErrorMessage != null)
-{
-    <div class="alert alert-danger">@ViewBag.ErrorMessage</div>
-}
+    <!-- Título -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900">Gestión de Especialidades</h1>
+        <p class="text-gray-600 mt-2">Administra el catálogo de especialidades médicas del sistema</p>
+    </div>
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Nombre</th>
-            <th>Estado</th>
-            <th>Acciones</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
+    <!-- Mensajes -->
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="mb-4 bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg shadow-sm">
+            <div class="flex items-center">
+                <i class="fas fa-exclamation-circle mr-2 text-red-500"></i>
+                <span>@TempData["ErrorMessage"]</span>
+            </div>
+        </div>
+    }
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="mb-4 bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded-lg shadow-sm">
+            <div class="flex items-center">
+                <i class="fas fa-check-circle mr-2 text-green-500"></i>
+                <span>@TempData["SuccessMessage"]</span>
+            </div>
+        </div>
+    }
+
+    <!-- Barra superior -->
+    <div class="mb-6 flex justify-end">
+        <a asp-action="Create"
+           class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition duration-200 shadow-md">
+            <i class="fas fa-plus mr-2"></i>
+            Nueva Especialidad
+        </a>
+    </div>
+
+    <!-- Tabla -->
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-800 text-white">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Nombre</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Estado</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Fecha Creación</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Última Actualización</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    @foreach (var specialty in Model.OrderBy(s => s.SpecialtyName))
+                    {
+                        <tr class="hover:bg-gray-50 transition duration-150">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                <div class="flex items-center">
+                                    <i class="fas fa-stethoscope text-gray-400 mr-2"></i>
+                                    @specialty.SpecialtyName
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                @if (specialty.IsActive)
+                                {
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        <span class="w-1.5 h-1.5 bg-green-500 rounded-full mr-1.5"></span>
+                                        Activa
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                        <span class="w-1.5 h-1.5 bg-red-500 rounded-full mr-1.5"></span>
+                                        Inactiva
+                                    </span>
+                                }
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                <div class="flex items-center">
+                                    <i class="fas fa-calendar-alt text-gray-400 mr-2"></i>
+                                    @specialty.CreatedAt.ToString("dd/MM/yyyy")
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                <div class="flex items-center">
+                                    <i class="fas fa-clock text-gray-400 mr-2"></i>
+                                    @(specialty.UpdatedAt?.ToString("dd/MM/yyyy") ?? "—")
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                <div class="flex flex-wrap gap-2">
+                                    <a asp-action="Edit" asp-route-id="@specialty.SpecialtyId"
+                                       class="inline-flex items-center px-2.5 py-1.5 bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-medium rounded transition">
+                                        <i class="fas fa-edit mr-1"></i>
+                                        Editar
+                                    </a>
+
+                                    @if (specialty.IsActive)
+                                    {
+                                        <form asp-action="Deactivate" method="post" style="display:inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@specialty.SpecialtyId" />
+                                            <button type="submit"
+                                                    class="inline-flex items-center px-2.5 py-1.5 bg-red-500 hover:bg-red-600 text-white text-xs font-medium rounded transition"
+                                                    onclick="return confirm('¿Desactivar @specialty.SpecialtyName?')">
+                                                <i class="fas fa-ban mr-1"></i>
+                                                Desactivar
+                                            </button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <form asp-action="Activate" method="post" style="display:inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@specialty.SpecialtyId" />
+                                            <button type="submit"
+                                                    class="inline-flex items-center px-2.5 py-1.5 bg-green-500 hover:bg-green-600 text-white text-xs font-medium rounded transition">
+                                                <i class="fas fa-check mr-1"></i>
+                                                Reactivar
+                                            </button>
+                                        </form>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if (!Model.Any())
         {
-            <tr>
-                <td>@item.SpecialtyId</td>
-                <td>@item.SpecialtyName</td>
-                <td>
-                    @if (item.IsActive)
-                    {
-                        <span class="badge bg-success">Activo</span>
-                    }
-                    else
-                    {
-                        <span class="badge bg-danger">Inactivo</span>
-                    }
-                </td>
-                <td>
-                    <a asp-action="Edit" asp-route-id="@item.SpecialtyId" class="btn btn-sm btn-warning">Editar</a> |
-                    <a asp-action="Delete" asp-route-id="@item.SpecialtyId" class="btn btn-sm btn-danger">Eliminar</a>
-                </td>
-            </tr>
+            <div class="text-center py-12 bg-gray-50">
+                <i class="fas fa-stethoscope text-5xl text-gray-400 mb-3 block"></i>
+                <p class="text-gray-500 text-lg">No hay especialidades registradas</p>
+                <p class="text-gray-400 text-sm mt-1">Comienza creando una nueva especialidad</p>
+            </div>
         }
-    </tbody>
-</table>
+    </div>
+
+    <!-- Contador -->
+    @if (Model.Any())
+    {
+        <div class="mt-4 text-sm text-gray-600 flex items-center justify-between">
+            <div>
+                <i class="fas fa-database mr-1"></i>
+                Total: <span class="font-semibold">@Model.Count()</span>
+            </div>
+            <div>
+                Activas: <span class="font-semibold text-green-600">@Model.Count(s => s.IsActive)</span>
+                | Inactivas: <span class="font-semibold text-red-600">@Model.Count(s => !s.IsActive)</span>
+            </div>
+        </div>
+    }
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+}

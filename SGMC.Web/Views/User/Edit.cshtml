@@ -4,31 +4,83 @@
     ViewData["Title"] = "Editar Usuario";
 }
 
-<h1>Editar Usuario</h1>
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Título -->
+    <div class="mb-8">
+        <div class="flex items-center gap-3 mb-2">
+            <i class="fas fa-user-edit text-3xl text-blue-600"></i>
+            <h1 class="text-3xl font-bold text-gray-900">Editar Usuario</h1>
+        </div>
+        <p class="text-gray-600">Actualiza la información del usuario en el sistema</p>
+    </div>
 
-@if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
-{
-    <div class="alert alert-danger">@ViewBag.ErrorMessage</div>
-}
-
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit">
-            <input type="hidden" asp-for="UserId" />
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-
-            <div class="form-group mb-3">
-                <label asp-for="Email" class="control-label"></label>
-                <input asp-for="Email" class="form-control" type="email" />
-                <span asp-validation-for="Email" class="text-danger"></span>
+    <!-- Mensajes de error -->
+    @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
+    {
+        <div class="mb-6 bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg shadow-sm">
+            <div class="flex items-center">
+                <i class="fas fa-exclamation-circle mr-2 text-red-500"></i>
+                <span>@ViewBag.ErrorMessage</span>
             </div>
+        </div>
+    }
 
-            <div class="form-group">
-                <input type="submit" value="Guardar" class="btn btn-primary" />
-                <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+    <!-- Formulario -->
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div class="border-b border-gray-200 bg-gray-50 px-6 py-4">
+            <h3 class="text-lg font-semibold text-gray-900">
+                <i class="fas fa-pen-alt mr-2 text-blue-600"></i>
+                Formulario de Edición
+            </h3>
+        </div>
+
+        <div class="p-6">
+            <form asp-action="Edit">
+                <input type="hidden" asp-for="UserId" />
+
+                <div asp-validation-summary="ModelOnly" class="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg"></div>
+
+                <!-- Campo Email -->
+                <div class="mb-6">
+                    <label asp-for="Email" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-envelope mr-1 text-gray-400"></i>
+                        Correo Electrónico
+                    </label>
+                    <input asp-for="Email"
+                           type="email"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition @(ViewData.ModelState.ContainsKey("Email") && ViewData.ModelState["Email"].Errors.Any() ? "border-red-500" : "")"
+                           placeholder="usuario@ejemplo.com" />
+                    <span asp-validation-for="Email" class="text-sm text-red-600 mt-1 block"></span>
+                    <p class="text-xs text-gray-500 mt-1">Ingrese una dirección de correo electrónico válida</p>
+                </div>
+
+                <!-- Botones de acción -->
+                <div class="flex flex-wrap gap-3 pt-4 border-t border-gray-200">
+                    <button type="submit" class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition duration-200 ease-in-out transform hover:scale-105 shadow-md">
+                        <i class="fas fa-save mr-2"></i>
+                        Guardar Cambios
+                    </button>
+                    <a asp-action="Index" class="inline-flex items-center px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white font-medium rounded-lg transition duration-200 shadow-md">
+                        <i class="fas fa-times mr-2"></i>
+                        Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Información adicional -->
+    <div class="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div class="flex items-start">
+            <i class="fas fa-info-circle text-blue-500 mt-0.5 mr-3"></i>
+            <div>
+                <h4 class="text-sm font-semibold text-blue-800">Información importante</h4>
+                <p class="text-sm text-blue-600 mt-1">
+                    Los cambios en el correo electrónico afectarán las credenciales de inicio de sesión del usuario.
+                    Asegúrese de que el nuevo correo sea válido y no esté siendo utilizado por otro usuario.
+                </p>
             </div>
-        </form>
+        </div>
     </div>
 </div>
 
@@ -36,4 +88,8 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+}
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 }
