@@ -32,6 +32,23 @@
         </div>
     }
 
+    @if (TempData["WarningMessage"] != null)
+    {
+        <div class="mb-4 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-4 rounded-lg shadow-sm">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <i class="fas fa-exclamation-triangle mr-2 text-yellow-600"></i>
+                    <span>@TempData["WarningMessage"]</span>
+                </div>
+                <a asp-action="Specialty"
+                   class="inline-flex items-center px-3 py-1.5 bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-medium rounded-lg transition ml-4">
+                    <i class="fas fa-stethoscope mr-1"></i>
+                    Seleccionar nueva
+                </a>
+            </div>
+        </div>
+    }
+
     @if (!Model.Any())
     {
         <!-- Estado vacío -->
