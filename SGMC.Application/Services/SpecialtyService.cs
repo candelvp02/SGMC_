@@ -204,9 +204,7 @@ namespace SGMC.Application.Services
         {
             SpecialtyId = s.SpecialtyId,
             SpecialtyName = s.SpecialtyName,
-            IsActive = s.IsActive,
-            CreatedAt = s.CreatedAt,
-            UpdatedAt = s.UpdatedAt
+            IsActive = s.IsActive
         };
     }
 }
