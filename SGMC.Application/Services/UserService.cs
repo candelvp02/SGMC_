@@ -106,7 +106,6 @@ namespace SGMC.Application.Services
                 }
 
                 await _notificationService.SendPasswordResetEmailAsync(user.Email, user.UserId);
-
                 return OperationResult.Exito("Si la cuenta existe, recibirá un correo para restablecer la contraseña.");
             }
             catch (Exception ex)
@@ -170,10 +169,7 @@ namespace SGMC.Application.Services
                 await _userRepository.UpdateAsync(user);
 
                 var updatedUser = await _userRepository.GetByIdWithRoleAsync(user.UserId);
-
-                return OperationResult<UserDto>.Exito(
-                    MapToDto(updatedUser!),
-                    "Perfil actualizado correctamente.");
+                return OperationResult<UserDto>.Exito(MapToDto(updatedUser!), "Perfil actualizado correctamente.");
             }
             catch (Exception ex)
             {
@@ -199,7 +195,6 @@ namespace SGMC.Application.Services
                 user.UpdatedAt = DateTime.Now;
 
                 await _userRepository.UpdateAsync(user);
-
                 return OperationResult.Exito("Contraseña cambiada correctamente.");
             }
             catch (Exception ex)
@@ -219,9 +214,7 @@ namespace SGMC.Application.Services
                 if (user == null)
                     return OperationResult<UserDto>.Fallo("Usuario no encontrado.");
 
-                return OperationResult<UserDto>.Exito(
-                    MapToDto(user),
-                    "Usuario obtenido correctamente.");
+                return OperationResult<UserDto>.Exito(MapToDto(user), "Usuario obtenido correctamente.");
             }
             catch (Exception ex)
             {
@@ -241,9 +234,7 @@ namespace SGMC.Application.Services
                 if (user == null)
                     return OperationResult<UserDto>.Fallo("Usuario no encontrado.");
 
-                return OperationResult<UserDto>.Exito(
-                    MapToDto(user),
-                    "Usuario obtenido correctamente.");
+                return OperationResult<UserDto>.Exito(MapToDto(user), "Usuario obtenido correctamente.");
             }
             catch (Exception ex)
             {
@@ -261,9 +252,7 @@ namespace SGMC.Application.Services
             {
                 var users = await _userRepository.GetByRoleIdAsync(roleId);
                 var userDtos = users.Select(MapToDto).ToList();
-                return OperationResult<List<UserDto>>.Exito(
-                    userDtos,
-                    $"Usuarios con Rol ID {roleId} obtenidos correctamente.");
+                return OperationResult<List<UserDto>>.Exito(userDtos, $"Usuarios con Rol ID {roleId} obtenidos correctamente.");
             }
             catch (Exception ex)
             {
@@ -278,9 +267,7 @@ namespace SGMC.Application.Services
             {
                 var users = await _userRepository.GetActiveAsync();
                 var userDtos = users.Select(MapToDto!).ToList();
-                return OperationResult<List<UserDto>>.Exito(
-                    userDtos,
-                    "Usuarios activos obtenidos correctamente.");
+                return OperationResult<List<UserDto>>.Exito(userDtos, "Usuarios activos obtenidos correctamente.");
             }
             catch (Exception ex)
             {
@@ -295,9 +282,7 @@ namespace SGMC.Application.Services
             {
                 var users = await _userRepository.GetAllWithRoleAsync();
                 var userDtos = users.Select(MapToDto).ToList();
-                return OperationResult<List<UserDto>>.Exito(
-                    userDtos,
-                    "Lista de todos los usuarios obtenida correctamente.");
+                return OperationResult<List<UserDto>>.Exito(userDtos, "Lista de todos los usuarios obtenida correctamente.");
             }
             catch (Exception ex)
             {
@@ -306,23 +291,30 @@ namespace SGMC.Application.Services
             }
         }
 
-        public async Task<OperationResult> DeleteAsync(int id)
+        public async Task<OperationResult<List<UserDto>>> SearchAsync(string query)
         {
-            if (id <= 0) return OperationResult.Fallo("ID de usuario inválido.");
+            if (string.IsNullOrWhiteSpace(query))
+                return OperationResult<List<UserDto>>.Fallo("El término de búsqueda es requerido.");
 
             try
             {
-                var exists = await _userRepository.ExistsAsync(id);
-                if (!exists) return OperationResult.Fallo("Usuario no encontrado.");
+                var users = await _userRepository.GetAllWithRoleAsync();
 
-                await _userRepository.DeleteAsync(id);
+                var filtered = users
+                    .Where(u =>
+                        u.Email.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                        (u.UserNavigation != null &&
+                         (u.UserNavigation.FirstName + " " + u.UserNavigation.LastName)
+                         .Contains(query, StringComparison.OrdinalIgnoreCase)))
+                    .ToList();
 
-                return OperationResult.Exito("Usuario eliminado físicamente correctamente.");
+                var userDtos = filtered.Select(MapToDto).ToList();
+                return OperationResult<List<UserDto>>.Exito(userDtos, "Búsqueda completada.");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al eliminar usuario ID: {Id}", id);
-                return OperationResult.Fallo($"Error al eliminar usuario: {ex.Message}");
+                _logger.LogError(ex, "Error al buscar usuarios con query: {Query}", query);
+                return OperationResult<List<UserDto>>.Fallo($"Error al buscar usuarios: {ex.Message}");
             }
         }
 
@@ -349,6 +341,34 @@ namespace SGMC.Application.Services
             {
                 _logger.LogError(ex, "Error al desactivar usuario ID: {Id}", id);
                 return OperationResult.Fallo($"Error al desactivar usuario: {ex.Message}");
+            }
+        }
+
+        public async Task<OperationResult> ChangeRoleAsync(int userId, int roleId)
+        {
+            if (userId <= 0) return OperationResult.Fallo("ID de usuario inválido.");
+            if (roleId <= 0) return OperationResult.Fallo("ID de rol inválido.");
+
+            try
+            {
+                var user = await _userRepository.GetByIdAsync(userId);
+                if (user == null)
+                    return OperationResult.Fallo("Usuario no encontrado.");
+
+                var role = await _roleRepository.GetByIdAsync(roleId);
+                if (role == null)
+                    return OperationResult.Fallo("El rol especificado no existe.");
+
+                user.RoleId = roleId;
+                user.UpdatedAt = DateTime.Now;
+
+                await _userRepository.UpdateAsync(user);
+                return OperationResult.Exito("Rol actualizado correctamente.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al cambiar rol del usuario ID: {Id}", userId);
+                return OperationResult.Fallo($"Error al cambiar rol: {ex.Message}");
             }
         }
 
