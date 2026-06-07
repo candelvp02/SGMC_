@@ -1,0 +1,151 @@
+﻿@model IEnumerable<SGMC.Application.Dto.Appointments.AppointmentDto>
+
+@{
+    ViewData["Title"] = "Buzón de Solicitudes";
+}
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- Título -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900">Buzón de Solicitudes</h1>
+        <p class="text-gray-600 mt-2">Gestiona las solicitudes de citas pendientes de confirmación</p>
+    </div>
+
+    <!-- Mensajes -->
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="mb-4 bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg shadow-sm">
+            <div class="flex items-center">
+                <i class="fas fa-exclamation-circle mr-2 text-red-500"></i>
+                <span>@TempData["ErrorMessage"]</span>
+            </div>
+        </div>
+    }
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="mb-4 bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded-lg shadow-sm">
+            <div class="flex items-center">
+                <i class="fas fa-check-circle mr-2 text-green-500"></i>
+                <span>@TempData["SuccessMessage"]</span>
+            </div>
+        </div>
+    }
+
+    @if (!Model.Any())
+    {
+        <!-- Estado vacío -->
+        <div class="bg-white rounded-xl shadow-lg p-12 text-center">
+            <i class="fas fa-inbox text-5xl text-gray-300 mb-4 block"></i>
+            <h3 class="text-xl font-semibold text-gray-700 mb-2">No hay solicitudes pendientes</h3>
+            <p class="text-gray-500">Todas las solicitudes han sido atendidas. Vuelve más tarde.</p>
+        </div>
+    }
+    else
+    {
+        <!-- Contador -->
+        <div class="mb-4 flex items-center gap-2">
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
+                <span class="w-2 h-2 bg-yellow-500 rounded-full mr-2"></span>
+                @Model.Count() solicitud(es) pendiente(s)
+            </span>
+        </div>
+
+        <!-- Tarjetas de solicitudes -->
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            @foreach (var cita in Model)
+            {
+                <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 hover:shadow-lg transition duration-200">
+
+                    <!-- Header de la tarjeta -->
+                    <div class="bg-gray-800 px-5 py-3 flex items-center justify-between">
+                        <span class="text-white text-sm font-medium">
+                            <i class="fas fa-hashtag mr-1 text-gray-400"></i>Cita #@cita.AppointmentId
+                        </span>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-400 text-yellow-900">
+                            <span class="w-1.5 h-1.5 bg-yellow-700 rounded-full mr-1"></span>
+                            Pendiente
+                        </span>
+                    </div>
+
+                    <!-- Cuerpo -->
+                    <div class="p-5 space-y-3">
+
+                        <!-- Paciente -->
+                        <div class="flex items-start gap-3">
+                            <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-user text-blue-600 text-sm"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500 font-medium uppercase tracking-wide">Paciente</p>
+                                <p class="text-sm font-semibold text-gray-900">@cita.PatientName</p>
+                            </div>
+                        </div>
+
+                        <!-- Fecha y hora -->
+                        <div class="flex items-start gap-3">
+                            <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-calendar-alt text-green-600 text-sm"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500 font-medium uppercase tracking-wide">Fecha y Hora</p>
+                                <p class="text-sm font-semibold text-gray-900">
+                                    @cita.AppointmentDate.ToString("dd/MM/yyyy")
+                                </p>
+                                <p class="text-sm text-gray-600">
+                                    @cita.AppointmentDate.ToString("hh:mm tt")
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Fecha de solicitud -->
+                        <div class="flex items-start gap-3">
+                            <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-clock text-gray-500 text-sm"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500 font-medium uppercase tracking-wide">Solicitada el</p>
+                                <p class="text-sm text-gray-700">
+                                    @cita.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botones de acción -->
+                    <div class="px-5 pb-5 flex gap-3">
+
+                        <!-- Confirmar -->
+                        <form asp-action="Confirm" method="post" class="flex-1">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@cita.AppointmentId" />
+                            <button type="submit"
+                                    class="w-full inline-flex items-center justify-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition duration-200 shadow-sm"
+                                    onclick="return confirm('¿Confirmar esta cita con @cita.PatientName?')">
+                                <i class="fas fa-check mr-2"></i>
+                                Confirmar
+                            </button>
+                        </form>
+
+                        <!-- Rechazar -->
+                        <form asp-action="Reject" method="post" class="flex-1">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@cita.AppointmentId" />
+                            <button type="submit"
+                                    class="w-full inline-flex items-center justify-center px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-lg transition duration-200 shadow-sm"
+                                    onclick="return confirm('¿Rechazar esta solicitud? El paciente podrá seleccionar una nueva fecha.')">
+                                <i class="fas fa-times mr-2"></i>
+                                Rechazar
+                            </button>
+                        </form>
+
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+}

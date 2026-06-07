@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SGMC.Application.Dto.System;
 using SGMC.Application.Dto.Users;
 using SGMC.Application.Interfaces.Service;
@@ -7,6 +8,7 @@ using SGMC.Web.Models.User;
 
 namespace SGMC.Web.Controllers
 {
+    [Authorize(Roles = "Administrador")]
     public class UserController : Controller
     {
         private readonly IUserService _userService;
@@ -86,6 +88,7 @@ namespace SGMC.Web.Controllers
                     return View(registerUserDto);
                 }
 
+                TempData["SuccessMessage"] = "Usuario creado correctamente.";
                 return RedirectToAction(nameof(Index));
             }
             catch
@@ -132,6 +135,7 @@ namespace SGMC.Web.Controllers
                     return View(updateUserDto);
                 }
 
+                TempData["SuccessMessage"] = "Usuario actualizado correctamente.";
                 return RedirectToAction(nameof(Index));
             }
             catch
@@ -150,9 +154,9 @@ namespace SGMC.Web.Controllers
                 OperationResult result = await _userService.ActivateAccountAsync(id);
 
                 if (!result.Exitoso)
-                    ViewBag.ErrorMessage = result.Mensaje;
+                    TempData["ErrorMessage"] = result.Mensaje;
                 else
-                    ViewBag.SuccessMessage = "Usuario activado correctamente.";
+                    TempData["SuccessMessage"] = "Usuario activado correctamente.";
 
                 return RedirectToAction(nameof(Index));
             }
@@ -172,9 +176,9 @@ namespace SGMC.Web.Controllers
                 OperationResult result = await _userService.DeactivateAsync(id);
 
                 if (!result.Exitoso)
-                    ViewBag.ErrorMessage = result.Mensaje;
+                    TempData["ErrorMessage"] = result.Mensaje;
                 else
-                    ViewBag.SuccessMessage = "Usuario desactivado correctamente.";
+                    TempData["SuccessMessage"] = "Usuario desactivado correctamente.";
 
                 return RedirectToAction(nameof(Index));
             }
@@ -194,9 +198,9 @@ namespace SGMC.Web.Controllers
                 OperationResult result = await _userService.ChangeRoleAsync(id, roleId);
 
                 if (!result.Exitoso)
-                    ViewBag.ErrorMessage = result.Mensaje;
+                    TempData["ErrorMessage"] = result.Mensaje;
                 else
-                    ViewBag.SuccessMessage = "Rol actualizado correctamente.";
+                    TempData["SuccessMessage"] = "Rol actualizado correctamente.";
 
                 return RedirectToAction(nameof(Index));
             }
@@ -231,7 +235,7 @@ namespace SGMC.Web.Controllers
                     return View(changePasswordDto);
                 }
 
-                ViewBag.SuccessMessage = "Contraseña cambiada exitosamente";
+                TempData["SuccessMessage"] = "Contraseña cambiada exitosamente.";
                 return RedirectToAction(nameof(Index));
             }
             catch

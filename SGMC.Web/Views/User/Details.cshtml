@@ -16,9 +16,7 @@
     {
         <div class="mb-6 bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg shadow-sm">
             <div class="flex items-center">
-                <svg class="w-5 h-5 mr-2 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+                <i class="fas fa-exclamation-circle mr-2 text-red-500"></i>
                 <span>@ViewBag.ErrorMessage</span>
             </div>
         </div>
@@ -26,23 +24,20 @@
 
     <!-- Tarjeta de Detalles -->
     <div class="bg-white rounded-xl shadow-lg overflow-hidden">
-        <!-- Header de la tarjeta -->
         <div class="border-b border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4">
-            <h3 class="text-lg font-semibold text-gray-900">
-                Información del Usuario
-            </h3>
+            <h3 class="text-lg font-semibold text-gray-900">Información del Usuario</h3>
         </div>
 
-        <!-- Cuerpo de la tarjeta -->
         <div class="p-6">
             <dl class="divide-y divide-gray-200">
-                <!-- ID de Usuario -->
+
+                <!-- Nombre Completo -->
                 <div class="py-4 flex flex-col sm:flex-row">
                     <dt class="sm:w-1/3 text-sm font-medium text-gray-500 mb-1 sm:mb-0">
-                        ID de Usuario
+                        Nombre Completo
                     </dt>
-                    <dd class="sm:w-2/3 text-sm text-gray-900 font-mono">
-                        @Model.UserId
+                    <dd class="sm:w-2/3 text-sm text-gray-900 font-medium">
+                        @Model.FullName
                     </dd>
                 </div>
 
@@ -94,12 +89,23 @@
                 <!-- Fecha de Creación -->
                 <div class="py-4 flex flex-col sm:flex-row">
                     <dt class="sm:w-1/3 text-sm font-medium text-gray-500 mb-1 sm:mb-0">
-                        Fecha de Creación
+                        Fecha de Registro
                     </dt>
                     <dd class="sm:w-2/3 text-sm text-gray-900">
-                        @Model.CreatedAt?.ToString("dd/MM/yyyy HH:mm")
+                        @(Model.CreatedAt?.ToString("dd/MM/yyyy HH:mm") ?? "—")
                     </dd>
                 </div>
+
+                <!-- Última Actualización -->
+                <div class="py-4 flex flex-col sm:flex-row">
+                    <dt class="sm:w-1/3 text-sm font-medium text-gray-500 mb-1 sm:mb-0">
+                        Última Actualización
+                    </dt>
+                    <dd class="sm:w-2/3 text-sm text-gray-900">
+                        @(Model.UpdatedAt?.ToString("dd/MM/yyyy HH:mm") ?? "—")
+                    </dd>
+                </div>
+
             </dl>
         </div>
     </div>
@@ -108,35 +114,25 @@
     <div class="mt-6 flex flex-wrap gap-3">
         <a asp-action="Edit" asp-route-id="@Model.UserId"
            class="inline-flex items-center px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white font-medium rounded-lg transition duration-200 shadow-md">
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            </svg>
+            <i class="fas fa-edit mr-2"></i>
             Editar
         </a>
-
         <a asp-action="ChangePassword" asp-route-id="@Model.UserId"
            class="inline-flex items-center px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white font-medium rounded-lg transition duration-200 shadow-md">
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-            </svg>
+            <i class="fas fa-key mr-2"></i>
             Cambiar Contraseña
         </a>
-
         <a asp-action="Index"
-           class="inline-flex items-center px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white font-medium rounded-lg transition duration-200 shadow-md">
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
+           class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition duration-200 shadow-md">
+            <i class="fas fa-arrow-left mr-2"></i>
             Volver a la Lista
         </a>
     </div>
 
-    <!-- Tarjeta de Información Adicional (opcional) -->
-    <div class="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-4">
+    <!-- Info adicional -->
+    <div class="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
         <div class="flex items-start">
-            <svg class="w-5 h-5 text-blue-500 mt-0.5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+            <i class="fas fa-info-circle text-blue-500 mt-0.5 mr-3"></i>
             <div>
                 <h4 class="text-sm font-semibold text-blue-800">Información del Sistema</h4>
                 <p class="text-sm text-blue-600 mt-1">
@@ -146,3 +142,7 @@
         </div>
     </div>
 </div>
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+}
