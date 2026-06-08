@@ -16,7 +16,6 @@ namespace SGMC.Application.Dto.Users
         public int InsuranceProviderId { get; set; }
         public string InsuranceProviderName { get; set; } = string.Empty;
         public bool IsActive { get; set; }
-
     }
 
     public class RegisterPatientDto : RegisterPersonBaseDto
