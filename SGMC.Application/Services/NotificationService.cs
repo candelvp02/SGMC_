@@ -129,6 +129,19 @@ namespace SGMC.Application.Services
             return Task.FromResult(OperationResult.Exito($"Email de confirmación para cita {appointmentId} enviado."));
         }
 
+        public Task<OperationResult> SendAccountActivationEmailAsync(string recipientEmail, int userId)
+        {
+            if (string.IsNullOrWhiteSpace(recipientEmail))
+                return Task.FromResult(OperationResult.Fallo("Email requerido."));
+
+            _logger.LogInformation(
+                "SIMULACIÓN: Email de activación enviado a {Email} (Patient ID: {UserId}).",
+                recipientEmail, userId);
+
+            return Task.FromResult(OperationResult.Exito(
+                $"Email de activación enviado a {recipientEmail}. La cuenta está pendiente de confirmación."));
+        }
+
         // private mapping
 
         private static NotificationDto MapToDto(Notification n)
