@@ -8,7 +8,12 @@ namespace SGMC.Application.Dto.Base
         public string LastName { get; set; } = string.Empty;
         public DateOnly? DateOfBirth { get; set; }
         public string IdentificationNumber { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "El género es requerido")]
+        [RegularExpression("^(Masculino|Femenino)$", ErrorMessage = "El género debe ser Masculino o Femenino")]
         public string Gender { get; set; } = string.Empty;
+
+
         public string FullName => $"{FirstName} {LastName}";
     }
     public abstract class RegisterPersonBaseDto : PersonBaseDto

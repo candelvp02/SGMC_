@@ -21,8 +21,9 @@ namespace SGMC.Application.Dto.Users
 
     public class RegisterPatientDto : RegisterPersonBaseDto
     {
-        [Required(ErrorMessage = "El teléfono es requerido")]
-        [Phone(ErrorMessage = "Formato de teléfono inválido")]
+        [Required(ErrorMessage = "El género es requerido")]
+        [RegularExpression("^(Masculino|Femenino)$", ErrorMessage = "El género debe ser Masculino o Femenino")]
+
         public string PhoneNumber { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "La dirección es requerida")]
