@@ -129,6 +129,22 @@ namespace SGMC.Application.Services
             return Task.FromResult(OperationResult.Exito($"Email de confirmación para cita {appointmentId} enviado."));
         }
 
+        public Task<OperationResult> SendAccountActivationEmailAsync(string recipientEmail, int userId)
+        {
+            if (string.IsNullOrWhiteSpace(recipientEmail))
+                return Task.FromResult(OperationResult.Fallo("Email requerido."));
+
+            // Aquí va la lógica real de envío (En Hold por el momento).
+            // Por ahora simula el envío igual que los otros métodos.
+            // Confirmár con Candela mas tarde si vamos a aplicar alguna lógica adicional para este caso específico.
+            _logger.LogInformation(
+                "SIMULACIÓN: Email de activación enviado a {Email} (Patient ID: {UserId}).",
+                recipientEmail, userId);
+
+            return Task.FromResult(
+                OperationResult.Exito($"Email de activación enviado a {recipientEmail}. La cuenta está pendiente de confirmación."));
+        }
+
         // private mapping
 
         private static NotificationDto MapToDto(Notification n)

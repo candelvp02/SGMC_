@@ -24,22 +24,17 @@ builder.Services.AddSpecialtyDependencies();
 // Consumo de capa api
 builder.Services.AddHttpClient<IAppointmentApiClient, AppointmentApiClient>(client =>
 {
-    client.BaseAddress = new Uri("http://localhost:5038/api/");
-});
-
-builder.Services.AddHttpClient<IAppointmentApiClient, AppointmentApiClient>(client =>
-{
-    client.BaseAddress = new Uri("http://localhost:5038/api/");
+    client.BaseAddress = new Uri("https://localhost:7038/api/");
 });
 
 builder.Services.AddHttpClient<IPatientApiClient, PatientApiClient>(client =>
 {
-    client.BaseAddress = new Uri("http://localhost:5038/api/");
+    client.BaseAddress = new Uri("https://localhost:7038/api/");
 });
 
 builder.Services.AddHttpClient<IDoctorApiClient, DoctorApiClient>(client =>
 {
-    client.BaseAddress = new Uri("http://localhost:5038/api/");
+    client.BaseAddress = new Uri("https://localhost:7038/api/");
 });
 
 // MVC

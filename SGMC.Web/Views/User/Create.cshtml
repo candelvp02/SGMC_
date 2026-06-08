@@ -4,51 +4,148 @@
     ViewData["Title"] = "Crear Usuario";
 }
 
-<h1>Crear Nuevo Usuario</h1>
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Título -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900">Crear Nuevo Usuario</h1>
+        <p class="text-gray-600 mt-2">Registre un nuevo usuario en el sistema</p>
+    </div>
 
-@if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
-{
-    <div class="alert alert-danger">@ViewBag.ErrorMessage</div>
-}
-
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-
-            <div class="form-group mb-3">
-                <label asp-for="Email" class="control-label"></label>
-                <input asp-for="Email" class="form-control" type="email" />
-                <span asp-validation-for="Email" class="text-danger"></span>
+    <!-- Mensajes de error -->
+    @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
+    {
+        <div class="mb-6 bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg shadow-sm">
+            <div class="flex items-center">
+                <svg class="w-5 h-5 mr-2 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>@ViewBag.ErrorMessage</span>
             </div>
+        </div>
+    }
 
-            <div class="form-group mb-3">
-                <label asp-for="Password" class="control-label"></label>
-                <input asp-for="Password" class="form-control" type="password" />
-                <span asp-validation-for="Password" class="text-danger"></span>
-                <small class="form-text text-muted">
-                    Mínimo 8 caracteres, incluir mayúsculas, minúsculas y números
-                </small>
-            </div>
+    <!-- Formulario -->
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+        <!-- Header -->
+        <div class="border-b border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4">
+            <h3 class="text-lg font-semibold text-gray-900">
+                Formulario de Registro
+            </h3>
+        </div>
 
-            <div class="form-group mb-3">
-                <label asp-for="RoleId" class="control-label">Rol</label>
-                <select asp-for="RoleId" class="form-control">
-                    <option value="">Seleccione un rol...</option>
-                    <option value="1">Administrador</option>
-                    <option value="2">Doctor</option>
-                    <option value="3">Paciente</option>
-                    <option value="4">Recepcionista</option>
-                </select>
-                <span asp-validation-for="RoleId" class="text-danger"></span>
-            </div>
+        <!-- Cuerpo del formulario -->
+        <div class="p-6">
+            <form asp-action="Create">
+                <!-- Resumen de validación -->
+                <div asp-validation-summary="ModelOnly" class="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm"></div>
 
-            <div class="form-group">
-                <input type="submit" value="Crear" class="btn btn-primary" />
-                <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+                <!-- Campo Email -->
+                <div class="mb-6">
+                    <label asp-for="Email" class="block text-sm font-medium text-gray-700 mb-2">
+                        Correo Electrónico
+                        <span class="text-red-500 ml-1">*</span>
+                    </label>
+                    <input asp-for="Email"
+                           type="email"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition @(ViewData.ModelState.ContainsKey("Email") && ViewData.ModelState["Email"].Errors.Any() ? "border-red-500" : "")"
+                           placeholder="usuario@ejemplo.com"
+                           required />
+                    <span asp-validation-for="Email" class="text-sm text-red-600 mt-1 block"></span>
+                    <p class="text-xs text-gray-500 mt-1">Ingrese una dirección de correo electrónico válida</p>
+                </div>
+
+                <!-- Campo Password -->
+                <div class="mb-6">
+                    <label asp-for="Password" class="block text-sm font-medium text-gray-700 mb-2">
+                        Contraseña
+                        <span class="text-red-500 ml-1">*</span>
+                    </label>
+                    <input asp-for="Password"
+                           type="password"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition @(ViewData.ModelState.ContainsKey("Password") && ViewData.ModelState["Password"].Errors.Any() ? "border-red-500" : "")"
+                           placeholder="Ingrese una contraseña segura"
+                           required />
+                    <span asp-validation-for="Password" class="text-sm text-red-600 mt-1 block"></span>
+
+                    <!-- Indicadores de fortaleza de contraseña -->
+                    <div class="mt-2 space-y-1">
+                        <p class="text-xs text-gray-500">Requisitos de seguridad:</p>
+                        <ul class="text-xs text-gray-500 space-y-1 ml-4 list-disc">
+                            <li id="lengthCheck" class="text-gray-400">✓ Mínimo 8 caracteres</li>
+                            <li id="uppercaseCheck" class="text-gray-400">✓ Al menos una mayúscula</li>
+                            <li id="lowercaseCheck" class="text-gray-400">✓ Al menos una minúscula</li>
+                            <li id="numberCheck" class="text-gray-400">✓ Al menos un número</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Campo RoleId -->
+                <div class="mb-6">
+                    <label asp-for="RoleId" class="block text-sm font-medium text-gray-700 mb-2">
+                        Rol de Usuario
+                        <span class="text-red-500 ml-1">*</span>
+                    </label>
+                    <select asp-for="RoleId"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                            required>
+                        <option value="">Seleccione un rol...</option>
+                        <option value="1">Administrador</option>
+                        <option value="2">Doctor</option>
+                        <option value="3">Paciente</option>
+                        <option value="4">Recepcionista</option>
+                    </select>
+                    <span asp-validation-for="RoleId" class="text-sm text-red-600 mt-1 block"></span>
+                    <p class="text-xs text-gray-500 mt-1">El rol define los permisos y accesos del usuario</p>
+                </div>
+
+                <!-- Botones de acción -->
+                <div class="flex flex-wrap gap-3 pt-4 border-t border-gray-200">
+                    <button type="submit" class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition duration-200 shadow-md">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Crear Usuario
+                    </button>
+                    <a asp-action="Index" class="inline-flex items-center px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white font-medium rounded-lg transition duration-200 shadow-md">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                        Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tarjeta de información adicional -->
+    <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div class="flex items-start">
+                <svg class="w-5 h-5 text-blue-500 mt-0.5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div>
+                    <h4 class="text-sm font-semibold text-blue-800">Seguridad</h4>
+                    <p class="text-sm text-blue-600 mt-1">
+                        La contraseña debe ser única y no compartida con otros servicios.
+                    </p>
+                </div>
             </div>
-        </form>
+        </div>
+
+        <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+            <div class="flex items-start">
+                <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div>
+                    <h4 class="text-sm font-semibold text-green-800">Nota importante</h4>
+                    <p class="text-sm text-green-600 mt-1">
+                        El usuario recibirá un correo de confirmación después de su creación.
+                    </p>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -56,4 +153,55 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+
+    <script>
+        // Validador de fortaleza de contraseña en tiempo real
+        const passwordInput = document.querySelector('input[asp-for="Password"]');
+
+        if (passwordInput) {
+            passwordInput.addEventListener('input', function() {
+                const password = this.value;
+
+                // Validar longitud mínima (8 caracteres)
+                const lengthCheck = document.getElementById('lengthCheck');
+                if (password.length >= 8) {
+                    lengthCheck.classList.remove('text-gray-400');
+                    lengthCheck.classList.add('text-green-600');
+                } else {
+                    lengthCheck.classList.remove('text-green-600');
+                    lengthCheck.classList.add('text-gray-400');
+                }
+
+                // Validar mayúscula
+                const uppercaseCheck = document.getElementById('uppercaseCheck');
+                if (/[A-Z]/.test(password)) {
+                    uppercaseCheck.classList.remove('text-gray-400');
+                    uppercaseCheck.classList.add('text-green-600');
+                } else {
+                    uppercaseCheck.classList.remove('text-green-600');
+                    uppercaseCheck.classList.add('text-gray-400');
+                }
+
+                // Validar minúscula
+                const lowercaseCheck = document.getElementById('lowercaseCheck');
+                if (/[a-z]/.test(password)) {
+                    lowercaseCheck.classList.remove('text-gray-400');
+                    lowercaseCheck.classList.add('text-green-600');
+                } else {
+                    lowercaseCheck.classList.remove('text-green-600');
+                    lowercaseCheck.classList.add('text-gray-400');
+                }
+
+                // Validar número
+                const numberCheck = document.getElementById('numberCheck');
+                if (/[0-9]/.test(password)) {
+                    numberCheck.classList.remove('text-gray-400');
+                    numberCheck.classList.add('text-green-600');
+                } else {
+                    numberCheck.classList.remove('text-green-600');
+                    numberCheck.classList.add('text-gray-400');
+                }
+            });
+        }
+    </script>
 }
