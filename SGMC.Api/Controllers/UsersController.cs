@@ -17,7 +17,6 @@ namespace SGMC.Api.Controllers
             _userService = userService;
         }
 
-        // GET api/users — Listado completo de usuarios - solo admin
         [HttpGet]
         public async Task<ActionResult<OperationResult<List<UserDto>>>> GetAll()
         {
@@ -25,7 +24,6 @@ namespace SGMC.Api.Controllers
             return Ok(result);
         }
 
-        // GET api/users/{id}
         [HttpGet("{id}")]
         public async Task<ActionResult<OperationResult<UserDto>>> GetById(int id)
         {
@@ -35,44 +33,6 @@ namespace SGMC.Api.Controllers
             return Ok(result);
         }
 
-        // GET api/users/search?query=nombre_o_email
-        [HttpGet("search")]
-        public async Task<ActionResult<OperationResult<List<UserDto>>>> Search([FromQuery] string query)
-        {
-            if (string.IsNullOrWhiteSpace(query))
-                return BadRequest(OperationResult.Fallo("El término de búsqueda es requerido"));
-
-            var result = await _userService.SearchAsync(query);
-            return Ok(result);
-        }
-
-        // GET api/users/active
-        [HttpGet("active")]
-        public async Task<ActionResult<OperationResult<List<UserDto>>>> GetActive()
-        {
-            var result = await _userService.GetActiveUsersAsync();
-            return Ok(result);
-        }
-
-        // GET api/users/role/{roleId}
-        [HttpGet("role/{roleId}")]
-        public async Task<ActionResult<OperationResult<List<UserDto>>>> GetByRole(int roleId)
-        {
-            var result = await _userService.GetByRoleAsync((short)roleId);
-            return Ok(result);
-        }
-
-        // GET api/users/email/{email}
-        [HttpGet("email/{email}")]
-        public async Task<ActionResult<OperationResult<UserDto>>> GetByEmail(string email)
-        {
-            var result = await _userService.GetByEmailAsync(email);
-            if (!result.Exitoso)
-                return NotFound(result);
-            return Ok(result);
-        }
-
-        // POST api/users
         [HttpPost]
         public async Task<ActionResult<OperationResult<UserDto>>> Create([FromBody] RegisterUserDto dto)
         {
@@ -85,7 +45,6 @@ namespace SGMC.Api.Controllers
             return CreatedAtAction(nameof(GetById), new { id = result.Datos?.UserId }, result);
         }
 
-        // PUT api/users/{id}
         [HttpPut("{id}")]
         public async Task<ActionResult<OperationResult<UserDto>>> Update(int id, [FromBody] UpdateUserDto dto)
         {
@@ -101,40 +60,38 @@ namespace SGMC.Api.Controllers
             return Ok(result);
         }
 
-        // PATCH api/users/{id}/activate — Activar cuenta - solo admin
-        [HttpPatch("{id}/activate")]
-        public async Task<ActionResult<OperationResult>> Activate(int id)
+        [HttpDelete("{id}")]
+        public async Task<ActionResult<OperationResult>> Delete(int id)
         {
-            var result = await _userService.ActivateAccountAsync(id);
+            var result = await _userService.DeleteAsync(id);
             if (!result.Exitoso)
                 return BadRequest(result);
             return Ok(result);
         }
 
-        // PATCH api/users/{id}/deactivate — Desactivar cuenta - solo admin
-        [HttpPatch("{id}/deactivate")]
-        public async Task<ActionResult<OperationResult>> Deactivate(int id)
+        [HttpGet("active")]
+        public async Task<ActionResult<OperationResult<List<UserDto>>>> GetActive()
         {
-            var result = await _userService.DeactivateAsync(id);
-            if (!result.Exitoso)
-                return BadRequest(result);
+            var result = await _userService.GetActiveUsersAsync();
             return Ok(result);
         }
 
-        // PATCH api/users/{id}/role — Cambiar rol - solo admin
-        [HttpPatch("{id}/role")]
-        public async Task<ActionResult<OperationResult>> ChangeRole(int id, [FromBody] ChangeRoleDto dto)
+        [HttpGet("role/{roleId}")]
+        public async Task<ActionResult<OperationResult<List<UserDto>>>> GetByRole(int roleId)
         {
-            if (dto == null || dto.RoleId <= 0)
-                return BadRequest(OperationResult.Fallo("Rol inválido"));
-
-            var result = await _userService.ChangeRoleAsync(id, dto.RoleId);
-            if (!result.Exitoso)
-                return BadRequest(result);
+            var result = await _userService.GetByRoleAsync((short)roleId);
             return Ok(result);
         }
 
-        // POST api/users/authenticate
+        [HttpGet("email/{email}")]
+        public async Task<ActionResult<OperationResult<UserDto>>> GetByEmail(string email)
+        {
+            var result = await _userService.GetByEmailAsync(email);
+            if (!result.Exitoso)
+                return NotFound(result);
+            return Ok(result);
+        }
+
         [HttpPost("authenticate")]
         public async Task<ActionResult<OperationResult<UserDto>>> Authenticate([FromBody] LoginDto dto)
         {
@@ -147,10 +104,8 @@ namespace SGMC.Api.Controllers
             return Ok(result);
         }
 
-        // POST api/users/password-reset
         [HttpPost("password-reset")]
-        public async Task<ActionResult<OperationResult>> RequestPasswordReset(
-            [FromBody] PasswordResetRequestDto dto)
+        public async Task<ActionResult<OperationResult>> RequestPasswordReset([FromBody] PasswordResetRequestDto dto)
         {
             if (string.IsNullOrWhiteSpace(dto.Email))
                 return BadRequest(OperationResult.Fallo("Email requerido"));
@@ -158,16 +113,28 @@ namespace SGMC.Api.Controllers
             var result = await _userService.RequestPasswordResetAsync(dto.Email);
             return Ok(result);
         }
+
+        [HttpPatch("{id}/activate")]
+        public async Task<ActionResult<OperationResult>> Activate(int id)
+        {
+            var result = await _userService.ActivateAccountAsync(id);
+            if (!result.Exitoso)
+                return BadRequest(result);
+            return Ok(result);
+        }
+
+        [HttpPatch("{id}/deactivate")]
+        public async Task<ActionResult<OperationResult>> Deactivate(int id)
+        {
+            var result = await _userService.DeactivateAsync(id);
+            if (!result.Exitoso)
+                return BadRequest(result);
+            return Ok(result);
+        }
     }
 
-    // DTOs locales
     public class PasswordResetRequestDto
     {
         public string Email { get; set; } = string.Empty;
-    }
-
-    public class ChangeRoleDto
-    {
-        public int RoleId { get; set; }
     }
 }
