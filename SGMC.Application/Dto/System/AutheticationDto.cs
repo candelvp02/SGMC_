@@ -2,7 +2,6 @@
 
 namespace SGMC.Application.Dto.System
 {
-    // Base para credenciales
     public record CredentialsBaseDto
     {
         [Required(ErrorMessage = "El email es requerido")]
@@ -14,19 +13,14 @@ namespace SGMC.Application.Dto.System
         public string Password { get; init; } = string.Empty;
     }
 
-    // Login con credenciales
-    public record LoginDto : CredentialsBaseDto
-    {
-    }
+    public record UserLoginDto : CredentialsBaseDto { }
 
-    // Registro de usuario
     public record RegisterUserDto : CredentialsBaseDto
     {
         [Required(ErrorMessage = "El rol es requerido")]
         public short RoleId { get; init; }
     }
 
-    // Cambio de password
     public record ChangePasswordDto
     {
         [Required]
@@ -39,9 +33,7 @@ namespace SGMC.Application.Dto.System
         [MinLength(6, ErrorMessage = "La nueva contraseña debe tener al menos 6 caracteres")]
         public string NewPassword { get; init; } = string.Empty;
     }
-
-    // Reset de password
-    public record ResetPasswordDto
+    public record UserResetPasswordDto
     {
         [Required]
         public string Token { get; init; } = string.Empty;
