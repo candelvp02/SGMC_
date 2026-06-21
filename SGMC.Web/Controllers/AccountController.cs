@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using SGMC.Application.Dto.System;
+using SGMC.Application.Dto.Users;
 using SGMC.Application.Interfaces.Service;
 using System.Security.Claims;
 
@@ -33,7 +34,13 @@ namespace SGMC.Web.Controllers
             if (!ModelState.IsValid)
                 return View(dto);
 
-            var result = await _userService.AuthenticateAsync(dto);
+            var credentials = new UserLoginDto
+            {
+                Email = dto.Email,
+                Password = dto.Password
+            };
+
+            var result = await _userService.AuthenticateAsync(credentials);
 
             if (!result.Exitoso || result.Datos == null)
             {
