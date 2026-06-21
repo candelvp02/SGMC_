@@ -1,9 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SGMC.Application.Dto.Insurance;
 using SGMC.Application.Interfaces.Service;
 
 namespace SGMC.Web.Controllers
 {
+    [Authorize(Roles = "Administrador")]
     public class InsuranceProviderAdmController : Controller
     {
         private readonly IInsuranceProviderService _insuranceService;
@@ -12,6 +14,15 @@ namespace SGMC.Web.Controllers
         {
             _insuranceService = insuranceService;
         }
+
+        private List<NetworkTypeDto> GetNetworkTypes() => new()
+        {
+            new NetworkTypeDto { NetworkTypeId = 1, Name = "HMO" },
+            new NetworkTypeDto { NetworkTypeId = 2, Name = "PPO" },
+            new NetworkTypeDto { NetworkTypeId = 3, Name = "EPO" },
+            new NetworkTypeDto { NetworkTypeId = 4, Name = "POS" },
+            new NetworkTypeDto { NetworkTypeId = 5, Name = "HDHP" }
+        };
 
         public async Task<ActionResult> Index()
         {
@@ -26,6 +37,7 @@ namespace SGMC.Web.Controllers
 
         public ActionResult Create()
         {
+            ViewBag.NetworkTypes = GetNetworkTypes();
             return View();
         }
 
@@ -37,12 +49,7 @@ namespace SGMC.Web.Controllers
             {
                 if (!ModelState.IsValid)
                 {
-                    // Log de errores de validación
-                    var errors = ModelState.Values.SelectMany(v => v.Errors);
-                    foreach (var error in errors)
-                    {
-                        Console.WriteLine($"Validation Error: {error.ErrorMessage}");
-                    }
+                    ViewBag.NetworkTypes = GetNetworkTypes();
                     return View(dto);
                 }
 
@@ -51,15 +58,17 @@ namespace SGMC.Web.Controllers
                 if (!result.Exitoso)
                 {
                     ViewBag.ErrorMessage = result.Mensaje;
+                    ViewBag.NetworkTypes = GetNetworkTypes();
                     return View(dto);
                 }
 
-                TempData["SuccessMessage"] = "Proveedor de Seguro creado correctamente";
+                TempData["SuccessMessage"] = "Proveedor de seguro creado correctamente.";
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
                 ViewBag.ErrorMessage = "Error creando el proveedor: " + ex.Message;
+                ViewBag.NetworkTypes = GetNetworkTypes();
                 return View(dto);
             }
         }
@@ -92,10 +101,21 @@ namespace SGMC.Web.Controllers
                 Email = result.Datos.Email,
                 Website = result.Datos.Website,
                 Address = result.Datos.Address,
-                IsActive = result.Datos.IsActive,
-                NetworkTypeId = result.Datos.NetworkTypeId
+                City = result.Datos.City,
+                State = result.Datos.State,
+                Country = result.Datos.Country,
+                ZipCode = result.Datos.ZipCode,
+                CoverageDetails = result.Datos.CoverageDetails,
+                LogoUrl = result.Datos.LogoUrl,
+                IsPreferred = result.Datos.IsPreferred,
+                NetworkTypeId = result.Datos.NetworkTypeId,
+                CustomerSupportContact = result.Datos.CustomerSupportContact,
+                AcceptedRegions = result.Datos.AcceptedRegions,
+                MaxCoverageAmount = result.Datos.MaxCoverageAmount,
+                IsActive = result.Datos.IsActive
             };
 
+            ViewBag.NetworkTypes = GetNetworkTypes();
             return View(updateDto);
         }
 
@@ -106,6 +126,7 @@ namespace SGMC.Web.Controllers
             if (id != dto.InsuranceProviderId)
             {
                 ViewBag.ErrorMessage = "El ID no coincide.";
+                ViewBag.NetworkTypes = GetNetworkTypes();
                 return View(dto);
             }
 
@@ -113,6 +134,7 @@ namespace SGMC.Web.Controllers
             {
                 if (!ModelState.IsValid)
                 {
+                    ViewBag.NetworkTypes = GetNetworkTypes();
                     return View(dto);
                 }
 
@@ -121,44 +143,119 @@ namespace SGMC.Web.Controllers
                 if (!result.Exitoso)
                 {
                     ViewBag.ErrorMessage = result.Mensaje;
+                    ViewBag.NetworkTypes = GetNetworkTypes();
                     return View(dto);
                 }
 
-                TempData["SuccessMessage"] = "Proveedor actualizado correctamente";
+                TempData["SuccessMessage"] = "Proveedor actualizado correctamente.";
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
                 ViewBag.ErrorMessage = "Error actualizando el proveedor: " + ex.Message;
+                ViewBag.NetworkTypes = GetNetworkTypes();
                 return View(dto);
             }
         }
 
-        public async Task<ActionResult> Delete(int id)
-        {
-            var result = await _insuranceService.GetByIdAsync(id);
-            if (!result.Exitoso)
-            {
-                TempData["ErrorMessage"] = result.Mensaje;
-                return RedirectToAction(nameof(Index));
-            }
-            return View(result.Datos);
-        }
-
-        [HttpPost, ActionName("Delete")]
+        [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> DeleteConfirmed(int id)
+        public async Task<ActionResult> Deactivate(int id)
         {
             try
             {
-                await _insuranceService.DeleteAsync(id);
+                var providerResult = await _insuranceService.GetByIdAsync(id);
+                if (!providerResult.Exitoso || providerResult.Datos == null)
+                {
+                    TempData["ErrorMessage"] = "Proveedor no encontrado.";
+                    return RedirectToAction(nameof(Index));
+                }
 
-                TempData["SuccessMessage"] = "Proveedor eliminado correctamente";
+                var dto = new UpdateInsuranceProviderDto
+                {
+                    InsuranceProviderId = providerResult.Datos.InsuranceProviderId,
+                    Name = providerResult.Datos.Name,
+                    PhoneNumber = providerResult.Datos.PhoneNumber,
+                    Email = providerResult.Datos.Email,
+                    Website = providerResult.Datos.Website,
+                    Address = providerResult.Datos.Address,
+                    City = providerResult.Datos.City,
+                    State = providerResult.Datos.State,
+                    Country = providerResult.Datos.Country,
+                    ZipCode = providerResult.Datos.ZipCode,
+                    CoverageDetails = providerResult.Datos.CoverageDetails,
+                    LogoUrl = providerResult.Datos.LogoUrl,
+                    IsPreferred = providerResult.Datos.IsPreferred,
+                    NetworkTypeId = providerResult.Datos.NetworkTypeId,
+                    CustomerSupportContact = providerResult.Datos.CustomerSupportContact,
+                    AcceptedRegions = providerResult.Datos.AcceptedRegions,
+                    MaxCoverageAmount = providerResult.Datos.MaxCoverageAmount,
+                    IsActive = false
+                };
+
+                var result = await _insuranceService.UpdateAsync(dto);
+
+                if (!result.Exitoso)
+                    TempData["ErrorMessage"] = result.Mensaje;
+                else
+                    TempData["SuccessMessage"] = "Proveedor desactivado correctamente.";
+
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = "Error eliminando el proveedor: " + ex.Message;
+                TempData["ErrorMessage"] = "Error desactivando el proveedor: " + ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> Activate(int id)
+        {
+            try
+            {
+                var providerResult = await _insuranceService.GetByIdAsync(id);
+                if (!providerResult.Exitoso || providerResult.Datos == null)
+                {
+                    TempData["ErrorMessage"] = "Proveedor no encontrado.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                var dto = new UpdateInsuranceProviderDto
+                {
+                    InsuranceProviderId = providerResult.Datos.InsuranceProviderId,
+                    Name = providerResult.Datos.Name,
+                    PhoneNumber = providerResult.Datos.PhoneNumber,
+                    Email = providerResult.Datos.Email,
+                    Website = providerResult.Datos.Website,
+                    Address = providerResult.Datos.Address,
+                    City = providerResult.Datos.City,
+                    State = providerResult.Datos.State,
+                    Country = providerResult.Datos.Country,
+                    ZipCode = providerResult.Datos.ZipCode,
+                    CoverageDetails = providerResult.Datos.CoverageDetails,
+                    LogoUrl = providerResult.Datos.LogoUrl,
+                    IsPreferred = providerResult.Datos.IsPreferred,
+                    NetworkTypeId = providerResult.Datos.NetworkTypeId,
+                    CustomerSupportContact = providerResult.Datos.CustomerSupportContact,
+                    AcceptedRegions = providerResult.Datos.AcceptedRegions,
+                    MaxCoverageAmount = providerResult.Datos.MaxCoverageAmount,
+                    IsActive = true
+                };
+
+                var result = await _insuranceService.UpdateAsync(dto);
+
+                if (!result.Exitoso)
+                    TempData["ErrorMessage"] = result.Mensaje;
+                else
+                    TempData["SuccessMessage"] = "Proveedor reactivado correctamente.";
+
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Error reactivando el proveedor: " + ex.Message;
                 return RedirectToAction(nameof(Index));
             }
         }

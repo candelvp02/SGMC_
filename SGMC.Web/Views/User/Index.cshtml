@@ -4,53 +4,227 @@
     ViewData["Title"] = "Usuarios";
 }
 
-<h1>Gestión de Usuarios</h1>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Título -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900">Gestión de Usuarios</h1>
+        <p class="text-gray-600 mt-2">Administra los usuarios del sistema y sus permisos</p>
+    </div>
 
-@if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
-{
-    <div class="alert alert-danger">@ViewBag.ErrorMessage</div>
-}
+    <!-- Mensajes -->
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="mb-4 bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg shadow-sm">
+            <div class="flex items-center">
+                <i class="fas fa-exclamation-circle mr-2 text-red-500"></i>
+                <span>@TempData["ErrorMessage"]</span>
+            </div>
+        </div>
+    }
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="mb-4 bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded-lg shadow-sm">
+            <div class="flex items-center">
+                <i class="fas fa-check-circle mr-2 text-green-500"></i>
+                <span>@TempData["SuccessMessage"]</span>
+            </div>
+        </div>
+    }
 
-<p>
-    <a asp-action="Create" class="btn btn-primary">Crear Nuevo Usuario</a>
-</p>
+    <!-- Barra superior: Buscar + Crear -->
+    <div class="mb-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
 
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Email</th>
-            <th>Rol</th>
-            <th>Activo</th>
-            <th>Fecha de Creación</th>
-            <th>Acciones</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var user in Model)
+        <!-- Buscador -->
+        <form asp-action="Search" method="get" class="flex gap-2 w-full sm:w-auto">
+            <input type="text" name="query" value="@ViewBag.Query"
+                   placeholder="Buscar por nombre o email..."
+                   class="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 w-72" />
+            <button type="submit"
+                    class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition">
+                <i class="fas fa-search mr-1"></i> Buscar
+            </button>
+            @if (!string.IsNullOrEmpty(ViewBag.Query))
+            {
+                <a asp-action="Index"
+                   class="px-4 py-2 bg-gray-400 hover:bg-gray-500 text-white text-sm font-medium rounded-lg transition">
+                    Limpiar
+                </a>
+            }
+        </form>
+
+        <!-- Botón Crear -->
+        <a asp-action="Create"
+           class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition duration-200 shadow-md">
+            <i class="fas fa-user-plus mr-2"></i>
+            Crear Nuevo Usuario
+        </a>
+    </div>
+
+    <!-- Tabla de Usuarios -->
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-800 text-white">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Nombre Completo</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Email</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Rol</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Estado</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Fecha Registro</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Última Actualización</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    @foreach (var user in Model)
+                    {
+                        <tr class="hover:bg-gray-50 transition duration-150">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                <div class="flex items-center">
+                                    <i class="fas fa-user text-gray-400 mr-2"></i>
+                                    @user.FullName
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                <div class="flex items-center">
+                                    <i class="fas fa-envelope text-gray-400 mr-2"></i>
+                                    @user.Email
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                <!-- Cambiar Rol -->
+                                <form asp-action="ChangeRole" method="post" class="flex items-center gap-2">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@user.UserId" />
+                                    <select name="roleId"
+                                            class="text-xs border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-purple-400">
+                                        <option value="1" selected="@(user.RoleName == "Administrador")">Administrador</option>
+                                        <option value="2" selected="@(user.RoleName == "Médico")">Médico</option>
+                                        <option value="3" selected="@(user.RoleName == "Paciente")">Paciente</option>
+                                    </select>
+                                    <button type="submit"
+                                            class="px-2 py-1 bg-purple-500 hover:bg-purple-600 text-white text-xs rounded transition"
+                                            title="Cambiar Rol">
+                                        <i class="fas fa-sync-alt"></i>
+                                    </button>
+                                </form>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                @if (user.IsActive)
+                                {
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        <span class="w-1.5 h-1.5 bg-green-500 rounded-full mr-1.5"></span>
+                                        Activo
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                        <span class="w-1.5 h-1.5 bg-red-500 rounded-full mr-1.5"></span>
+                                        Inactivo
+                                    </span>
+                                }
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                <div class="flex items-center">
+                                    <i class="fas fa-calendar-alt text-gray-400 mr-2"></i>
+                                    @(user.CreatedAt?.ToString("dd/MM/yyyy") ?? "—")
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                <div class="flex items-center">
+                                    <i class="fas fa-clock text-gray-400 mr-2"></i>
+                                    @(user.UpdatedAt?.ToString("dd/MM/yyyy") ?? "—")
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                <div class="flex flex-wrap gap-2">
+                                    <a asp-action="Details" asp-route-id="@user.UserId"
+                                       class="inline-flex items-center px-2.5 py-1.5 bg-blue-500 hover:bg-blue-600 text-white text-xs font-medium rounded transition"
+                                       title="Detalles">
+                                        <i class="fas fa-info-circle mr-1"></i>
+                                        Detalles
+                                    </a>
+                                    <a asp-action="Edit" asp-route-id="@user.UserId"
+                                       class="inline-flex items-center px-2.5 py-1.5 bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-medium rounded transition"
+                                       title="Editar">
+                                        <i class="fas fa-edit mr-1"></i>
+                                        Editar
+                                    </a>
+                                    <a asp-action="ChangePassword" asp-route-id="@user.UserId"
+                                       class="inline-flex items-center px-2.5 py-1.5 bg-gray-500 hover:bg-gray-600 text-white text-xs font-medium rounded transition"
+                                       title="Cambiar Contraseña">
+                                        <i class="fas fa-key mr-1"></i>
+                                        Contraseña
+                                    </a>
+
+                                    <!-- Activar o Desactivar -->
+                                    @if (user.IsActive)
+                                    {
+                                        <form asp-action="Deactivate" method="post" style="display:inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@user.UserId" />
+                                            <button type="submit"
+                                                    class="inline-flex items-center px-2.5 py-1.5 bg-red-500 hover:bg-red-600 text-white text-xs font-medium rounded transition"
+                                                    title="Desactivar">
+                                                <i class="fas fa-ban mr-1"></i>
+                                                Desactivar
+                                            </button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <form asp-action="Activate" method="post" style="display:inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@user.UserId" />
+                                            <button type="submit"
+                                                    class="inline-flex items-center px-2.5 py-1.5 bg-green-500 hover:bg-green-600 text-white text-xs font-medium rounded transition"
+                                                    title="Activar">
+                                                <i class="fas fa-check mr-1"></i>
+                                                Activar
+                                            </button>
+                                        </form>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Si no hay usuarios -->
+        @if (!Model.Any())
         {
-            <tr>
-                <td>@user.UserId</td>
-                <td>@user.Email</td>
-                <td>@user.RoleName</td>
-                <td>
-                    @if (user.IsActive)
-                    {
-                        <span class="badge bg-success">Activo</span>
-                    }
-                    else
-                    {
-                        <span class="badge bg-danger">Inactivo</span>
-                    }
-                </td>
-                <td>@user.CreatedAt?.ToString("dd/MM/yyyy")</td>
-                <td>
-                    <a asp-action="Edit" asp-route-id="@user.UserId" class="btn btn-sm btn-warning">Editar</a>
-                    <a asp-action="Details" asp-route-id="@user.UserId" class="btn btn-sm btn-info">Detalles</a>
-                    <a asp-action="ChangePassword" asp-route-id="@user.UserId" class="btn btn-sm btn-secondary">Cambiar Contraseña</a>
-                    <a asp-action="Delete" asp-route-id="@user.UserId" class="btn btn-sm btn-danger">Eliminar</a>
-                </td>
-            </tr>
+            <div class="text-center py-12 bg-gray-50">
+                <i class="fas fa-users-slash text-5xl text-gray-400 mb-3 block"></i>
+                <p class="text-gray-500 text-lg">No hay usuarios registrados</p>
+                <p class="text-gray-400 text-sm mt-1">Comienza creando un nuevo usuario</p>
+            </div>
         }
-    </tbody>
-</table>
+    </div>
+
+    <!-- Contador de registros -->
+    @if (Model.Any())
+    {
+        <div class="mt-4 text-sm text-gray-600 flex items-center justify-between">
+            <div>
+                <i class="fas fa-database mr-1"></i>
+                Total de usuarios: <span class="font-semibold">@Model.Count()</span>
+                @if (!string.IsNullOrEmpty(ViewBag.Query))
+                {
+                    <span class="ml-2 text-blue-600">— Resultados para: "@ViewBag.Query"</span>
+                }
+            </div>
+            <div>
+                <i class="fas fa-users mr-1"></i>
+                Activos: <span class="font-semibold text-green-600">@Model.Count(u => u.IsActive)</span>
+                | Inactivos: <span class="font-semibold text-red-600">@Model.Count(u => !u.IsActive)</span>
+            </div>
+        </div>
+    }
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+}

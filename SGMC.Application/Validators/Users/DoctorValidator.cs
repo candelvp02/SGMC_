@@ -4,7 +4,6 @@ using SGMC.Domain.Base;
 
 namespace SGMC.Application.Validators.Users
 {
-    // Validador para DTOs de Doctor
     public static class DoctorValidator
     {
         // Valida RegisterDoctorDto
@@ -15,7 +14,6 @@ namespace SGMC.Application.Validators.Users
             // Validaciones de nombre
             if (!ValidationHelper.IsValidLength(dto.FirstName, 2, 40))
                 errores.Add("El nombre debe tener entre 2 y 40 caracteres.");
-
             if (!ValidationHelper.IsValidLength(dto.LastName, 2, 40))
                 errores.Add("El apellido debe tener entre 2 y 40 caracteres.");
 
@@ -23,11 +21,11 @@ namespace SGMC.Application.Validators.Users
             if (!ValidationHelper.IsValidCedula(dto.IdentificationNumber))
                 errores.Add("Formato de cédula inválido.");
 
-            // Valida gender
-            if (!ValidationHelper.IsValidGender(dto.Gender))
-                errores.Add("El género debe ser 'M' o 'F'.");
+            // género debe ser "Masculino" o "Femenino" (no "M"/"F")
+            if (!ValidationHelper.IsValidGenderFull(dto.Gender))
+                errores.Add("El género debe ser 'Masculino' o 'Femenino'.");
 
-            // valida email
+            // Valida email
             if (!ValidationHelper.IsValidEmail(dto.Email))
                 errores.Add("Formato de email inválido.");
 
@@ -40,9 +38,17 @@ namespace SGMC.Application.Validators.Users
                 errores.Add("La contraseña debe ser segura (Mayúsculas, minúsculas, números).");
             }
 
-            // valida specialty
+            // Valida specialty
             if (dto.SpecialtyId <= 0)
                 errores.Add("La especialidad es requerida.");
+
+            // licencia no puede estar vencida
+            if (dto.LicenseExpirationDate < DateOnly.FromDateTime(DateTime.UtcNow.Date))
+                errores.Add("La licencia médica está vencida. Por favor, renuévela antes de registrarse.");
+
+            // años de experiencia no pueden ser negativos
+            if (dto.YearsOfExperience < 0)
+                errores.Add("Los años de experiencia no pueden ser negativos.");
 
             return errores.Count > 0
                 ? OperationResult.Fallo("Errores de validación de doctor.", errores)
@@ -56,6 +62,13 @@ namespace SGMC.Application.Validators.Users
 
             if (dto.DoctorId <= 0)
                 errores.Add("El ID del doctor es inválido.");
+
+            // también validar en updates
+            if (dto.LicenseExpirationDate < DateOnly.FromDateTime(DateTime.UtcNow.Date))
+                errores.Add("La licencia médica está vencida. Por favor, renuévela antes de actualizar.");
+
+            if (dto.YearsOfExperience < 0)
+                errores.Add("Los años de experiencia no pueden ser negativos.");
 
             return errores.Count > 0
                 ? OperationResult.Fallo("Errores de validación de actualización de doctor.", errores)
