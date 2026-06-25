@@ -1,0 +1,203 @@
+﻿@model SGMC.Application.Dto.Users.PatientDto
+
+@{
+    ViewData["Title"] = "Mi Perfil";
+}
+
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 pb-10">
+
+    
+    <div class="flex items-center gap-3 mb-6">
+        <div class="bg-blue-100 rounded-full p-3">
+            <i class="fas fa-user-circle text-blue-600 text-3xl"></i>
+        </div>
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800">Mi Perfil</h1>
+            <p class="text-gray-500 text-sm">Consulta tu información y actualiza tus datos de contacto</p>
+        </div>
+    </div>
+
+    
+    @if (TempData["Success"] != null)
+    {
+        <div class="flex items-center gap-3 bg-green-50 border border-green-300 text-green-800 px-4 py-3 rounded-lg mb-5">
+            <i class="fas fa-check-circle text-green-500 text-lg"></i>
+            <span>@TempData["Success"]</span>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="flex items-center gap-3 bg-red-50 border border-red-300 text-red-800 px-4 py-3 rounded-lg mb-5">
+            <i class="fas fa-exclamation-circle text-red-500 text-lg"></i>
+            <span>@TempData["Error"]</span>
+        </div>
+    }
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        
+        <div class="lg:col-span-1 space-y-4">
+
+            
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="bg-gradient-to-r from-blue-600 to-blue-500 px-6 py-5 text-white text-center">
+                    <div class="bg-white/20 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-3">
+                        <i class="fas fa-user text-white text-2xl"></i>
+                    </div>
+                    <h2 class="text-lg font-bold leading-tight">@Model.FullName</h2>
+                    <span class="text-blue-100 text-sm">Paciente</span>
+                </div>
+                <div class="divide-y divide-gray-100">
+                    <div class="flex items-center gap-3 px-4 py-3">
+                        <i class="fas fa-id-card text-gray-400 w-4 text-center"></i>
+                        <div>
+                            <p class="text-xs text-gray-400">Cédula</p>
+                            <p class="text-sm font-medium text-gray-700">@Model.IdentificationNumber</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 px-4 py-3">
+                        <i class="fas fa-tint text-gray-400 w-4 text-center"></i>
+                        <div>
+                            <p class="text-xs text-gray-400">Tipo de Sangre</p>
+                            <p class="text-sm font-bold text-red-600">@(string.IsNullOrEmpty(Model.BloodType) ? "No registrado" : Model.BloodType)</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 px-4 py-3">
+                        <i class="fas fa-shield-alt text-gray-400 w-4 text-center"></i>
+                        <div>
+                            <p class="text-xs text-gray-400">Seguro Médico</p>
+                            <p class="text-sm font-medium text-gray-700">@(string.IsNullOrEmpty(Model.InsuranceProviderName) ? "Sin seguro" : Model.InsuranceProviderName)</p>
+                        </div>
+                    </div>
+                    @if (!string.IsNullOrWhiteSpace(Model.Allergies))
+                    {
+                        <div class="flex items-start gap-3 px-4 py-3">
+                            <i class="fas fa-exclamation-triangle text-yellow-500 w-4 text-center mt-0.5"></i>
+                            <div>
+                                <p class="text-xs text-gray-400">Alergias</p>
+                                <p class="text-sm text-gray-700">@Model.Allergies</p>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+        </div>
+
+        
+        <div class="lg:col-span-2 space-y-5">
+
+            
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="px-5 py-4 border-b border-gray-100 flex items-center gap-2">
+                    <i class="fas fa-phone-alt text-blue-500"></i>
+                    <h3 class="font-semibold text-gray-700">Información de Contacto</h3>
+                </div>
+                <div class="p-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-400 mb-1">Correo Electrónico</label>
+                        <div class="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+                            <i class="fas fa-envelope text-gray-300 text-sm"></i>
+                            <span class="text-sm text-gray-600">@Model.Email</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-400 mb-1">Teléfono</label>
+                        <div class="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+                            <i class="fas fa-phone text-gray-300 text-sm"></i>
+                            <span class="text-sm text-gray-600">@(string.IsNullOrEmpty(Model.PhoneNumber) ? "No registrado" : Model.PhoneNumber)</span>
+                        </div>
+                    </div>
+                </div>
+                <p class="px-5 pb-4 text-xs text-gray-400">
+                    <i class="fas fa-lock mr-1"></i> Para cambiar tu correo o teléfono, contacta a administración.
+                </p>
+            </div>
+
+            
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="px-5 py-4 border-b border-gray-100 flex items-center gap-2">
+                    <i class="fas fa-edit text-blue-500"></i>
+                    <h3 class="font-semibold text-gray-700">Actualizar Dirección y Contacto de Emergencia</h3>
+                </div>
+
+                <form asp-controller="PatientProfile" asp-action="UpdateContact" method="post" class="p-5 space-y-5">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="patientId" value="@Model.PatientId" />
+
+                    
+                    <fieldset class="border border-gray-200 rounded-lg p-4">
+                        <legend class="px-2 text-sm font-semibold text-gray-600">
+                            <i class="fas fa-map-marker-alt text-blue-400 mr-1"></i> Dirección Residencial
+                        </legend>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-1">Dirección actual</label>
+                            <div class="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 mb-3">
+                                <i class="fas fa-map-pin text-gray-300 text-sm"></i>
+                                <span class="text-sm text-gray-500">@(string.IsNullOrEmpty(Model.Address) ? "Sin dirección registrada" : Model.Address)</span>
+                            </div>
+                            <label for="Address" class="block text-sm font-medium text-gray-600 mb-1">Nueva dirección</label>
+                            <textarea id="Address"
+                                      name="Address"
+                                      rows="2"
+                                      maxlength="200"
+                                      placeholder="Ej: Calle Principal #45, Sector Los Jardines, Santo Domingo"
+                                      class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent resize-none transition"></textarea>
+                            <p class="text-xs text-gray-400 mt-1">Máximo 200 caracteres. Deja en blanco si no deseas cambiarla.</p>
+                        </div>
+                    </fieldset>
+
+                    
+                    <fieldset class="border border-gray-200 rounded-lg p-4">
+                        <legend class="px-2 text-sm font-semibold text-gray-600">
+                            <i class="fas fa-ambulance text-red-400 mr-1"></i> Contacto de Emergencia
+                        </legend>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+                            <div>
+                                <label class="block text-xs text-gray-400 mb-1">Nombre actual</label>
+                                <div class="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 mb-2">
+                                    <i class="fas fa-user text-gray-300 text-sm"></i>
+                                    <span class="text-sm text-gray-500">@(string.IsNullOrEmpty(Model.EmergencyContactName) ? "No registrado" : Model.EmergencyContactName)</span>
+                                </div>
+                                <label for="EmergencyContactName" class="block text-sm font-medium text-gray-600 mb-1">Nuevo nombre</label>
+                                <input id="EmergencyContactName"
+                                       name="EmergencyContactName"
+                                       type="text"
+                                       maxlength="100"
+                                       placeholder="Ej: María García"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition" />
+                            </div>
+
+                            <div>
+                                <label class="block text-xs text-gray-400 mb-1">Teléfono actual</label>
+                                <div class="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 mb-2">
+                                    <i class="fas fa-phone text-gray-300 text-sm"></i>
+                                    <span class="text-sm text-gray-500">@(string.IsNullOrEmpty(Model.EmergencyContactPhone) ? "No registrado" : Model.EmergencyContactPhone)</span>
+                                </div>
+                                <label for="EmergencyContactPhone" class="block text-sm font-medium text-gray-600 mb-1">Nuevo teléfono</label>
+                                <input id="EmergencyContactPhone"
+                                       name="EmergencyContactPhone"
+                                       type="tel"
+                                       maxlength="20"
+                                       placeholder="Ej: 809-555-1234"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition" />
+                            </div>
+                        </div>
+                        <p class="text-xs text-gray-400 mt-3">Deja en blanco los campos que no deseas modificar.</p>
+                    </fieldset>
+
+                    
+                    <div class="flex justify-end">
+                        <button type="submit"
+                                class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-6 rounded-lg transition duration-200 shadow-sm">
+                            <i class="fas fa-save"></i>
+                            Guardar Cambios
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>

@@ -8,6 +8,7 @@ namespace SGMC.Application.Interfaces.Service
         //crud rf3.1.12 gestion de pacientes
         Task<OperationResult<PatientDto>> CreateAsync(RegisterPatientDto dto);
         Task<OperationResult<PatientDto>> UpdateAsync(UpdatePatientDto dto);
+        Task<OperationResult<PatientDto>> PatchContactInfoAsync(int patientId, PatchPatientContactDto dto);
         Task<OperationResult> DeleteAsync(int id);
 
         //consultas
@@ -22,5 +23,6 @@ namespace SGMC.Application.Interfaces.Service
         Task<OperationResult<PatientDto>> GetByIdWithDetailsAsync(int patientId);
         Task<OperationResult<List<PatientDto>>> GetWithAppointmentsAsync(int patientId);
         Task<OperationResult<List<PatientDto>>> GetWithMedicalRecordsAsync(int patientId);
+        Task<OperationResult<PatientDto>> GetByUserIdAsync(int userId);
     }
 }

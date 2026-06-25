@@ -176,6 +176,56 @@ namespace SGMC.Application.Services
             }
         }
 
+        // patch
+        public async Task<OperationResult<PatientDto>> PatchContactInfoAsync(int patientId, PatchPatientContactDto dto)
+        {
+            if (dto == null)
+                return OperationResult<PatientDto>.Fallo("Los datos del paciente son requeridos");
+
+            if (patientId <= 0)
+                return OperationResult<PatientDto>.Fallo("El ID del paciente es inválido");
+
+            // Al menos un campo debe venir con valor
+            if (dto.Address == null && dto.EmergencyContactName == null && dto.EmergencyContactPhone == null)
+                return OperationResult<PatientDto>.Fallo("Debe enviar al menos un campo para actualizar");
+
+            try
+            {
+                var patient = await _repository.GetByIdWithDetailsAsync(patientId);
+                if (patient == null)
+                    return OperationResult<PatientDto>.Fallo("Paciente no encontrado");
+
+                // Solo sobreescribir los campos que vienen con valor
+                if (dto.Address != null)
+                    patient.Address = dto.Address.Trim();
+
+                if (dto.EmergencyContactName != null)
+                    patient.EmergencyContactName = dto.EmergencyContactName.Trim();
+
+                if (dto.EmergencyContactPhone != null)
+                    patient.EmergencyContactPhone = dto.EmergencyContactPhone.Trim();
+
+                patient.UpdatedAt = DateTime.Now;
+
+                await _repository.UpdateAsync(patient);
+
+                return OperationResult<PatientDto>.Exito(
+                    MapToDto(patient),
+                    "Información de contacto actualizada correctamente"
+                );
+            }
+            catch (Exception ex)
+            {
+                var innerMessage =
+                    ex.InnerException?.InnerException?.Message
+                    ?? ex.InnerException?.Message
+                    ?? ex.Message;
+
+                _logger.LogError(ex, "Error al actualizar contacto del paciente {Id}: {Message}", patientId, innerMessage);
+                return OperationResult<PatientDto>.Fallo($"Error al actualizar información de contacto: {innerMessage}");
+            }
+        }
+
         // delete
 
         public async Task<OperationResult> DeleteAsync(int id)
@@ -408,6 +458,26 @@ namespace SGMC.Application.Services
 
         // private mapping
 
+        public async Task<OperationResult<PatientDto>> GetByUserIdAsync(int userId)
+        {
+            if (userId <= 0)
+                return OperationResult<PatientDto>.Fallo("ID de usuario inválido");
+
+            try
+            {
+                var patient = await _repository.GetByUserIdAsync(userId);
+                if (patient == null)
+                    return OperationResult<PatientDto>.Fallo("Paciente no encontrado para este usuario");
+
+                return OperationResult<PatientDto>.Exito(MapToDto(patient));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener paciente por UserId {UserId}", userId);
+                return OperationResult<PatientDto>.Fallo("Error al obtener perfil del paciente");
+            }
+        }
+
         private static PatientDto MapToDto(Patient p) => new()
         {
             PatientId = p.PatientId,
@@ -429,4 +499,3 @@ namespace SGMC.Application.Services
         };
     }
 }
-

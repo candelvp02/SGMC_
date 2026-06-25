@@ -43,6 +43,19 @@ namespace SGMC.Application.Dto.Users
         public int InsuranceProviderId { get; set; }
     }
 
+    public class PatchPatientContactDto
+    {
+        [StringLength(200, ErrorMessage = "La dirección no puede superar los 200 caracteres")]
+        public string? Address { get; set; }
+
+        [StringLength(100, ErrorMessage = "El nombre del contacto de emergencia no puede superar los 100 caracteres")]
+        public string? EmergencyContactName { get; set; }
+
+        [Phone(ErrorMessage = "Formato de teléfono de emergencia inválido")]
+        [StringLength(20, ErrorMessage = "El teléfono de emergencia no puede superar los 20 caracteres")]
+        public string? EmergencyContactPhone { get; set; }
+    }
+
     public class UpdatePatientDto
     {
         public int PatientId { get; set; }
