@@ -84,6 +84,19 @@ namespace SGMC.Api.Controllers
             return Ok(result);
         }
 
+        [HttpPatch("{id}/insurance")]
+        public async Task<ActionResult<OperationResult<PatientDto>>> PatchInsurance(int id, [FromBody] PatchPatientInsuranceDto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(OperationResult.Fallo("Datos inválidos"));
+
+            var result = await _patientService.PatchInsuranceProviderAsync(id, dto);
+            if (!result.Exitoso)
+                return BadRequest(result);
+
+            return Ok(result);
+        }
+
         [HttpDelete("{id}")]
         public async Task<ActionResult<OperationResult>> Delete(int id)
         {

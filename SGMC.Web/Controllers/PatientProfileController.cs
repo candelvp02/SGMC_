@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using SGMC.Application.Dto.Users;
 using SGMC.Application.Interfaces.Service;
+using SGMC.Web.Models.Patient;
 using System.Security.Claims;
 
 namespace SGMC.Web.Controllers
@@ -10,10 +11,14 @@ namespace SGMC.Web.Controllers
     public class PatientProfileController : Controller
     {
         private readonly IPatientService _patientService;
+        private readonly IInsuranceProviderService _insuranceProviderService;
 
-        public PatientProfileController(IPatientService patientService)
+        public PatientProfileController(
+            IPatientService patientService,
+            IInsuranceProviderService insuranceProviderService)
         {
             _patientService = patientService;
+            _insuranceProviderService = insuranceProviderService;
         }
 
         // GET: /PatientProfile
@@ -52,6 +57,46 @@ namespace SGMC.Web.Controllers
                 TempData["Success"] = result.Mensaje;
 
             return RedirectToAction(nameof(Index));
+        }
+
+        // POST: /PatientProfile/UpdateInsurance
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateInsurance(PatchPatientInsuranceDto dto, int patientId)
+        {
+            if (!ModelState.IsValid)
+            {
+                TempData["Error"] = "Debe seleccionar un proveedor de seguro v\u00e1lido.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var result = await _patientService.PatchInsuranceProviderAsync(patientId, dto);
+
+            if (!result.Exitoso)
+                TempData["Error"] = result.Mensaje;
+            else
+                TempData["Success"] = result.Mensaje;
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        // GET: /PatientProfile/GetInsuranceProviders (AJAX)
+        [HttpGet]
+        public async Task<IActionResult> GetInsuranceProviders()
+        {
+            var result = await _insuranceProviderService.GetActiveAsync();
+            if (!result.Exitoso || result.Datos == null)
+                return Json(new List<object>());
+
+            var providers = result.Datos.Select(p => new
+            {
+                insuranceProviderId = p.InsuranceProviderId,
+                name = p.Name,
+                coverageDetails = p.CoverageDetails ?? string.Empty,
+                networkTypeName = p.NetworkTypeName ?? string.Empty
+            });
+
+            return Json(providers);
         }
 
         private int? GetCurrentUserId()

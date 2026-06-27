@@ -198,6 +198,114 @@
                 </form>
             </div>
 
+            <!-- Actualizar Seguro Médico -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="px-5 py-4 border-b border-gray-100 flex items-center gap-2">
+                    <i class="fas fa-shield-alt text-blue-500"></i>
+                    <h3 class="font-semibold text-gray-700">Actualizar Seguro Médico</h3>
+                </div>
+
+                <form asp-controller="PatientProfile" asp-action="UpdateInsurance" method="post" class="p-5 space-y-4">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="patientId" value="@Model.PatientId" />
+
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Seguro actual</label>
+                        <div class="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 mb-3">
+                            <i class="fas fa-shield-alt text-gray-300 text-sm"></i>
+                            <span class="text-sm text-gray-500">@(string.IsNullOrEmpty(Model.InsuranceProviderName) ? "Sin seguro registrado" : Model.InsuranceProviderName)</span>
+                        </div>
+
+                        <label for="InsuranceProviderId" class="block text-sm font-medium text-gray-600 mb-1">
+                            Nuevo proveedor de seguro <span class="text-red-500">*</span>
+                        </label>
+                        <select id="InsuranceProviderId"
+                                name="InsuranceProviderId"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition">
+                            <option value="">-- Seleccione un proveedor --</option>
+                        </select>
+                        <p class="text-xs text-gray-400 mt-1">Solo se muestran proveedores activos en el sistema.</p>
+                    </div>
+
+                    <!-- Panel de detalles (visible al seleccionar) -->
+                    <div id="insurance-detail-panel" class="hidden rounded-lg border border-blue-100 bg-blue-50 p-4 space-y-2 transition-all">
+                        <p class="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-1">
+                            <i class="fas fa-info-circle mr-1"></i> Detalles del proveedor seleccionado
+                        </p>
+                        <div class="flex items-start gap-2">
+                            <i class="fas fa-network-wired text-blue-400 mt-0.5 text-sm w-4 text-center"></i>
+                            <div>
+                                <span class="text-xs text-gray-400">Tipo de Red</span>
+                                <p id="detail-network" class="text-sm font-medium text-gray-700">—</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <i class="fas fa-file-medical text-blue-400 mt-0.5 text-sm w-4 text-center"></i>
+                            <div>
+                                <span class="text-xs text-gray-400">Cobertura</span>
+                                <p id="detail-coverage" class="text-sm text-gray-700 leading-relaxed">—</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end">
+                        <button type="submit"
+                                id="btn-save-insurance"
+                                disabled
+                                class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold py-2.5 px-6 rounded-lg transition duration-200 shadow-sm">
+                            <i class="fas fa-save"></i>
+                            Confirmar Cambio
+                        </button>
+                    </div>
+                </form>
+            </div>
+
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        (function () {
+            const select = document.getElementById('InsuranceProviderId');
+            const panel  = document.getElementById('insurance-detail-panel');
+            const detailNetwork  = document.getElementById('detail-network');
+            const detailCoverage = document.getElementById('detail-coverage');
+            const btnSave = document.getElementById('btn-save-insurance');
+            let providers = [];
+
+            // Cargar proveedores activos via AJAX
+            fetch('@Url.Action("GetInsuranceProviders", "PatientProfile")')
+                .then(r => r.json())
+                .then(data => {
+                    providers = data;
+                    data.forEach(p => {
+                        const opt = document.createElement('option');
+                        opt.value = p.insuranceProviderId;
+                        opt.textContent = p.name;
+                        select.appendChild(opt);
+                    });
+                })
+                .catch(() => {
+                    const opt = document.createElement('option');
+                    opt.disabled = true;
+                    opt.textContent = 'Error al cargar proveedores';
+                    select.appendChild(opt);
+                });
+
+            // Mostrar detalles al seleccionar
+            select.addEventListener('change', function () {
+                const selected = providers.find(p => p.insuranceProviderId == this.value);
+                if (selected) {
+                    detailNetwork.textContent  = selected.networkTypeName  || 'No especificado';
+                    detailCoverage.textContent = selected.coverageDetails  || 'Sin descripción disponible';
+                    panel.classList.remove('hidden');
+                    btnSave.disabled = false;
+                } else {
+                    panel.classList.add('hidden');
+                    btnSave.disabled = true;
+                }
+            });
+        })();
+    </script>
+}

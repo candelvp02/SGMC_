@@ -226,6 +226,55 @@ namespace SGMC.Application.Services
             }
         }
 
+        // patch insurance
+        public async Task<OperationResult<PatientDto>> PatchInsuranceProviderAsync(int patientId, PatchPatientInsuranceDto dto)
+        {
+            if (dto == null)
+                return OperationResult<PatientDto>.Fallo("Los datos del seguro son requeridos");
+
+            if (patientId <= 0)
+                return OperationResult<PatientDto>.Fallo("El ID del paciente es inválido");
+
+            var validationResult = dto.IsValidDto();
+            if (!validationResult.Exitoso)
+                return OperationResult<PatientDto>.Fallo(validationResult.Mensaje, validationResult.Errores);
+
+            try
+            {
+                var patient = await _repository.GetByIdWithDetailsAsync(patientId);
+                if (patient == null)
+                    return OperationResult<PatientDto>.Fallo("Paciente no encontrado");
+
+                var insurance = await _insuranceProviderRepository.GetByIdAsync(dto.InsuranceProviderId);
+                if (insurance == null)
+                    return OperationResult<PatientDto>.Fallo("El proveedor de seguro seleccionado no existe");
+
+                if (!insurance.IsActive)
+                    return OperationResult<PatientDto>.Fallo("El proveedor de seguro seleccionado no está activo");
+
+                patient.InsuranceProviderId = dto.InsuranceProviderId;
+                patient.InsuranceProvider = insurance;
+                patient.UpdatedAt = DateTime.Now;
+
+                await _repository.UpdateAsync(patient);
+
+                return OperationResult<PatientDto>.Exito(
+                    MapToDto(patient),
+                    "Proveedor de seguro actualizado correctamente"
+                );
+            }
+            catch (Exception ex)
+            {
+                var innerMessage =
+                    ex.InnerException?.InnerException?.Message
+                    ?? ex.InnerException?.Message
+                    ?? ex.Message;
+
+                _logger.LogError(ex, "Error al actualizar seguro del paciente {Id}: {Message}", patientId, innerMessage);
+                return OperationResult<PatientDto>.Fallo($"Error al actualizar proveedor de seguro: {innerMessage}");
+            }
+        }
+
         // delete
 
         public async Task<OperationResult> DeleteAsync(int id)

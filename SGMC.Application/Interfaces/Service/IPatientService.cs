@@ -9,6 +9,7 @@ namespace SGMC.Application.Interfaces.Service
         Task<OperationResult<PatientDto>> CreateAsync(RegisterPatientDto dto);
         Task<OperationResult<PatientDto>> UpdateAsync(UpdatePatientDto dto);
         Task<OperationResult<PatientDto>> PatchContactInfoAsync(int patientId, PatchPatientContactDto dto);
+        Task<OperationResult<PatientDto>> PatchInsuranceProviderAsync(int patientId, PatchPatientInsuranceDto dto);
         Task<OperationResult> DeleteAsync(int id);
 
         //consultas

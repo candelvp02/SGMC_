@@ -56,6 +56,13 @@ namespace SGMC.Application.Dto.Users
         public string? EmergencyContactPhone { get; set; }
     }
 
+    public class PatchPatientInsuranceDto
+    {
+        [Required(ErrorMessage = "El proveedor de seguro es requerido")]
+        [Range(1, int.MaxValue, ErrorMessage = "Debe seleccionar un proveedor de seguro válido")]
+        public int InsuranceProviderId { get; set; }
+    }
+
     public class UpdatePatientDto
     {
         public int PatientId { get; set; }
