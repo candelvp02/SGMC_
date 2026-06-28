@@ -11,18 +11,18 @@
     <!-- Tailwind CSS Custom Configuration -->
     <script>
         tailwind.config = {
-        theme: {
-        extend: {
-        colors: {
-        primary: '#0d6efd',
-        secondary: '#6c757d',
-        success: '#198754',
-        danger: '#dc3545',
-        warning: '#ffc107',
-        info: '#0dcaf0',
-        }
-        }
-        }
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#0d6efd',
+                        secondary: '#6c757d',
+                        success: '#198754',
+                        danger: '#dc3545',
+                        warning: '#ffc107',
+                        info: '#0dcaf0',
+                    }
+                }
+            }
         }
     </script>
 
@@ -137,6 +137,13 @@
                                asp-controller="Specialty" asp-action="Index">
                                 <i class="fas fa-hospital text-lg"></i>
                                 <span>Especialidades</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-700 hover:translate-x-1 transition-all duration-300"
+                               asp-controller="PatientAppointments" asp-action="Index">
+                                <i class="fas fa-calendar-alt text-lg"></i>
+                                <span>Mis Citas</span>
                             </a>
                         </li>
                         <li>
