@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
+using SGMC.Application.Dto.Users;
 using SGMC.Application.Dto.System;
 using SGMC.Application.Interfaces.Service;
 using System.Security.Claims;
@@ -28,7 +29,7 @@ namespace SGMC.Web.Controllers
         // POST: Account/Login
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Login(LoginDto dto, string? returnUrl = null)
+        public async Task<IActionResult> Login(UserLoginDto dto, string? returnUrl = null)
         {
             if (!ModelState.IsValid)
                 return View(dto);
