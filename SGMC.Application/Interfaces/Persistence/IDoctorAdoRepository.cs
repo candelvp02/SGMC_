@@ -1,4 +1,5 @@
-﻿using SGMC.Application.Dto.Users;
+﻿using SGMC.Application.Dto.System;
+using SGMC.Application.Dto.Users;
 
 namespace SGMC.Application.Interfaces.Persistence
 {

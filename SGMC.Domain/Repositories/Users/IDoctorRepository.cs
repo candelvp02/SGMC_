@@ -12,5 +12,6 @@ namespace SGMC.Domain.Repositories.Users
         Task<IEnumerable<Doctor>> GetBySpecialtyIdAsync(short specialtyId);
         Task<IEnumerable<Doctor>> GetActiveDoctorsAsync();
         Task<Doctor?> GetByLicenseNumberAsync(string licenseNumber);
+        Task<IEnumerable<Doctor>> SearchAsync(string? name, short? specialtyId);
     }
 }

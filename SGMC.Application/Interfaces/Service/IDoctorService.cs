@@ -1,5 +1,5 @@
 ﻿using SGMC.Application.Dto.Appointments;
-using SGMC.Application.Dto.Users;
+using SGMC.Application.Dto.System;
 using SGMC.Domain.Base;
 
 namespace SGMC.Application.Interfaces.Service
@@ -10,7 +10,7 @@ namespace SGMC.Application.Interfaces.Service
         Task<OperationResult<DoctorDto>> CreateAsync(RegisterDoctorDto doctorDto);
         Task<OperationResult<DoctorDto>> UpdateAsync(UpdateDoctorDto doctorDto);
         Task<OperationResult> DeleteAsync(int id);
-
+        Task<OperationResult<List<DoctorDto>>> SearchAsync(string? name, short? specialtyId);
         // Queries
         Task<OperationResult<List<DoctorDto>>> GetAllAsync();
         Task<OperationResult<List<DoctorDto>>> GetAllWithDetailsAsync();
@@ -21,5 +21,6 @@ namespace SGMC.Application.Interfaces.Service
         Task<OperationResult<List<DoctorDto>>> GetActiveDoctorsAsync();
         Task<OperationResult<DoctorDto>> GetByLicenseNumberAsync(string licenseNumber);
         Task<OperationResult<bool>> ExistsByLicenseNumberAsync(string licenseNumber);
+        
     }
 }
