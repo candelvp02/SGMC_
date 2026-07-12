@@ -270,6 +270,8 @@ namespace SGMC.Web.Models.Patient
     {
         public int InsuranceProviderId { get; set; }
         public string Name { get; set; } = string.Empty;
+        public string CoverageDetails { get; set; } = string.Empty;
+        public string NetworkTypeName { get; set; } = string.Empty;
         public bool IsActive { get; set; }
 
         public static InsuranceProviderViewModel FromDto(
@@ -279,6 +281,8 @@ namespace SGMC.Web.Models.Patient
             {
                 InsuranceProviderId = dto.InsuranceProviderId,
                 Name = dto.Name,
+                CoverageDetails = dto.CoverageDetails ?? string.Empty,
+                NetworkTypeName = dto.NetworkTypeName ?? string.Empty,
                 IsActive = dto.IsActive
             };
         }
