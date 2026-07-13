@@ -10,11 +10,12 @@ namespace SGMC.Infrastructure.Dependencies
     {
         public static void AddAppointmentDependencies(this IServiceCollection services)
         {
+            // Repositories
             services.AddScoped<IAppointmentRepository, AppointmentRepository>();
-            services.AddTransient<IAppointmentService, AppointmentService>();
+            services.AddScoped<IDoctorAvailabilityRepository, DoctorAvailabilityRepository>();
 
+            // Services
             services.AddScoped<IAppointmentService, AppointmentService>();
-
         }
     }
 }
