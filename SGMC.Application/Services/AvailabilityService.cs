@@ -25,45 +25,41 @@ namespace SGMC.Application.Services
             _logger = logger;
         }
 
-        // metodos CRUD
-
         public async Task<OperationResult<AvailabilityDto>> CreateAsync(CreateAvailabilityDto dto)
         {
             if (dto is null) return OperationResult<AvailabilityDto>.Fallo("Datos de disponibilidad requeridos.");
 
-            // validaciones de campo fuera de trycatch
             var validationResult = dto.IsValidDto();
             if (!validationResult.Exitoso)
                 return OperationResult<AvailabilityDto>.Fallo(validationResult.Mensaje, validationResult.Errores);
 
             try
             {
-                // validaciones de negocio
                 if (!await _doctorRepository.ExistsAsync(d => d.DoctorId == dto.DoctorId))
                     return OperationResult<AvailabilityDto>.Fallo("El doctor no existe.");
 
                 var conflictExists = await _repository.CheckForConflictAsync(
-                    dto.DoctorId,
-                    dto.DayOfWeek,
-                    dto.StartTime,
-                    dto.EndTime
-                );
+                    dto.DoctorId, dto.AvailableDate, dto.StartTime, dto.EndTime);
 
                 if (conflictExists)
                     return OperationResult<AvailabilityDto>.Fallo("El horario entra en conflicto con una disponibilidad existente.");
 
-                // create entity
                 var availability = new DoctorAvailability
                 {
                     DoctorId = dto.DoctorId,
+                    AvailableDate = dto.AvailableDate,
+                    StartTime = dto.StartTime,
+                    EndTime = dto.EndTime,
+                    AvailabilityModeId = dto.AvailabilityModeId,
                     IsActive = true,
-                    CreatedAt = DateTime.Now
+                    CreatedAt = DateTime.Now,
+                    UpdatedAt = DateTime.Now
                 };
 
-                var created = _repository.AddAsync(availability);
-                var dtoResult = MapToDto(created);
+                await _repository.AddAsync(availability);
+                var created = await _repository.GetByIdAsync(availability.AvailabilityId);
 
-                return OperationResult<AvailabilityDto>.Exito(dtoResult, "Disponibilidad creada correctamente.");
+                return OperationResult<AvailabilityDto>.Exito(MapToDto(created)!, "Disponibilidad creada correctamente.");
             }
             catch (Exception ex)
             {
@@ -72,16 +68,10 @@ namespace SGMC.Application.Services
             }
         }
 
-        private AvailabilityDto MapToDto(Task created)
-        {
-            throw new NotImplementedException();
-        }
-
         public async Task<OperationResult<AvailabilityDto>> UpdateAsync(UpdateAvailabilityDto dto)
         {
             if (dto is null) return OperationResult<AvailabilityDto>.Fallo("Datos de actualización requeridos.");
 
-            // validaciones de campo fuera de trycatch
             var validationResult = dto.IsValidDto();
             if (!validationResult.Exitoso)
                 return OperationResult<AvailabilityDto>.Fallo(validationResult.Mensaje, validationResult.Errores);
@@ -92,25 +82,23 @@ namespace SGMC.Application.Services
                 if (existing is null)
                     return OperationResult<AvailabilityDto>.Fallo("Disponibilidad no encontrada.");
 
-                // validación de conflicto
                 var conflictExists = await _repository.CheckForConflictExcludingCurrentAsync(
-                    dto.AvailabilityId,
-                    dto.DoctorId,
-                    dto.DayOfWeek,
-                    dto.StartTime,
-                    dto.EndTime
-                );
+                    dto.AvailabilityId, dto.DoctorId, dto.AvailableDate, dto.StartTime, dto.EndTime);
 
                 if (conflictExists)
                     return OperationResult<AvailabilityDto>.Fallo("El nuevo horario entra en conflicto con otra disponibilidad.");
 
-                // update entity
+                existing.AvailableDate = dto.AvailableDate;
+                existing.StartTime = dto.StartTime;
+                existing.EndTime = dto.EndTime;
+                existing.AvailabilityModeId = dto.AvailabilityModeId;
+                existing.IsActive = dto.IsActive;
                 existing.UpdatedAt = DateTime.Now;
 
                 await _repository.UpdateAsync(existing);
-                var dtoResult = MapToDto(existing);
+                var updated = await _repository.GetByIdAsync(existing.AvailabilityId);
 
-                return OperationResult<AvailabilityDto>.Exito(dtoResult!, "Disponibilidad actualizada correctamente.");
+                return OperationResult<AvailabilityDto>.Exito(MapToDto(updated)!, "Disponibilidad actualizada correctamente.");
             }
             catch (Exception ex)
             {
@@ -128,7 +116,6 @@ namespace SGMC.Application.Services
                 var exists = await _repository.ExistsAsync(id);
                 if (!exists) return OperationResult.Fallo("Disponibilidad no encontrada.");
 
-
                 await _repository.DeleteAsync(id);
                 return OperationResult.Exito("Disponibilidad eliminada correctamente.");
             }
@@ -138,8 +125,6 @@ namespace SGMC.Application.Services
                 return OperationResult.Fallo($"Error al eliminar disponibilidad: {ex.Message}");
             }
         }
-
-        // metodos de consulta
 
         public async Task<OperationResult<AvailabilityDto>> GetByIdAsync(int id)
         {
@@ -151,8 +136,7 @@ namespace SGMC.Application.Services
                 if (availability is null)
                     return OperationResult<AvailabilityDto>.Fallo("Disponibilidad no encontrada.");
 
-                var dto = MapToDto(availability);
-                return OperationResult<AvailabilityDto>.Exito(dto!, "Disponibilidad obtenida correctamente.");
+                return OperationResult<AvailabilityDto>.Exito(MapToDto(availability)!, "Disponibilidad obtenida correctamente.");
             }
             catch (Exception ex)
             {
@@ -178,27 +162,25 @@ namespace SGMC.Application.Services
             }
         }
 
-        public async Task<OperationResult<List<AvailabilityDto>>> GetByDayOfWeekAsync(int doctorId, int dayOfWeek)
+        public async Task<OperationResult<List<AvailabilityDto>>> GetByDoctorAndDateRangeAsync(int doctorId, DateOnly startDate, DateOnly endDate)
         {
             if (doctorId <= 0) return OperationResult<List<AvailabilityDto>>.Fallo("ID de doctor inválido.");
-            if (dayOfWeek < 0 || dayOfWeek > 6) return OperationResult<List<AvailabilityDto>>.Fallo("Día de la semana inválido.");
+            if (startDate > endDate) return OperationResult<List<AvailabilityDto>>.Fallo("El rango de fechas es inválido.");
 
             try
             {
-                var availability = await _repository.GetByDoctorIdAndDayOfWeekAsync(doctorId, dayOfWeek);
+                var availability = await _repository.GetByDoctorAndDateRangeAsync(doctorId, startDate, endDate);
                 var dtoList = availability.Select(MapToDto).ToList();
-                return OperationResult<List<AvailabilityDto>>.Exito(dtoList!, "Disponibilidad del doctor por día de la semana obtenida correctamente.");
+                return OperationResult<List<AvailabilityDto>>.Exito(dtoList!, "Disponibilidad del doctor obtenida correctamente.");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al obtener disponibilidad del doctor {Id} para día {Day}", doctorId, dayOfWeek);
+                _logger.LogError(ex, "Error al obtener disponibilidad del doctor {Id} en el rango de fechas", doctorId);
                 return OperationResult<List<AvailabilityDto>>.Fallo($"Error al obtener disponibilidad: {ex.Message}");
             }
         }
 
-        // private mapping
-
-        private static AvailabilityDto? MapToDto(DoctorAvailability a)
+        private static AvailabilityDto? MapToDto(DoctorAvailability? a)
         {
             if (a == null) return null;
 
@@ -206,6 +188,11 @@ namespace SGMC.Application.Services
             {
                 AvailabilityId = a.AvailabilityId,
                 DoctorId = a.DoctorId,
+                AvailableDate = a.AvailableDate,
+                StartTime = a.StartTime,
+                EndTime = a.EndTime,
+                AvailabilityModeId = a.AvailabilityModeId,
+                AvailabilityModeName = a.AvailabilityMode?.AvailabilityMode1,
                 IsActive = a.IsActive,
                 CreatedAt = a.CreatedAt
             };
