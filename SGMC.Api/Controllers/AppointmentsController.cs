@@ -54,6 +54,21 @@ namespace SGMC.Api.Controllers
                 var result = await _appointmentService.GetByIdAsync(id);
                 if (!result.Exitoso || result.Datos is null)
                     return NotFound(result);
+
+                // Si quien pregunta se autenticó como Paciente o Médico, solo puede ver
+                // sus propias citas (evita que adivinando el ID vea citas de otra persona).
+                if (User.Identity?.IsAuthenticated == true)
+                {
+                    var claim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                    int.TryParse(claim, out int currentUserId);
+
+                    if (User.IsInRole("Paciente") && result.Datos.PatientId != currentUserId)
+                        return Forbid();
+
+                    if (User.IsInRole("Médico") && result.Datos.DoctorId != currentUserId)
+                        return Forbid();
+                }
+
                 return Ok(result);
             }
             catch (Exception ex)
@@ -153,7 +168,10 @@ namespace SGMC.Api.Controllers
         }
 
         //GET: api/Appointments/patient/1
+        // Solo Administrador puede consultar las citas de un paciente arbitrario por ID.
+        // Un paciente debe usar /api/appointments/me, que toma su propio ID del token.
         [HttpGet("patient/{patientId:int}")]
+        [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Administrador")]
         public async Task<ActionResult<OperationResult<List<AppointmentDto>>>> GetByPatient(int patientId)
         {
             if (patientId <= 0)
@@ -226,7 +244,10 @@ namespace SGMC.Api.Controllers
         }
 
         // GET: api/Appointments/doctor/1
+        // Solo Administrador puede consultar la agenda de un doctor arbitrario por ID.
+        // Un médico debe usar /api/appointments/doctor/me (ver abajo), que toma su propio ID del token.
         [HttpGet("doctor/{doctorId:int}")]
+        [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Administrador")]
         public async Task<ActionResult<OperationResult<List<AppointmentDto>>>> GetByDoctor(int doctorId)
         {
             if (doctorId <= 0)
@@ -243,6 +264,56 @@ namespace SGMC.Api.Controllers
                 return StatusCode(
                     StatusCodes.Status500InternalServerError,
                     OperationResult.Fallo("Se produjo un error inesperado al obtener las citas del doctor.")
+                );
+            }
+        }
+
+        // GET: api/appointments/doctor/me
+        [HttpGet("doctor/me")]
+        [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Médico")]
+        public async Task<ActionResult<OperationResult<List<AppointmentDto>>>> GetMyAppointmentsAsDoctor(
+            [FromQuery] int? statusId,
+            [FromQuery] DateTime? from,
+            [FromQuery] DateTime? to)
+        {
+            var claim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(claim, out int doctorId))
+                return Unauthorized(OperationResult.Fallo("No se pudo identificar al médico autenticado."));
+
+            try
+            {
+                var result = await _appointmentService.GetByDoctorIdAsync(doctorId);
+                if (!result.Exitoso || result.Datos == null)
+                    return Ok(result);
+
+                var appointments = result.Datos.AsEnumerable();
+
+                if (statusId.HasValue)
+                    appointments = appointments.Where(a => a.StatusId == statusId.Value);
+
+                if (from.HasValue)
+                    appointments = appointments.Where(a => a.AppointmentDate >= from.Value);
+
+                if (to.HasValue)
+                    appointments = appointments.Where(a => a.AppointmentDate <= to.Value);
+
+                var list = appointments
+                    .OrderByDescending(a => a.AppointmentDate)
+                    .ToList();
+
+                return Ok(OperationResult<List<AppointmentDto>>.Exito(
+                    list,
+                    list.Count == 0
+                        ? "No tienes citas registradas."
+                        : $"{list.Count} cita(s) encontrada(s)."
+                ));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener la agenda del médico {DoctorId}.", doctorId);
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    OperationResult.Fallo("Se produjo un error inesperado al obtener tu agenda.")
                 );
             }
         }
