@@ -143,6 +143,19 @@ namespace SGMC.Application.Services
         }
 
         // ── CANCEL ────────────────────────────────────────────────────────────
+        /// <summary>
+        /// FLUJO DE CANCELACIÓN — Task 136
+        ///
+        /// Paso 1: Validar que el ID sea válido
+        /// Paso 2: Verificar que la cita existe
+        /// Paso 3: Verificar que la cita está en estado Pendiente (1) o Confirmada (2)
+        ///         — No se pueden cancelar citas Canceladas, Completadas o Rechazadas
+        /// Paso 4: Cambiar StatusId a 3 (Cancelada) y registrar UpdatedAt
+        /// Paso 5: Liberar el horario en DoctorAvailability
+        ///         — Buscar el bloque que cubre la fecha/hora de la cita
+        ///         — Marcarlo como IsActive = true para que vuelva a estar disponible
+        /// Paso 6: Guardar cambios
+        /// </summary>
         public async Task<OperationResult> CancelAsync(int appointmentId)
         {
             if (appointmentId <= 0)
@@ -154,17 +167,40 @@ namespace SGMC.Application.Services
                 if (appointment is null)
                     return OperationResult.Fallo("La cita no existe.");
 
-                if (appointment.StatusId == 3)
-                    return OperationResult.Fallo("La cita ya está cancelada.");
+                // Solo se pueden cancelar citas Pendientes (1) o Confirmadas (2)
+                if (appointment.StatusId != 1 && appointment.StatusId != 2)
+                    return OperationResult.Fallo(
+                        "Solo se pueden cancelar citas en estado Pendiente o Confirmada.");
 
-                if (appointment.StatusId == 4)
-                    return OperationResult.Fallo("No se puede cancelar una cita completada.");
-
-                appointment.StatusId = 3; // Cancelada
+                // Paso 4: Cambiar estado a Cancelada
+                appointment.StatusId = 3;
                 appointment.UpdatedAt = DateTime.Now;
-
                 await _repository.UpdateAsync(appointment);
-                return OperationResult.Exito("Cita cancelada correctamente.");
+
+                // Paso 5: Liberar el horario en DoctorAvailability
+                var date = DateOnly.FromDateTime(appointment.AppointmentDate);
+                var time = TimeOnly.FromDateTime(appointment.AppointmentDate);
+
+                // Buscar el bloque de disponibilidad que cubre este horario
+                var slots = await _availabilityRepository.GetByDoctorAndDateRangeAsync(
+                    appointment.DoctorId, date, date);
+
+                var slotToFree = slots.FirstOrDefault(s =>
+                    s.StartTime <= time && time < s.EndTime);
+
+                if (slotToFree is not null && !slotToFree.IsActive)
+                {
+                    // Reactivar el slot para que otros pacientes puedan tomarlo
+                    slotToFree.IsActive = true;
+                    slotToFree.UpdatedAt = DateTime.Now;
+                    await _availabilityRepository.UpdateAsync(slotToFree);
+                }
+
+                _logger.LogInformation(
+                    "Cita {Id} cancelada. Slot liberado para doctor {DoctorId} en {Date} {Time}",
+                    appointmentId, appointment.DoctorId, date, time);
+
+                return OperationResult.Exito("Cita cancelada correctamente. El horario fue liberado.");
             }
             catch (Exception ex)
             {
