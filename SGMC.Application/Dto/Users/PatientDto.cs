@@ -16,14 +16,12 @@ namespace SGMC.Application.Dto.Users
         public int InsuranceProviderId { get; set; }
         public string InsuranceProviderName { get; set; } = string.Empty;
         public bool IsActive { get; set; }
-
     }
 
     public class RegisterPatientDto : RegisterPersonBaseDto
     {
-        [Required(ErrorMessage = "El género es requerido")]
-        [RegularExpression("^(Masculino|Femenino)$", ErrorMessage = "El género debe ser Masculino o Femenino")]
-
+        [Required(ErrorMessage = "El teléfono es requerido")]
+        [Phone(ErrorMessage = "Formato de teléfono inválido")]
         public string PhoneNumber { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "La dirección es requerida")]
@@ -40,6 +38,26 @@ namespace SGMC.Application.Dto.Users
 
         public string? Allergies { get; set; }
 
+        [Required(ErrorMessage = "El proveedor de seguro es requerido")]
+        [Range(1, int.MaxValue, ErrorMessage = "Debe seleccionar un proveedor de seguro válido")]
+        public int InsuranceProviderId { get; set; }
+    }
+
+    public class PatchPatientContactDto
+    {
+        [StringLength(200, ErrorMessage = "La dirección no puede superar los 200 caracteres")]
+        public string? Address { get; set; }
+
+        [StringLength(100, ErrorMessage = "El nombre del contacto de emergencia no puede superar los 100 caracteres")]
+        public string? EmergencyContactName { get; set; }
+
+        [Phone(ErrorMessage = "Formato de teléfono de emergencia inválido")]
+        [StringLength(20, ErrorMessage = "El teléfono de emergencia no puede superar los 20 caracteres")]
+        public string? EmergencyContactPhone { get; set; }
+    }
+
+    public class PatchPatientInsuranceDto
+    {
         [Required(ErrorMessage = "El proveedor de seguro es requerido")]
         [Range(1, int.MaxValue, ErrorMessage = "Debe seleccionar un proveedor de seguro válido")]
         public int InsuranceProviderId { get; set; }

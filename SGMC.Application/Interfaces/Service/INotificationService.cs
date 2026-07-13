@@ -10,6 +10,7 @@ namespace SGMC.Application.Interfaces.Service
         Task<OperationResult> MarkAsReadAsync(int notificationId);
         Task<OperationResult> SendPasswordResetEmailAsync(string recipientEmail, int userId);
         Task<OperationResult> SendAppointmentConfirmationAsync(int appointmentId);
+
         Task<OperationResult> SendAccountActivationEmailAsync(string recipientEmail, int userId);
     }
 }

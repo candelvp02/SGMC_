@@ -1,5 +1,6 @@
 ﻿using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
+using SGMC.Application.Dto.System;
 using SGMC.Application.Dto.Users;
 using SGMC.Application.Interfaces.Persistence;
 using SGMC.Persistence.Common;

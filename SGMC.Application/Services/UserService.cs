@@ -29,7 +29,7 @@ namespace SGMC.Application.Services
             _logger = logger;
         }
 
-        public async Task<OperationResult<UserDto>> AuthenticateAsync(LoginDto dto)
+        public async Task<OperationResult<UserDto>> AuthenticateAsync(UserLoginDto dto)
         {
             if (dto == null) return OperationResult<UserDto>.Fallo("Credenciales requeridas.");
 

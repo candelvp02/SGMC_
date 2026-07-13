@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using SGMC.Application.Dto.Appointments;
 
 namespace SGMC.Application.Dto.Base
 {
@@ -8,22 +8,13 @@ namespace SGMC.Application.Dto.Base
         public string LastName { get; set; } = string.Empty;
         public DateOnly? DateOfBirth { get; set; }
         public string IdentificationNumber { get; set; } = string.Empty;
-
-        [Required(ErrorMessage = "El género es requerido")]
-        [RegularExpression("^(Masculino|Femenino)$", ErrorMessage = "El género debe ser Masculino o Femenino")]
         public string Gender { get; set; } = string.Empty;
-
-
-        public string FullName => $"{FirstName} {LastName}";
+        public string Email { get; set; } = string.Empty;
+        public string FullName => $"{FirstName} {LastName}".Trim();
     }
+
     public abstract class RegisterPersonBaseDto : PersonBaseDto
     {
-        [Required(ErrorMessage = "El email es requerido")]
-        [EmailAddress(ErrorMessage = "Formato de email inválido")]
-        public string Email { get; set; } = string.Empty;
-
-        [Required(ErrorMessage = "La contraseña es requerida")]
-        [MinLength(8, ErrorMessage = "La contraseña debe tener al menos 8 caracteres")]
         public string Password { get; set; } = string.Empty;
     }
 }

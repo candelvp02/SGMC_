@@ -14,10 +14,15 @@ namespace SGMC.Persistence.Configuration.Appointments
 
             entity.Property(e => e.AvailabilityId).HasColumnName("AvailabilityID");
             entity.Property(e => e.DoctorId).HasColumnName("DoctorID");
+            entity.Property(e => e.AvailabilityModeId).HasColumnName("AvailabilityModeID");
 
             entity.HasOne(d => d.Doctor).WithMany(p => p.DoctorAvailabilities)
                 .HasForeignKey(d => d.DoctorId)
                 .HasConstraintName("FK__DoctorAva__Docto__5535A963");
+
+            entity.HasOne(d => d.AvailabilityMode).WithMany()
+                .HasForeignKey(d => d.AvailabilityModeId)
+                .HasConstraintName("FK_DoctorAvailability_AvailabilityMode");
 
             OnConfigurePartial(entity);
         }

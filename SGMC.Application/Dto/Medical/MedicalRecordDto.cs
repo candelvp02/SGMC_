@@ -40,7 +40,7 @@
         public string Treatment { get; init; } = string.Empty;
         public DateTime? RecordDate { get; init; }
         public int RecordId { get; internal set; }
-        public object PatientId { get; internal set; }
-        public object DoctorId { get; internal set; }
+        public object? PatientId { get; internal set; }
+        public object? DoctorId { get; internal set; }
     }
 }

@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Moq;
-using SGMC.Application.Dto.Users;
+using SGMC.Application.Dto.System;
 using SGMC.Application.Interfaces.Service;
 using SGMC.Application.Services;
 using SGMC.Domain.Repositories.Appointments;
@@ -13,6 +13,7 @@ namespace SGMC.Tests.Services
     {
         private readonly Mock<IDoctorRepository> _repoMock;
         private readonly Mock<IAppointmentRepository> _apptRepoMock;
+        private readonly Mock<IDoctorAvailabilityRepository> _availabilityRepoMock;
         private readonly Mock<ILogger<DoctorService>> _loggerMock;
         private readonly IDoctorService _service;
         private readonly Mock<IUserRepository> _userRepoMock;
@@ -23,6 +24,7 @@ namespace SGMC.Tests.Services
         {
             _repoMock = new Mock<IDoctorRepository>();
             _apptRepoMock = new Mock<IAppointmentRepository>();
+            _availabilityRepoMock = new Mock<IDoctorAvailabilityRepository>();
             _loggerMock = new Mock<ILogger<DoctorService>>();
             _userRepoMock = new Mock<IUserRepository>();
             _personRepoMock = new Mock<IPersonRepository>();
@@ -31,6 +33,7 @@ namespace SGMC.Tests.Services
             _service = new DoctorService(
                 _repoMock.Object,
                 _apptRepoMock.Object,
+                _availabilityRepoMock.Object,
                 _loggerMock.Object,
                 _userRepoMock.Object,
                 _personRepoMock.Object,
@@ -61,7 +64,6 @@ namespace SGMC.Tests.Services
         [Fact]
         public async Task CreateAsync_WhenLicenseNumberEmpty_ReturnsFailure()
         {
-            // ARRANGE
             var futureDate = DateOnly.FromDateTime(DateTime.Now.AddYears(1));
             var dto = GetValidDto(string.Empty, futureDate);
 
@@ -69,10 +71,8 @@ namespace SGMC.Tests.Services
             _userRepoMock.Setup(r => r.ExistsByEmailAsync(It.IsAny<string>())).ReturnsAsync(false);
             _specialtyRepoMock.Setup(r => r.ExistsAsync(1)).ReturnsAsync(true);
 
-            // ACT
             var result = await _service.CreateAsync(dto);
 
-            // ASSERT
             Assert.False(result.Exitoso);
             var mensajeLower = result.Mensaje.ToLower();
             Assert.True(
@@ -86,7 +86,6 @@ namespace SGMC.Tests.Services
         [Fact]
         public async Task CreateAsync_WhenLicenseExpired_ReturnsFailure()
         {
-            // ARRANGE
             var expiredDate = DateOnly.FromDateTime(DateTime.Now.AddDays(-1));
             var dto = GetValidDto("L123-VALID", expiredDate);
 
@@ -95,10 +94,8 @@ namespace SGMC.Tests.Services
             _repoMock.Setup(r => r.ExistsByLicenseNumberAsync(It.IsAny<string>())).ReturnsAsync(false);
             _specialtyRepoMock.Setup(r => r.ExistsAsync(1)).ReturnsAsync(true);
 
-            // ACT
             var result = await _service.CreateAsync(dto);
 
-            // ASSERT
             Assert.False(result.Exitoso);
             var mensajeLower = result.Mensaje.ToLower();
             Assert.True(

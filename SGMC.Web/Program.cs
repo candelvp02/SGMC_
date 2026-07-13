@@ -20,6 +20,7 @@ builder.Services.AddMedicalRecordDependencies();
 builder.Services.AddNotificationDependencies();
 builder.Services.AddReportDependencies();
 builder.Services.AddSpecialtyDependencies();
+builder.Services.AddAuthDependencies();
 
 // Consumo de capa api
 builder.Services.AddHttpClient<IAppointmentApiClient, AppointmentApiClient>(client =>

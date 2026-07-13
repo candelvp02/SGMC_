@@ -60,6 +60,7 @@ namespace SGMC.Persistence.Repositories.Users
             return await _dbSet
                 .Where(d => d.IsActive)
                 .Include(d => d.Specialty)
+                .Include(d => d.AvailabilityMode)
                 .Include(d => d.DoctorNavigation)
                     .ThenInclude(p => p!.User)
                 .ToListAsync();
@@ -69,6 +70,7 @@ namespace SGMC.Persistence.Repositories.Users
         {
             return await _dbSet
                 .Include(d => d.Specialty)
+                .Include(d => d.AvailabilityMode)
                 .Include(d => d.DoctorNavigation)
                     .ThenInclude(p => p!.User)
                 .FirstOrDefaultAsync(d => d.DoctorId == id);
@@ -81,6 +83,7 @@ namespace SGMC.Persistence.Repositories.Users
                 .Include(d => d.DoctorNavigation)
                     .ThenInclude(p => p!.User)
                 .Include(d => d.Specialty)
+                .Include(d => d.AvailabilityMode)
                 .ToListAsync();
         }
 
@@ -91,6 +94,7 @@ namespace SGMC.Persistence.Repositories.Users
                 .Include(d => d.DoctorNavigation)
                     .ThenInclude(p => p!.User)
                 .Include(d => d.Specialty)
+                .Include(d => d.AvailabilityMode)
                 .ToListAsync();
         }
 
@@ -100,7 +104,32 @@ namespace SGMC.Persistence.Repositories.Users
                 .Include(d => d.DoctorNavigation)
                     .ThenInclude(p => p!.User)
                 .Include(d => d.Specialty)
+                .Include(d => d.AvailabilityMode)
                 .FirstOrDefaultAsync(d => d.LicenseNumber == licenseNumber);
+        }
+
+        public async Task<IEnumerable<Doctor>> SearchAsync(string? name, short? specialtyId)
+        {
+            var query = _dbSet
+                .Where(d => d.IsActive)
+                .Include(d => d.Specialty)
+                .Include(d => d.AvailabilityMode)
+                .Include(d => d.DoctorNavigation)
+                    .ThenInclude(p => p!.User)
+                .AsQueryable();
+
+            if (specialtyId.HasValue && specialtyId.Value > 0)
+                query = query.Where(d => d.SpecialtyId == specialtyId.Value);
+
+            if (!string.IsNullOrWhiteSpace(name))
+            {
+                var term = name.Trim().ToLower();
+                query = query.Where(d =>
+                    d.DoctorNavigation != null &&
+                    ((d.DoctorNavigation.FirstName + " " + d.DoctorNavigation.LastName).ToLower().Contains(term)));
+            }
+
+            return await query.ToListAsync();
         }
     }
 }
