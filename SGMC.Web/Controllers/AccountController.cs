@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using SGMC.Application.Dto.Users;
 using SGMC.Application.Dto.System;
+using SGMC.Application.Dto.Users;
 using SGMC.Application.Interfaces.Service;
 using System.Security.Claims;
 
@@ -11,10 +13,42 @@ namespace SGMC.Web.Controllers
     public class AccountController : Controller
     {
         private readonly IUserService _userService;
+        private readonly IWebHostEnvironment _env;
 
-        public AccountController(IUserService userService)
+        public AccountController(IUserService userService, IWebHostEnvironment env)
         {
             _userService = userService;
+            _env = env;
+        }
+
+        // GET: Account/DevLogin?role=Administrador
+        // SOLO disponible en ambiente Development. Crea una sesión válida
+        // sin pasar por la base de datos, para poder trabajar en otras
+        // partes de la app mientras el flujo real de login se termina de arreglar.
+        // Roles válidos: "Administrador", "Médico", "Paciente" (Nota: Eliminar posteriormente en producción).
+        [HttpGet]
+        public async Task<IActionResult> DevLogin(string role = "Administrador")
+        {
+            if (!_env.IsDevelopment())
+                return NotFound();
+
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, "0"),
+                new Claim(ClaimTypes.Email, "dev@local.test"),
+                new Claim(ClaimTypes.Name, $"Usuario de Prueba ({role})"),
+                new Claim(ClaimTypes.Role, role)
+            };
+
+            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var principal = new ClaimsPrincipal(identity);
+
+            await HttpContext.SignInAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                principal,
+                new AuthenticationProperties { IsPersistent = false });
+
+            return RedirectToAction("Index", "Home");
         }
 
         // GET: Account/Login
@@ -34,7 +68,13 @@ namespace SGMC.Web.Controllers
             if (!ModelState.IsValid)
                 return View(dto);
 
-            var result = await _userService.AuthenticateAsync(dto);
+            var credentials = new UserLoginDto
+            {
+                Email = dto.Email,
+                Password = dto.Password
+            };
+
+            var result = await _userService.AuthenticateAsync(credentials);
 
             if (!result.Exitoso || result.Datos == null)
             {

@@ -17,5 +17,9 @@
     <ProjectReference Include="..\SGMC.Infrastructure\SGMC.Infrastructure.csproj" />
     <ProjectReference Include="..\SGMC.Persistence\SGMC.Persistence.csproj" />
   </ItemGroup>
+	
+  <ItemGroup>
+    <Folder Include="Views\Auth\" />
+  </ItemGroup>
 
 </Project>
