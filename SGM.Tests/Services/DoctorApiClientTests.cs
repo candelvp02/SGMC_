@@ -5,6 +5,7 @@ using FluentAssertions;
 using Moq;
 using Moq.Protected;
 using SGMC.Application.Dto.Users;
+using SGMC.Application.Dto.System;
 using SGMC.Web.Models;
 using SGMC.Web.Services;
 using Xunit;

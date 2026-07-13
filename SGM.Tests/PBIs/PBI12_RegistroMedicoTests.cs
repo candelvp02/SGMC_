@@ -2,6 +2,7 @@ using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
 using SGMC.Application.Dto.Users;
+using SGMC.Application.Dto.System;
 using SGMC.Application.Interfaces.Service;
 using SGMC.Application.Services;
 using SGMC.Application.Validators.Users;
@@ -28,25 +29,28 @@ namespace SGMC.Tests.PBIs
     public class PBI12_RegistroMedicoTests
     {
         // Infraestructura de mocks compartida
-        private readonly Mock<IDoctorRepository>      _repoMock;
+        private readonly Mock<IDoctorRepository> _repoMock;
         private readonly Mock<IAppointmentRepository> _apptRepoMock;
-        private readonly Mock<IUserRepository>        _userRepoMock;
-        private readonly Mock<IPersonRepository>      _personRepoMock;
-        private readonly Mock<ISpecialtyRepository>   _specialtyRepoMock;
-        private readonly IDoctorService               _service;
+        private readonly Mock<IDoctorAvailabilityRepository> _availabilityRepoMock;
+        private readonly Mock<IUserRepository> _userRepoMock;
+        private readonly Mock<IPersonRepository> _personRepoMock;
+        private readonly Mock<ISpecialtyRepository> _specialtyRepoMock;
+        private readonly IDoctorService _service;
 
         public PBI12_RegistroMedicoTests()
         {
-            _repoMock          = new Mock<IDoctorRepository>();
-            _apptRepoMock      = new Mock<IAppointmentRepository>();
-            _userRepoMock      = new Mock<IUserRepository>();
-            _personRepoMock    = new Mock<IPersonRepository>();
+            _repoMock = new Mock<IDoctorRepository>();
+            _apptRepoMock = new Mock<IAppointmentRepository>();
+            _availabilityRepoMock = new Mock<IDoctorAvailabilityRepository>();
+            _userRepoMock = new Mock<IUserRepository>();
+            _personRepoMock = new Mock<IPersonRepository>();
             _specialtyRepoMock = new Mock<ISpecialtyRepository>();
-            var loggerMock     = new Mock<ILogger<DoctorService>>();
+            var loggerMock = new Mock<ILogger<DoctorService>>();
 
             _service = new DoctorService(
                 _repoMock.Object,
                 _apptRepoMock.Object,
+                _availabilityRepoMock.Object,
                 loggerMock.Object,
                 _userRepoMock.Object,
                 _personRepoMock.Object,
