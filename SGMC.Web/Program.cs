@@ -2,13 +2,21 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using SGMC.Infrastructure.Dependencies;
 using SGMC.Persistence.Context;
+using SGMC.Persistence.Seed;
 using SGMC.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// DbContext
+// DbContext — alterna entre SQL Server e InMemory según "UseInMemoryDatabase" en appsettings.
+var useInMemoryDatabase = builder.Configuration.GetValue<bool>("UseInMemoryDatabase");
+
 builder.Services.AddDbContext<HealtSyncContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("HealtSyncConnection")));
+{
+    if (useInMemoryDatabase)
+        options.UseInMemoryDatabase("SGMC_InMemoryDb");
+    else
+        options.UseSqlServer(builder.Configuration.GetConnectionString("HealtSyncConnection"));
+});
 
 // Dependencies
 builder.Services.AddUserDependencies();
@@ -51,6 +59,14 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
+
+// Sembrar datos de catálogo si se está corriendo en memoria (la base InMemory arranca vacía)
+if (useInMemoryDatabase)
+{
+    using var scope = app.Services.CreateScope();
+    var context = scope.ServiceProvider.GetRequiredService<HealtSyncContext>();
+    InMemorySeeder.Seed(context);
+}
 
 if (app.Environment.IsDevelopment())
 {

@@ -49,7 +49,7 @@ namespace SGMC.Application.Services
                 if (await _personRepository.ExistsByIdentificationNumberAsync(dto.IdentificationNumber))
                     return OperationResult<PatientDto>.Fallo("Ya existe una persona con esa cédula");
 
-                if (await _userRepository.ExistsByEmailAsync(dto.Email))
+                if (await _userRepository.ExistsByEmailAsync(dto.Email.Trim().ToLower()))
                     return OperationResult<PatientDto>.Fallo("El email ya está en uso");
 
                 var insuranceExists = await _insuranceProviderRepository.ExistsAsync(dto.InsuranceProviderId);

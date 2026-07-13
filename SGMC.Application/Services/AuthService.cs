@@ -43,7 +43,7 @@ namespace SGMC.Application.Services
             try
             {
                 // 1. Buscar usuario por email
-                var userResult = await _userRepository.GetByEmailAsync(dto.Email);
+                var userResult = await _userRepository.GetByEmailAsync(dto.Email.Trim().ToLower());
                 if (userResult is null || !VerifyPassword(dto.Password, userResult.PasswordHash))
                 {
                     // Mensaje genérico — no revelar qué campo falló (Task 4)
@@ -99,7 +99,7 @@ namespace SGMC.Application.Services
 
             try
             {
-                var user = await _userRepository.GetByEmailAsync(email);
+                var user = await _userRepository.GetByEmailAsync(email.Trim().ToLower());
 
                 // Respuesta siempre exitosa — no revelar si el email existe (seguridad)
                 if (user is null)
@@ -147,7 +147,7 @@ namespace SGMC.Application.Services
 
             try
             {
-                var user = await _userRepository.GetByEmailAsync(dto.Email);
+                var user = await _userRepository.GetByEmailAsync(dto.Email.Trim().ToLower());
                 if (user is null)
                     return OperationResult.Fallo("El enlace de recuperación no es válido o ha expirado.");
 
