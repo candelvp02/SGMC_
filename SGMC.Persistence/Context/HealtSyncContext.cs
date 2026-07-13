@@ -71,5 +71,7 @@ namespace SGMC.Persistence.Context
         }
 
         partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
+
+        public virtual DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
     }
 }

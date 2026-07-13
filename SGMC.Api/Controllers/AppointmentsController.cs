@@ -71,7 +71,7 @@ namespace SGMC.Api.Controllers
         public async Task<ActionResult<OperationResult<AppointmentDto>>> Create([FromBody] CreateAppointmentDto dto)
         {
             if (!ModelState.IsValid)
-                return BadRequest(OperationResult.Fallo("Datos inválidos"));
+                return BadRequest(OperationResult.Fallo("Datos invalidos"));
 
             try
             {
@@ -103,7 +103,7 @@ namespace SGMC.Api.Controllers
         public async Task<ActionResult<OperationResult<AppointmentDto>>> Update(int id, [FromBody] UpdateAppointmentDto dto)
         {
             if (!ModelState.IsValid)
-                return BadRequest(OperationResult.Fallo("Datos inválidos"));
+                return BadRequest(OperationResult.Fallo("Datos invalidos"));
 
             if (id != dto.Id)
                 return BadRequest(OperationResult.Fallo("El ID de la ruta no coincide con el ID del cuerpo."));
@@ -170,6 +170,57 @@ namespace SGMC.Api.Controllers
                 return StatusCode(
                     StatusCodes.Status500InternalServerError,
                     OperationResult.Fallo("Se produjo un error inesperado al obtener las citas del paciente.")
+                );
+            }
+        }
+
+        // GET: api/appointments/me
+        [HttpGet("me")]
+        [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Paciente")]
+        public async Task<ActionResult<OperationResult<List<AppointmentDto>>>> GetMyAppointments(
+            [FromQuery] int? statusId,
+            [FromQuery] DateTime? from,
+            [FromQuery] DateTime? to)
+        {
+            var claim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(claim, out int patientId))
+                return Unauthorized(OperationResult.Fallo("No se pudo identificar al paciente autenticado."));
+
+            try
+            {
+                var result = await _appointmentService.GetByPatientIdAsync(patientId);
+                if (!result.Exitoso || result.Datos == null)
+                    return Ok(result);
+
+                // Filtros opcionales aplicados en memoria (los datos ya vienen del paciente)
+                var appointments = result.Datos.AsEnumerable();
+
+                if (statusId.HasValue)
+                    appointments = appointments.Where(a => a.StatusId == statusId.Value);
+
+                if (from.HasValue)
+                    appointments = appointments.Where(a => a.AppointmentDate >= from.Value);
+
+                if (to.HasValue)
+                    appointments = appointments.Where(a => a.AppointmentDate <= to.Value);
+
+                var list = appointments
+                    .OrderByDescending(a => a.AppointmentDate)
+                    .ToList();
+
+                return Ok(OperationResult<List<AppointmentDto>>.Exito(
+                    list,
+                    list.Count == 0
+                        ? "No tienes citas registradas."
+                        : $"{list.Count} cita(s) encontrada(s)."
+                ));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener historial de citas del paciente {PatientId}.", patientId);
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    OperationResult.Fallo("Se produjo un error inesperado al obtener tu historial de citas.")
                 );
             }
         }

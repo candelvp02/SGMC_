@@ -40,6 +40,11 @@ namespace SGMC.Application.Validators.Common
         {
             return gender == "M" || gender == "F";
         }
+        public static bool IsValidGenderFull(string? gender)
+        {
+            return gender == "Masculino" || gender == "Femenino";
+        }
+
 
         // Valida rango de edad valida
         public static bool IsValidAge(DateOnly? dateOfBirth)

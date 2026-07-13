@@ -5,24 +5,26 @@
     "anonymousAuthentication": true,
     "iisExpress": {
       "applicationUrl": "http://localhost:28465",
-      "sslPort": 0
+      "sslPort": 44387
     }
   },
+
   "profiles": {
-    "http": {
+    "SGMC.Web": {
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,
-      "launchUrl": " ",
-      "applicationUrl": "http://localhost:5098",
+      "launchUrl": "",
+      "applicationUrl": "https://localhost:7098;http://localhost:5098",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
+
     "IIS Express": {
       "commandName": "IISExpress",
       "launchBrowser": true,
-      "launchUrl": " ",
+      "launchUrl": "",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }

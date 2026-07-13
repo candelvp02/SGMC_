@@ -33,6 +33,12 @@ namespace SGMC.Web.Services
             return await HandleResponse<DoctorDto>(response);
         }
 
+        public async Task<ApiResponse<List<DoctorDto>>> GetBySpecialtyAsync(short specialtyId)
+        {
+            var response = await _httpClient.GetAsync($"Doctors/specialty/{specialtyId}");
+            return await HandleResponse<List<DoctorDto>>(response);
+        }
+
         public async Task<ApiResponse<DoctorDto>> CreateAsync(RegisterDoctorDto dto)
         {
             var json = JsonSerializer.Serialize(dto, _jsonOptions);

@@ -17,7 +17,7 @@ namespace SGMC.Persistence.Repositories.Users
         {
             return await _dbSet
                 .Include(p => p.PatientNavigation!)
-                    .ThenInclude(pn => pn.User) 
+                    .ThenInclude(pn => pn.User)
                 .Include(p => p.InsuranceProvider)
                 .FirstOrDefaultAsync(p => p.PatientId == patientId);
         }
@@ -26,7 +26,7 @@ namespace SGMC.Persistence.Repositories.Users
         {
             return await _dbSet
                 .Include(p => p.PatientNavigation!)
-                    .ThenInclude(pn => pn.User) 
+                    .ThenInclude(pn => pn.User)
                 .Include(p => p.InsuranceProvider)
                 .ToListAsync();
         }
@@ -108,6 +108,15 @@ namespace SGMC.Persistence.Repositories.Users
                 return GetByIdWithDetailsAsync(patientId);
 
             return Task.CompletedTask;
+        }
+
+        public async Task<Patient?> GetByUserIdAsync(int userId)
+        {
+            return await _context.Patients
+                .Include(p => p.PatientNavigation!)
+                    .ThenInclude(pn => pn.User)
+                .Include(p => p.InsuranceProvider)
+                .FirstOrDefaultAsync(p => p.PatientId == userId);
         }
     }
 }

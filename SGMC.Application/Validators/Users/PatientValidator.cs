@@ -48,6 +48,19 @@ namespace SGMC.Application.Validators.Users
                 : OperationResult.Exito();
         }
 
+        // Valida PatchPatientInsuranceDto
+        public static OperationResult IsValidDto(this PatchPatientInsuranceDto dto)
+        {
+            var errores = new List<string>();
+
+            if (dto.InsuranceProviderId <= 0)
+                errores.Add("Debe seleccionar un proveedor de seguro v\u00e1lido.");
+
+            return errores.Count > 0
+                ? OperationResult.Fallo("Errores de validaci\u00f3n de seguro m\u00e9dico.", errores)
+                : OperationResult.Exito();
+        }
+
         // Valida UpdatePatientDto
         public static OperationResult IsValidDto(this UpdatePatientDto dto)
         {

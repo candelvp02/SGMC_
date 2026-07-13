@@ -7,8 +7,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.0">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+	<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" />
+
   </ItemGroup>
 
   <ItemGroup>
@@ -16,7 +21,6 @@
     <ProjectReference Include="..\SGMC.Domain\SGMC.Domain.csproj" />
     <ProjectReference Include="..\SGMC.Infrastructure\SGMC.Infrastructure.csproj" />
     <ProjectReference Include="..\SGMC.Persistence\SGMC.Persistence.csproj" />
-    <ProjectReference Include="..\SGMC.Web\SGMC.Web.csproj" />
   </ItemGroup>
 
 </Project>
