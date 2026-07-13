@@ -5,9 +5,9 @@ using SGMC.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// DbContext
+// DbContext InMemory
 builder.Services.AddDbContext<HealtSyncContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("HealtSyncConnection")));
+    options.UseInMemoryDatabase("HealtSyncDb"));
 
 // Dependencies
 builder.Services.AddUserDependencies();
