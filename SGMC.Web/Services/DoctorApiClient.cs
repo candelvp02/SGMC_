@@ -1,6 +1,7 @@
 ﻿using System.Net.Http;
 using System.Text;
 using System.Text.Json;
+using SGMC.Application.Dto.System;
 using SGMC.Application.Dto.Users;
 using SGMC.Web.Models;
 

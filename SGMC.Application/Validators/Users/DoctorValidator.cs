@@ -1,4 +1,4 @@
-﻿using SGMC.Application.Dto.Users;
+﻿using SGMC.Application.Dto.System;
 using SGMC.Application.Validators.Common;
 using SGMC.Domain.Base;
 
@@ -59,7 +59,6 @@ namespace SGMC.Application.Validators.Users
         public static OperationResult IsValidDto(this UpdateDoctorDto dto)
         {
             var errores = new List<string>();
-
             if (dto.DoctorId <= 0)
                 errores.Add("El ID del doctor es inválido.");
 

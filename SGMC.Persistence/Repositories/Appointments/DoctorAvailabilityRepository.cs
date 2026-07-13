@@ -11,16 +11,23 @@ namespace SGMC.Persistence.Repositories.Appointments
         public DoctorAvailabilityRepository(HealtSyncContext context) : base(context) { }
 
         public override async Task<DoctorAvailability?> GetByIdAsync(int id)
-            => await _dbSet.FindAsync(id);
+            => await _dbSet.Include(d => d.AvailabilityMode)
+                            .FirstOrDefaultAsync(d => d.AvailabilityId == id);
 
         public async Task<IEnumerable<DoctorAvailability>> GetByDoctorIdAsync(int doctorId)
-            => await _dbSet.Where(d => d.DoctorId == doctorId).ToListAsync();
+            => await _dbSet.Where(d => d.DoctorId == doctorId)
+                            .Include(d => d.AvailabilityMode)
+                            .ToListAsync();
 
         public async Task<IEnumerable<DoctorAvailability>> GetByDateRangeAsync(DateOnly startDate, DateOnly endDate)
-            => await _dbSet.Where(d => d.AvailableDate >= startDate && d.AvailableDate <= endDate).ToListAsync();
+            => await _dbSet.Where(d => d.AvailableDate >= startDate && d.AvailableDate <= endDate)
+                            .Include(d => d.AvailabilityMode)
+                            .ToListAsync();
 
         public async Task<IEnumerable<DoctorAvailability>> GetByDoctorAndDateRangeAsync(int doctorId, DateOnly startDate, DateOnly endDate)
-            => await _dbSet.Where(d => d.DoctorId == doctorId && d.AvailableDate >= startDate && d.AvailableDate <= endDate).ToListAsync();
+            => await _dbSet.Where(d => d.DoctorId == doctorId && d.AvailableDate >= startDate && d.AvailableDate <= endDate)
+                            .Include(d => d.AvailabilityMode)
+                            .ToListAsync();
 
         public async Task<bool> IsAvailableAsync(int doctorId, DateOnly date, TimeOnly time)
         {
@@ -33,13 +40,7 @@ namespace SGMC.Persistence.Repositories.Appointments
         }
 
         public async Task<bool> HasConflictAsync(int doctorId, DateOnly date, TimeOnly startTime, TimeOnly endTime)
-        {
-            return await _dbSet.AnyAsync(d =>
-                d.DoctorId == doctorId &&
-                d.AvailableDate == date &&
-                d.IsActive &&
-                !(d.EndTime <= startTime || d.StartTime >= endTime));
-        }
+            => await CheckForConflictAsync(doctorId, date, startTime, endTime);
 
         public new async Task AddAsync(DoctorAvailability availability)
         {
@@ -63,31 +64,29 @@ namespace SGMC.Persistence.Repositories.Appointments
             }
         }
 
-        // Obtiene todas las disponibilidades de un doctor para un día de la semana específico.
-        public async Task<IEnumerable<DoctorAvailability>> GetByDoctorIdAndDayOfWeekAsync(int doctorId, int dayOfWeek)
-        {
-            return await _dbSet
-                .Where(d => d.DoctorId == doctorId)
-                .ToListAsync();
-        }
-
-        // Verifica si existe un registro de disponibilidad con el ID dado.
         public async Task<bool> ExistsAsync(int id)
-        {
-            return await _dbSet.AnyAsync(d => d.Id == id);
-        }
+            => await _dbSet.AnyAsync(d => d.AvailabilityId == id);
 
-        public async Task<bool> CheckForConflictExcludingCurrentAsync(int availabilityId, int doctorId, int dayOfWeek, TimeSpan startTime, TimeSpan endTime)
+        // Dos turnos se solapan si uno empieza antes de que el otro termine, en ambos sentidos
+        public async Task<bool> CheckForConflictAsync(int doctorId, DateOnly date, TimeOnly startTime, TimeOnly endTime)
         {
             return await _dbSet.AnyAsync(d =>
-                d.Id != availabilityId && 
-                d.DoctorId == doctorId);
+                d.DoctorId == doctorId &&
+                d.AvailableDate == date &&
+                d.IsActive &&
+                d.StartTime < endTime &&
+                startTime < d.EndTime);
         }
 
-        public async Task<bool> CheckForConflictAsync(int doctorId, int dayOfWeek, TimeSpan startTime, TimeSpan endTime)
+        public async Task<bool> CheckForConflictExcludingCurrentAsync(int availabilityId, int doctorId, DateOnly date, TimeOnly startTime, TimeOnly endTime)
         {
             return await _dbSet.AnyAsync(d =>
-                d.DoctorId == doctorId);
+                d.AvailabilityId != availabilityId &&
+                d.DoctorId == doctorId &&
+                d.AvailableDate == date &&
+                d.IsActive &&
+                d.StartTime < endTime &&
+                startTime < d.EndTime);
         }
     }
 }

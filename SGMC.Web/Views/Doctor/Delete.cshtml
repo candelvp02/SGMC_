@@ -1,28 +1,22 @@
-﻿@model SGMC.Application.Dto.Users.DoctorDto
-
+﻿@model SGMC.Application.Dto.System.DoctorDto
+@using SGMC.Application.Dto.System
 @{
     ViewData["Title"] = "Eliminar Doctor";
 }
-
 <h1>Eliminar Doctor</h1>
-
 <h3 class="text-danger">¿Está seguro de que desea eliminar este doctor?</h3>
 <div>
     <hr />
     <dl class="row">
         <dt class="col-sm-3">ID</dt>
         <dd class="col-sm-9">@Model.DoctorId</dd>
-
         <dt class="col-sm-3">Nombre Completo</dt>
         <dd class="col-sm-9"><strong>@Model.FullName</strong></dd>
-
         <dt class="col-sm-3">Especialidad</dt>
         <dd class="col-sm-9">@Model.SpecialtyName</dd>
-
         <dt class="col-sm-3">Número de Licencia</dt>
         <dd class="col-sm-9">@Model.LicenseNumber</dd>
     </dl>
-
     <form asp-action="Delete">
         <input type="hidden" asp-for="DoctorId" />
         <input type="submit" value="Eliminar" class="btn btn-danger" /> |

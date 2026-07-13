@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using SGMC.Application.Dto.System;
 using SGMC.Application.Dto.Users;
 
 namespace SGMC.Web.Models.Doctor
