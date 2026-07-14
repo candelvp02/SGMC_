@@ -5,5 +5,7 @@ namespace SGMC.Application.Interfaces.Service
     public interface IAppointmentNotificationService
     {
         Task NotifyAppointmentRescheduledAsync(Appointment appointment, DateTime oldAppointmentDate);
+        Task NotifyAppointmentConfirmedAsync(Appointment appointment);
+        Task NotifyAppointmentRejectedAsync(Appointment appointment);
     }
 }

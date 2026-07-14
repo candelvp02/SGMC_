@@ -220,20 +220,104 @@ namespace SGMC.Application.Services
 
             try
             {
-                var appointment = await _repository.GetByIdAsync(appointmentId);
+                var appointment = await _repository.GetByIdWithDetailsAsync(appointmentId);
                 if (appointment is null)
                     return OperationResult.Fallo("La cita no existe.");
+
+                if (appointment.StatusId != 1)
+                    return OperationResult.Fallo("Solo se pueden confirmar citas en estado Pendiente.");
 
                 appointment.StatusId = 2; // Confirmada
                 appointment.UpdatedAt = DateTime.Now;
 
                 await _repository.UpdateAsync(appointment);
-                return OperationResult.Exito("Cita confirmada correctamente.");
+
+                try
+                {
+                    await _notificationService.NotifyAppointmentConfirmedAsync(appointment);
+                }
+                catch (Exception notifyEx)
+                {
+                    _logger.LogWarning(notifyEx,
+                        "La cita {Id} se confirmó pero falló el envío de la notificación por correo.",
+                        appointmentId);
+                }
+
+                _logger.LogInformation("Cita {Id} confirmada por el médico.", appointmentId);
+
+                return OperationResult.Exito("Cita confirmada correctamente. Se notificó al paciente.");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al confirmar cita {Id}", appointmentId);
                 return OperationResult.Fallo("Error al confirmar la cita.");
+            }
+        }
+
+        // ── REJECT ────────────────────────────────────────────────────────────
+        /// <summary>
+        /// FLUJO DE RECHAZO — PBI-35 / Task 138
+        ///
+        /// Distinto de CancelAsync: solo aplica a solicitudes Pendientes (1),
+        /// es una acción exclusiva del médico, y notifica al paciente indicando
+        /// que puede seleccionar una nueva fecha (en vez del mensaje genérico de cancelación).
+        /// </summary>
+        public async Task<OperationResult> RejectAsync(int appointmentId)
+        {
+            if (appointmentId <= 0)
+                return OperationResult.Fallo("El ID de la cita es inválido.");
+
+            try
+            {
+                var appointment = await _repository.GetByIdWithDetailsAsync(appointmentId);
+                if (appointment is null)
+                    return OperationResult.Fallo("La cita no existe.");
+
+                if (appointment.StatusId != 1)
+                    return OperationResult.Fallo("Solo se pueden rechazar solicitudes en estado Pendiente.");
+
+                appointment.StatusId = 3; // Cancelada
+                appointment.UpdatedAt = DateTime.Now;
+                await _repository.UpdateAsync(appointment);
+
+                // Liberar el horario en DoctorAvailability
+                var date = DateOnly.FromDateTime(appointment.AppointmentDate);
+                var time = TimeOnly.FromDateTime(appointment.AppointmentDate);
+
+                var slots = await _availabilityRepository.GetByDoctorAndDateRangeAsync(
+                    appointment.DoctorId, date, date);
+
+                var slotToFree = slots.FirstOrDefault(s =>
+                    s.StartTime <= time && time < s.EndTime);
+
+                if (slotToFree is not null && !slotToFree.IsActive)
+                {
+                    slotToFree.IsActive = true;
+                    slotToFree.UpdatedAt = DateTime.Now;
+                    await _availabilityRepository.UpdateAsync(slotToFree);
+                }
+
+                try
+                {
+                    await _notificationService.NotifyAppointmentRejectedAsync(appointment);
+                }
+                catch (Exception notifyEx)
+                {
+                    _logger.LogWarning(notifyEx,
+                        "La cita {Id} se rechazó pero falló el envío de la notificación por correo.",
+                        appointmentId);
+                }
+
+                _logger.LogInformation(
+                    "Solicitud de cita {Id} rechazada por el médico. Horario liberado.", appointmentId);
+
+                return OperationResult.Exito(
+                    "Solicitud rechazada. El paciente fue notificado para seleccionar una nueva fecha.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al rechazar cita {Id}", appointmentId);
+                return OperationResult.Fallo("Error al rechazar la cita.");
             }
         }
 

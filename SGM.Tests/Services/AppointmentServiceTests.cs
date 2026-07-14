@@ -63,7 +63,7 @@ namespace SGMC.Tests.Services
 
             // Assert
             resultado.Exitoso.Should().BeFalse();
-            resultado.Mensaje.Should().Be("El paciente no existe");
+            resultado.Mensaje.Should().Be("El paciente no existe.");
 
             _repositoryMock.Verify(r => r.AddAsync(It.IsAny<Appointment>()), Times.Never);
         }
@@ -90,6 +90,12 @@ namespace SGMC.Tests.Services
                 .Setup(r => r.ExistsAsync(d => d.DoctorId == dto.DoctorId))
                 .ReturnsAsync(true);
 
+            // El médico sí tiene disponibilidad configurada; el conflicto viene
+            // de que ya existe otra cita en ese slot exacto
+            _availabilityRepositoryMock
+                .Setup(a => a.IsAvailableAsync(dto.DoctorId, It.IsAny<DateOnly>(), It.IsAny<TimeOnly>()))
+                .ReturnsAsync(true);
+
             _repositoryMock
                 .Setup(r => r.ExistsInTimeSlotAsync(dto.DoctorId, dto.AppointmentDate))
                 .ReturnsAsync(true);
@@ -99,7 +105,7 @@ namespace SGMC.Tests.Services
 
             // Assert
             resultado.Exitoso.Should().BeFalse();
-            resultado.Mensaje.Should().Be("La cita entra en conflicto con otra existente");
+            resultado.Mensaje.Should().Contain("ya no está disponible");
 
             _repositoryMock.Verify(r => r.AddAsync(It.IsAny<Appointment>()), Times.Never);
         }
@@ -117,7 +123,7 @@ namespace SGMC.Tests.Services
 
             // Assert
             resultado.Exitoso.Should().BeFalse();
-            resultado.Mensaje.Should().Be("El ID de la cita es inválido");
+            resultado.Mensaje.Should().Be("El ID de la cita es inválido.");
 
             _repositoryMock.Verify(r => r.GetByIdAsync(It.IsAny<int>()), Times.Never);
         }
@@ -140,8 +146,10 @@ namespace SGMC.Tests.Services
                 StatusId = 3 // 3 = cancelada
             };
 
+            // RescheduleAsync ahora consulta GetByIdWithDetailsAsync (Task 140),
+            // no GetByIdAsync
             _repositoryMock
-                .Setup(r => r.GetByIdAsync(appointmentId))
+                .Setup(r => r.GetByIdWithDetailsAsync(appointmentId))
                 .ReturnsAsync(citaCancelada);
 
             // Act
@@ -149,7 +157,7 @@ namespace SGMC.Tests.Services
 
             // Assert
             resultado.Exitoso.Should().BeFalse();
-            resultado.Mensaje.Should().Be("No se puede reprogramar una cita cancelada");
+            resultado.Mensaje.Should().Contain("Pendiente o Confirmada");
 
             _repositoryMock.Verify(r => r.UpdateAsync(It.IsAny<Appointment>()), Times.Never);
         }
@@ -168,7 +176,7 @@ namespace SGMC.Tests.Services
 
             // Assert
             resultado.Exitoso.Should().BeFalse();
-            resultado.Mensaje.Should().Be("El rango de fechas es inválido");
+            resultado.Mensaje.Should().Be("El rango de fechas es inválido.");
 
             _repositoryMock.Verify(r => r.GetByDateRangeAsync(It.IsAny<DateTime>(), It.IsAny<DateTime>()), Times.Never);
         }

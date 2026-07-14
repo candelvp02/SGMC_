@@ -42,6 +42,10 @@ namespace SGMC.Application.Validators.Users
             if (dto.SpecialtyId <= 0)
                 errores.Add("La especialidad es requerida.");
 
+            // licencia es requerida
+            if (string.IsNullOrWhiteSpace(dto.LicenseNumber))
+                errores.Add("El número de licencia es requerido.");
+
             // licencia no puede estar vencida
             if (dto.LicenseExpirationDate < DateOnly.FromDateTime(DateTime.UtcNow.Date))
                 errores.Add("La licencia médica está vencida. Por favor, renuévela antes de registrarse.");

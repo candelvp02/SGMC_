@@ -33,7 +33,7 @@ namespace SGMC.Application.Tests.Services
             PatientId = 10,
             DoctorId = 20,
             StatusId = statusId,
-            AppointmentDate = DateTime.Now.AddDays(1),
+            AppointmentDate = DateTime.Today.AddDays(1).AddHours(10), // 10:00 AM, fecha fija
             CreatedAt = DateTime.Now.AddDays(-2)
         };
 

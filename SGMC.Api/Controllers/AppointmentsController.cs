@@ -61,6 +61,71 @@ namespace SGMC.Api.Controllers
             }
         }
 
+        // ── GET: api/appointments/doctor/5/pending ────────────────────────────
+        // Task 138: listado de solicitudes Pendientes para el panel del médico
+        [HttpGet("doctor/{doctorId:int}/pending")]
+        public async Task<ActionResult<OperationResult<List<AppointmentDto>>>> GetPendingByDoctor(int doctorId)
+        {
+            if (doctorId <= 0)
+                return BadRequest(OperationResult.Fallo("El ID del doctor debe ser mayor que cero."));
+
+            try
+            {
+                var filter = new AppointmentFilterDto { DoctorId = doctorId, StatusId = 1 };
+                var result = await _appointmentService.GetFilteredAppointmentsAsync(filter);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener solicitudes pendientes del doctor {Id}", doctorId);
+                return StatusCode(500, OperationResult.Fallo("Error inesperado al obtener las solicitudes pendientes."));
+            }
+        }
+
+        // ── PUT: api/appointments/5/confirm ───────────────────────────────────
+        // Task 138: endpoint rápido de estados — confirmar solicitud
+        [HttpPut("{id:int}/confirm")]
+        public async Task<ActionResult<OperationResult>> Confirm(int id)
+        {
+            if (id <= 0)
+                return BadRequest(OperationResult.Fallo("El ID debe ser mayor que cero."));
+
+            try
+            {
+                var result = await _appointmentService.ConfirmAsync(id);
+                if (!result.Exitoso)
+                    return BadRequest(result);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al confirmar cita {Id}", id);
+                return StatusCode(500, OperationResult.Fallo("Error inesperado al confirmar la cita."));
+            }
+        }
+
+        // ── PUT: api/appointments/5/reject ────────────────────────────────────
+        // Task 138: endpoint rápido de estados — rechazar solicitud
+        [HttpPut("{id:int}/reject")]
+        public async Task<ActionResult<OperationResult>> Reject(int id)
+        {
+            if (id <= 0)
+                return BadRequest(OperationResult.Fallo("El ID debe ser mayor que cero."));
+
+            try
+            {
+                var result = await _appointmentService.RejectAsync(id);
+                if (!result.Exitoso)
+                    return BadRequest(result);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al rechazar cita {Id}", id);
+                return StatusCode(500, OperationResult.Fallo("Error inesperado al rechazar la cita."));
+            }
+        }
+
         // ── POST: api/appointments ────────────────────────────────────────────
         // Task 130: endpoint transaccional atómico
         [HttpPost]

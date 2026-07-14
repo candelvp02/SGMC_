@@ -24,5 +24,41 @@ namespace SGMC.Application.Services
 
             return Task.CompletedTask;
         }
+
+        public Task NotifyAppointmentConfirmedAsync(Appointment appointment)
+        {
+            if (appointment is null)
+                throw new ArgumentNullException(nameof(appointment));
+
+            var patientName = appointment.Patient?.PatientNavigation != null
+                ? $"{appointment.Patient.PatientNavigation.FirstName} {appointment.Patient.PatientNavigation.LastName}"
+                : $"Paciente #{appointment.PatientId}";
+
+            // SIMULACIÓN: aquí iría la llamada real al proveedor de correo
+            _logger.LogInformation(
+                "SIMULACIÓN: Notificación de confirmación — Cita {AppointmentId} confirmada por el médico. " +
+                "{PatientName} notificado para {AppointmentDate}.",
+                appointment.AppointmentId, patientName, appointment.AppointmentDate);
+
+            return Task.CompletedTask;
+        }
+
+        public Task NotifyAppointmentRejectedAsync(Appointment appointment)
+        {
+            if (appointment is null)
+                throw new ArgumentNullException(nameof(appointment));
+
+            var patientName = appointment.Patient?.PatientNavigation != null
+                ? $"{appointment.Patient.PatientNavigation.FirstName} {appointment.Patient.PatientNavigation.LastName}"
+                : $"Paciente #{appointment.PatientId}";
+
+            // SIMULACIÓN: aquí iría la llamada real al proveedor de correo
+            _logger.LogInformation(
+                "SIMULACIÓN: Notificación de rechazo — Cita {AppointmentId} rechazada por el médico. " +
+                "{PatientName} notificado para que seleccione una nueva fecha (horario anterior: {AppointmentDate}).",
+                appointment.AppointmentId, patientName, appointment.AppointmentDate);
+
+            return Task.CompletedTask;
+        }
     }
 }
