@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using SGMC.Application.Dto.System;
 using SGMC.Application.Dto.Users;
 using SGMC.Application.Validators.Users;
 using Xunit;

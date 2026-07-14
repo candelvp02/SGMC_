@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using SGMC.Application.Dto.Users;
 using SGMC.Application.Dto.System;
-using SGMC.Application.Dto.Users;
 using SGMC.Application.Interfaces.Service;
 using System.Security.Claims;
 
