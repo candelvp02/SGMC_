@@ -5,9 +5,9 @@ using SGMC.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// DbContext
+// DbContext InMemory
 builder.Services.AddDbContext<HealtSyncContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("HealtSyncConnection")));
+    options.UseInMemoryDatabase("HealtSyncDb"));
 
 // Dependencies
 builder.Services.AddUserDependencies();
@@ -20,26 +20,22 @@ builder.Services.AddMedicalRecordDependencies();
 builder.Services.AddNotificationDependencies();
 builder.Services.AddReportDependencies();
 builder.Services.AddSpecialtyDependencies();
+builder.Services.AddAuthDependencies();
 
 // Consumo de capa api
 builder.Services.AddHttpClient<IAppointmentApiClient, AppointmentApiClient>(client =>
 {
-    client.BaseAddress = new Uri("http://localhost:5038/api/");
-});
-
-builder.Services.AddHttpClient<IAppointmentApiClient, AppointmentApiClient>(client =>
-{
-    client.BaseAddress = new Uri("http://localhost:5038/api/");
+    client.BaseAddress = new Uri("https://localhost:7038/api/");
 });
 
 builder.Services.AddHttpClient<IPatientApiClient, PatientApiClient>(client =>
 {
-    client.BaseAddress = new Uri("http://localhost:5038/api/");
+    client.BaseAddress = new Uri("https://localhost:7038/api/");
 });
 
 builder.Services.AddHttpClient<IDoctorApiClient, DoctorApiClient>(client =>
 {
-    client.BaseAddress = new Uri("http://localhost:5038/api/");
+    client.BaseAddress = new Uri("https://localhost:7038/api/");
 });
 
 // MVC

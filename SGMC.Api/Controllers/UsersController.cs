@@ -93,7 +93,7 @@ namespace SGMC.Api.Controllers
         }
 
         [HttpPost("authenticate")]
-        public async Task<ActionResult<OperationResult<UserDto>>> Authenticate([FromBody] LoginDto dto)
+        public async Task<ActionResult<OperationResult<UserDto>>> Authenticate([FromBody] UserLoginDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(OperationResult.Fallo("Credenciales invalidas"));

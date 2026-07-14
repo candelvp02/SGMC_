@@ -1,62 +1,133 @@
-﻿using Moq;
+﻿using FluentAssertions;
+using Microsoft.Extensions.Logging;
+using Moq;
 using SGMC.Application.Dto.Medical;
-using SGMC.Application.Interfaces.Service;
 using SGMC.Application.Services;
 using SGMC.Domain.Entities.Medical;
 using SGMC.Domain.Repositories.Medical;
-using Microsoft.Extensions.Logging;
+using Xunit;
 
 namespace SGMC.Tests.Services
 {
     public class SpecialtyServiceTests
     {
-        private readonly Mock<ISpecialtyRepository> _repoMock;
+        private readonly Mock<ISpecialtyRepository> _repositoryMock;
         private readonly Mock<ILogger<SpecialtyService>> _loggerMock;
-        private readonly ISpecialtyService _service;
+        private readonly SpecialtyService _service;
 
         public SpecialtyServiceTests()
         {
-            _repoMock = new Mock<ISpecialtyRepository>();
+            _repositoryMock = new Mock<ISpecialtyRepository>();
             _loggerMock = new Mock<ILogger<SpecialtyService>>();
-            _service = new SpecialtyService(_repoMock.Object, _loggerMock.Object);
+            _service = new SpecialtyService(_repositoryMock.Object, _loggerMock.Object);
         }
 
+        // TEST 1
+        // CreateAsync debe fallar si ya existe una especialidad con el mismo nombre
         [Fact]
-        public async Task CreateAsync_WhenNameExists_ReturnsFailure()
+        public async Task CreateAsync_CuandoNombreYaExiste_DebeRetornarFallo()
         {
-            var dto = new CreateSpecialtyDto { SpecialtyName = "Cardiology" };
-            _repoMock.Setup(r => r.ExistsByNameAsync("Cardiology")).ReturnsAsync(true);
+            // Arrange
+            var dto = new CreateSpecialtyDto { SpecialtyName = "Cardiología" };
 
-            var result = await _service.CreateAsync(dto);
+            _repositoryMock
+                .Setup(r => r.ExistsByNameAsync(dto.SpecialtyName))
+                .ReturnsAsync(true);
 
-            Assert.False(result.Exitoso);
-            var mensajeLower = result.Mensaje.ToLower();
-            Assert.True(
-                mensajeLower.Contains("existe") ||
-                mensajeLower.Contains("ya existe") ||
-                mensajeLower.Contains("duplicad"),
-                $"Expected message to contain 'existe', 'ya existe' or 'duplicad', but got: {result.Mensaje}"
-            );
+            // Act
+            var resultado = await _service.CreateAsync(dto);
+
+            // Assert
+            resultado.Exitoso.Should().BeFalse();
+            resultado.Mensaje.Should().Be("Ya existe una especialidad con ese nombre.");
+
+            _repositoryMock.Verify(r => r.AddAsync(It.IsAny<Specialty>()), Times.Never);
         }
 
+        // TEST 2
+        // GetByIdAsync debe fallar cuando el ID es inválido
         [Fact]
-        public async Task CreateAsync_WhenValid_ReturnsSuccess()
+        public async Task GetByIdAsync_CuandoIdEsInvalido_DebeRetornarFallo()
         {
-            var dto = new CreateSpecialtyDto { SpecialtyName = "Neurology" };
-            _repoMock.Setup(r => r.ExistsByNameAsync("Neurology")).ReturnsAsync(false);
-            _repoMock.Setup(r => r.AddAsync(It.IsAny<Specialty>()))
-                .ReturnsAsync(new Specialty { SpecialtyId = 1, SpecialtyName = "Neurology" });
+            // Arrange
+            short idInvalido = 0;
 
-            var result = await _service.CreateAsync(dto);
+            // Act
+            var resultado = await _service.GetByIdAsync(idInvalido);
 
-            Assert.True(result.Exitoso);
-            var mensajeLower = result.Mensaje.ToLower();
-            Assert.True(
-                mensajeLower.Contains("correctamente") ||
-                mensajeLower.Contains("éxito") ||
-                mensajeLower.Contains("cread"),
-                $"Expected message to contain 'correctamente', 'éxito' or 'cread', but got: {result.Mensaje}"
-            );
+            // Assert
+            resultado.Exitoso.Should().BeFalse();
+            resultado.Mensaje.Should().Be("El ID es inválido");
+
+            _repositoryMock.Verify(r => r.GetByIdAsync(It.IsAny<short>()), Times.Never);
+        }
+
+        // TEST 3
+        // GetByIdAsync debe fallar cuando la especialidad no existe
+        [Fact]
+        public async Task GetByIdAsync_CuandoEspecialidadNoExiste_DebeRetornarFallo()
+        {
+            // Arrange
+            short idInexistente = 999;
+
+            _repositoryMock
+                .Setup(r => r.GetByIdAsync(idInexistente))
+                .ReturnsAsync((Specialty?)null);
+
+            // Act
+            var resultado = await _service.GetByIdAsync(idInexistente);
+
+            // Assert
+            resultado.Exitoso.Should().BeFalse();
+            resultado.Mensaje.Should().Be("Especialidad no encontrada");
+        }
+
+        // TEST 4
+        // GetActiveAsync debe devolver solo especialidades activas
+        [Fact]
+        public async Task GetActiveAsync_DebeRetornarSoloEspecialidadesActivas()
+        {
+            // Arrange
+            var especialidadesActivas = new List<Specialty>
+            {
+                new Specialty { SpecialtyId = 1, SpecialtyName = "Cardiología", IsActive = true, CreatedAt = DateTime.Now },
+                new Specialty { SpecialtyId = 2, SpecialtyName = "Pediatría", IsActive = true, CreatedAt = DateTime.Now }
+            };
+
+            _repositoryMock
+                .Setup(r => r.GetActiveAsync())
+                .ReturnsAsync(especialidadesActivas);
+
+            // Act
+            var resultado = await _service.GetActiveAsync();
+
+            // Assert
+            resultado.Exitoso.Should().BeTrue();
+            resultado.Datos.Should().NotBeNull();
+            resultado.Datos!.Count.Should().Be(2);
+            resultado.Datos.Should().OnlyContain(e => e.IsActive == true);
+        }
+
+        // TEST 5
+        // DeleteAsync debe fallar si la especialidad a eliminar no existe
+        [Fact]
+        public async Task DeleteAsync_CuandoEspecialidadNoExiste_DebeRetornarFallo()
+        {
+            // Arrange
+            short idInexistente = 500;
+
+            _repositoryMock
+                .Setup(r => r.GetByIdAsync(idInexistente))
+                .ReturnsAsync((Specialty?)null);
+
+            // Act
+            var resultado = await _service.DeleteAsync(idInexistente);
+
+            // Assert
+            resultado.Exitoso.Should().BeFalse();
+            resultado.Mensaje.Should().Be("Especialidad no encontrada");
+
+            _repositoryMock.Verify(r => r.DeleteAsync(It.IsAny<Specialty>()), Times.Never);
         }
     }
 }

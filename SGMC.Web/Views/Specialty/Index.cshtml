@@ -1,0 +1,60 @@
+﻿@model List<SGMC.Application.Dto.Medical.SpecialtyDto>
+
+@{
+    ViewData["Title"] = "Especialidades Médicas";
+}
+
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 pb-10">
+
+    <div class="flex items-center gap-3 mb-6">
+        <div class="bg-blue-100 rounded-full p-3">
+            <i class="fas fa-hospital text-blue-600 text-3xl"></i>
+        </div>
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800">Especialidades Médicas</h1>
+            <p class="text-gray-500 text-sm">Elige una especialidad para ver los médicos disponibles</p>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
+    {
+        <div class="flex items-center gap-3 bg-red-50 border border-red-300 text-red-800 px-4 py-3 rounded-lg mb-5">
+            <i class="fas fa-exclamation-circle text-red-500 text-lg"></i>
+            <span>@ViewBag.ErrorMessage</span>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="flex items-center gap-3 bg-red-50 border border-red-300 text-red-800 px-4 py-3 rounded-lg mb-5">
+            <i class="fas fa-exclamation-circle text-red-500 text-lg"></i>
+            <span>@TempData["ErrorMessage"]</span>
+        </div>
+    }
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-10 text-center">
+            <i class="fas fa-info-circle text-gray-300 text-4xl mb-3"></i>
+            <p class="text-gray-500">No hay especialidades registradas en este momento.</p>
+        </div>
+    }
+    else
+    {
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            @foreach (var specialty in Model)
+            {
+                <a asp-action="Doctors" asp-route-id="@specialty.SpecialtyId"
+                   class="group bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex items-center gap-4 hover:shadow-md hover:border-blue-300 hover:-translate-y-0.5 transition-all duration-200">
+                    <div class="bg-blue-50 group-hover:bg-blue-100 rounded-full p-3 transition-colors">
+                        <i class="fas fa-stethoscope text-blue-600"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="font-semibold text-gray-800">@specialty.SpecialtyName</p>
+                        <p class="text-xs text-gray-400">Ver médicos disponibles</p>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-300 group-hover:text-blue-400 transition-colors"></i>
+                </a>
+            }
+        </div>
+    }
+</div>

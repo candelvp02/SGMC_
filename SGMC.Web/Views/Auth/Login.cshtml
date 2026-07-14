@@ -1,0 +1,180 @@
+﻿@model SGMC.Application.Dto.Users.LoginDto
+@{
+    ViewData["Title"] = "Iniciar Sesión";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] — SGMC</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+</head>
+<body class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+
+    <div class="w-full max-w-md">
+
+        {{-- Logo / Header --}}
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-indigo-600 rounded-2xl mb-4 shadow-lg">
+                <i class="fas fa-heartbeat text-white text-2xl"></i>
+            </div>
+            <h1 class="text-3xl font-bold text-gray-800">SGMC</h1>
+            <p class="text-gray-500 mt-1 text-sm">Sistema de Gestión de Citas Médicas</p>
+        </div>
+
+        {{-- Card --}}
+        <div class="bg-white rounded-2xl shadow-xl p-8">
+
+            <h2 class="text-xl font-semibold text-gray-700 mb-6">Iniciar Sesión</h2>
+
+            {{-- Mensajes de error/info desde TempData --}}
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3 mb-5">
+                    <i class="fas fa-circle-exclamation"></i>
+                    <span>@TempData["ErrorMessage"]</span>
+                </div>
+            }
+            @if (TempData["InfoMessage"] != null)
+            {
+                <div class="flex items-center gap-2 bg-blue-50 border border-blue-200 text-blue-700 text-sm rounded-lg px-4 py-3 mb-5">
+                    <i class="fas fa-circle-info"></i>
+                    <span>@TempData["InfoMessage"]</span>
+                </div>
+            }
+
+            <form asp-action="Login" asp-controller="Auth" method="post" class="space-y-5">
+                @Html.AntiForgeryToken()
+
+                {{-- Correo electrónico --}}
+                <div>
+                    <label asp-for="Email" class="block text-sm font-medium text-gray-700 mb-1">
+                        Correo electrónico
+                    </label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                            <i class="fas fa-envelope text-sm"></i>
+                        </span>
+                        <input asp-for="Email"
+                               type="email"
+                               placeholder="correo@ejemplo.com"
+                               class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm
+                        focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500
+                        transition duration-150"
+                               autocomplete="email" />
+                    </div>
+                    <span asp-validation-for="Email" class="text-red-500 text-xs mt-1 block"></span>
+                </div>
+
+                {{-- Contraseña --}}
+                <div>
+                    <label asp-for="Password" class="block text-sm font-medium text-gray-700 mb-1">
+                        Contraseña
+                    </label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                            <i class="fas fa-lock text-sm"></i>
+                        </span>
+                        <input asp-for="Password"
+                               id="passwordInput"
+                               type="password"
+                               placeholder="••••••••"
+                               class="w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg text-sm
+                        focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500
+                        transition duration-150"
+                               autocomplete="current-password" />
+                        <button type="button"
+                                onclick="togglePassword()"
+                                class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600">
+                            <i id="eyeIcon" class="fas fa-eye text-sm"></i>
+                        </button>
+                    </div>
+                    <span asp-validation-for="Password" class="text-red-500 text-xs mt-1 block"></span>
+                </div>
+
+                {{-- 2FA Code (oculto hasta que se active) --}}
+                <div id="twoFactorSection" class="hidden">
+                    <label for="TwoFactorCode" class="block text-sm font-medium text-gray-700 mb-1">
+                        Código de verificación (2FA)
+                    </label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                            <i class="fas fa-shield-halved text-sm"></i>
+                        </span>
+                        <input name="TwoFactorCode"
+                               id="TwoFactorCode"
+                               type="text"
+                               maxlength="6"
+                               placeholder="000000"
+                               class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm
+                        focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500
+                        tracking-widest text-center font-mono transition duration-150" />
+                    </div>
+                    <p class="text-xs text-gray-400 mt-1">Ingresa el código de 6 dígitos de tu app de autenticación.</p>
+                </div>
+
+                {{-- Olvidé mi contraseña --}}
+                <div class="flex justify-end">
+                    <a asp-action="ForgotPassword" asp-controller="Auth"
+                       class="text-sm text-indigo-600 hover:text-indigo-800 hover:underline transition">
+                        ¿Olvidaste tu contraseña?
+                    </a>
+                </div>
+
+                {{-- Botón submit --}}
+                <button type="submit"
+                        class="w-full bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800
+                    text-white font-semibold py-2.5 rounded-lg text-sm
+                    transition duration-150 shadow-sm flex items-center justify-center gap-2">
+                    <i class="fas fa-right-to-bracket"></i>
+                    Iniciar Sesión
+                </button>
+
+            </form>
+
+            {{-- Toggle 2FA link --}}
+            <div class="mt-4 text-center">
+                <button onclick="toggleTwoFactor()"
+                        class="text-xs text-gray-400 hover:text-indigo-500 transition underline">
+                    Tengo un código 2FA
+                </button>
+            </div>
+
+        </div>
+
+        {{-- Footer --}}
+        <p class="text-center text-xs text-gray-400 mt-6">
+            © @DateTime.Now.Year SGMC — Todos los derechos reservados
+        </p>
+    </div>
+
+    <script>
+        function togglePassword() {
+        const input = document.getElementById('passwordInput');
+        const icon = document.getElementById('eyeIcon');
+        if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.replace('fa-eye', 'fa-eye-slash');
+        } else {
+        input.type = 'password';
+        icon.classList.replace('fa-eye-slash', 'fa-eye');
+        }
+        }
+
+        function toggleTwoFactor() {
+        const section = document.getElementById('twoFactorSection');
+        section.classList.toggle('hidden');
+        }
+    </script>
+
+    @section Scripts {
+        @{
+            await Html.RenderPartialAsync("_ValidationScriptsPartial");
+        }
+    }
+</body>
+</html>
