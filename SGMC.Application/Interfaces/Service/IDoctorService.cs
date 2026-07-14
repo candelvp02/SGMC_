@@ -1,5 +1,6 @@
 ﻿using SGMC.Application.Dto.Appointments;
 using SGMC.Application.Dto.System;
+using SGMC.Application.Dto.Users;
 using SGMC.Domain.Base;
 
 namespace SGMC.Application.Interfaces.Service

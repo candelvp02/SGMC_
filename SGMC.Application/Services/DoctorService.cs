@@ -8,6 +8,7 @@ using SGMC.Domain.Repositories.Appointments;
 using SGMC.Domain.Repositories.Medical;
 using SGMC.Domain.Repositories.Users;
 using SGMC.Application.Dto.System;
+using SGMC.Application.Dto.Users;
 
 namespace SGMC.Application.Services
 {

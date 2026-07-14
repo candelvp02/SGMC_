@@ -1,7 +1,7 @@
 ﻿using SGMC.Application.Dto.Appointments;
 using SGMC.Application.Dto.Base;
 
-namespace SGMC.Application.Dto.System
+namespace SGMC.Application.Dto.Users
 {
     public class DoctorDto : PersonBaseDto
     {

@@ -193,6 +193,32 @@ namespace SGMC.Api.Controllers
             }
         }
 
+        // ── PUT: api/appointments/5/reschedule ────────────────────────────────
+        // Task 140: endpoint transaccional — fuerza el retorno a Pendiente
+        [HttpPut("{id:int}/reschedule")]
+        public async Task<ActionResult<OperationResult>> Reschedule(int id, [FromBody] RescheduleAppointmentDto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(OperationResult.Fallo("Datos inválidos."));
+
+            if (id != dto.AppointmentId)
+                return BadRequest(OperationResult.Fallo("El ID de la ruta no coincide con el del cuerpo."));
+
+            try
+            {
+                var result = await _appointmentService.RescheduleAsync(id, dto.NewAppointmentDate);
+                if (!result.Exitoso)
+                    return BadRequest(result);
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al reprogramar cita {Id}", id);
+                return StatusCode(500, OperationResult.Fallo("Error inesperado al reprogramar la cita."));
+            }
+        }
+
         // ── DELETE: api/appointments/5 ────────────────────────────────────────
         [HttpDelete("{id:int}")]
         public async Task<ActionResult<OperationResult>> Delete(int id)

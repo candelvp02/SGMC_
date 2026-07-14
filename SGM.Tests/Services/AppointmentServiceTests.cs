@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using Moq;
 using SGMC.Application.Dto.Appointments;
+using SGMC.Application.Interfaces.Service;
 using SGMC.Application.Services;
 using SGMC.Domain.Entities.Appointments;
 using SGMC.Domain.Repositories.Appointments;
@@ -15,6 +16,8 @@ namespace SGMC.Tests.Services
         private readonly Mock<IAppointmentRepository> _repositoryMock;
         private readonly Mock<IPatientRepository> _patientRepositoryMock;
         private readonly Mock<IDoctorRepository> _doctorRepositoryMock;
+        private readonly Mock<IDoctorAvailabilityRepository> _availabilityRepositoryMock;
+        private readonly Mock<IAppointmentNotificationService> _notificationServiceMock;
         private readonly Mock<ILogger<AppointmentService>> _loggerMock;
         private readonly AppointmentService _service;
 
@@ -23,12 +26,16 @@ namespace SGMC.Tests.Services
             _repositoryMock = new Mock<IAppointmentRepository>();
             _patientRepositoryMock = new Mock<IPatientRepository>();
             _doctorRepositoryMock = new Mock<IDoctorRepository>();
+            _availabilityRepositoryMock = new Mock<IDoctorAvailabilityRepository>();
+            _notificationServiceMock = new Mock<IAppointmentNotificationService>();
             _loggerMock = new Mock<ILogger<AppointmentService>>();
 
             _service = new AppointmentService(
                 _repositoryMock.Object,
                 _patientRepositoryMock.Object,
                 _doctorRepositoryMock.Object,
+                _availabilityRepositoryMock.Object,
+                _notificationServiceMock.Object,
                 _loggerMock.Object
             );
         }

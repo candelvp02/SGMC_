@@ -306,6 +306,63 @@ namespace SGMC.Application.Services
             }
         }
 
+        public async Task<OperationResult<List<UserDto>>> SearchAsync(string query)
+        {
+            if (string.IsNullOrWhiteSpace(query))
+                return OperationResult<List<UserDto>>.Fallo("El texto de búsqueda es requerido.");
+
+            try
+            {
+                var users = await _userRepository.GetAllWithRoleAsync();
+
+                var filtered = users
+                    .Where(u => u.Email.Contains(query, StringComparison.OrdinalIgnoreCase))
+                    .Select(MapToDto)
+                    .ToList();
+
+                return OperationResult<List<UserDto>>.Exito(
+                    filtered,
+                    filtered.Count == 0
+                        ? "No se encontraron usuarios que coincidan con la búsqueda."
+                        : $"{filtered.Count} usuario(s) encontrado(s).");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al buscar usuarios con query: {Query}", query);
+                return OperationResult<List<UserDto>>.Fallo($"Error al buscar usuarios: {ex.Message}");
+            }
+        }
+
+        public async Task<OperationResult> ChangeRoleAsync(int userId, int roleId)
+        {
+            if (userId <= 0)
+                return OperationResult.Fallo("ID de usuario inválido.");
+
+            if (roleId <= 0)
+                return OperationResult.Fallo("ID de rol inválido.");
+
+            try
+            {
+                var user = await _userRepository.GetByIdAsync(userId);
+                if (user == null)
+                    return OperationResult.Fallo("Usuario no encontrado.");
+
+                var roleExists = await _roleRepository.GetByIdAsync(roleId);
+                if (roleExists == null)
+                    return OperationResult.Fallo("El rol especificado no existe.");
+
+                user.RoleId = (short)roleId;
+                user.UpdatedAt = DateTime.Now;
+
+                await _userRepository.UpdateAsync(user);
+                return OperationResult.Exito("Rol de usuario actualizado correctamente.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al cambiar rol de usuario ID: {Id}", userId);
+                return OperationResult.Fallo($"Error al cambiar el rol: {ex.Message}");
+            }
+        }
         public async Task<OperationResult> DeleteAsync(int id)
         {
             if (id <= 0) return OperationResult.Fallo("ID de usuario inválido.");

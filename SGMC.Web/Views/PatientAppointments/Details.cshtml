@@ -26,6 +26,7 @@
         4 => "from-blue-600   to-blue-500",
         _ => "from-gray-600   to-gray-500"
     };
+    var canReschedule = Model.StatusId == 1 || Model.StatusId == 2;
 }
 
 <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 pb-10">
@@ -104,7 +105,14 @@
         </div>
 
         <!-- Acciones -->
-        <div class="px-6 py-4 bg-gray-50 flex justify-end">
+        <div class="px-6 py-4 bg-gray-50 flex justify-end gap-3">
+            @if (canReschedule)
+            {
+                <a asp-controller="PatientAppointments" asp-action="Reschedule" asp-route-id="@Model.AppointmentId"
+                   class="inline-flex items-center gap-2 bg-yellow-500 hover:bg-yellow-600 text-white text-sm font-semibold py-2.5 px-5 rounded-lg transition shadow-sm">
+                    <i class="fas fa-calendar-alt"></i> Reprogramar
+                </a>
+            }
             <a asp-controller="PatientAppointments" asp-action="Index"
                class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2.5 px-5 rounded-lg transition shadow-sm">
                 <i class="fas fa-list"></i> Ver todas mis citas

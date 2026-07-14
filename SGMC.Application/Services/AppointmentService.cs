@@ -15,6 +15,7 @@ namespace SGMC.Application.Services
         private readonly IPatientRepository _patientRepository;
         private readonly IDoctorRepository _doctorRepository;
         private readonly IDoctorAvailabilityRepository _availabilityRepository;
+        private readonly IAppointmentNotificationService _notificationService;
         private readonly ILogger<AppointmentService> _logger;
 
         public AppointmentService(
@@ -22,12 +23,14 @@ namespace SGMC.Application.Services
             IPatientRepository patientRepository,
             IDoctorRepository doctorRepository,
             IDoctorAvailabilityRepository availabilityRepository,
+            IAppointmentNotificationService notificationService,
             ILogger<AppointmentService> logger)
         {
             _repository = repository;
             _patientRepository = patientRepository;
             _doctorRepository = doctorRepository;
             _availabilityRepository = availabilityRepository;
+            _notificationService = notificationService;
             _logger = logger;
         }
 
@@ -235,43 +238,120 @@ namespace SGMC.Application.Services
         }
 
         // ── RESCHEDULE ────────────────────────────────────────────────────────
+        /// <summary>
+        /// FLUJO DE REPROGRAMACIÓN — PBI-34 / Task 140
+        ///
+        /// Paso 1: Validar que el ID sea válido y la cita exista
+        /// Paso 2: Solo se pueden reprogramar citas Pendiente (1) o Confirmada (2)
+        /// Paso 3: Validar que la nueva fecha no sea en el pasado
+        /// Paso 4: Verificar disponibilidad del mismo médico en la nueva fecha/hora
+        /// Paso 5: Verificar que no haya conflicto con otra cita ya existente
+        /// Paso 6: Doble verificación ultramicro (igual que en CreateAsync/Task 132)
+        ///         justo antes de confirmar, para cubrir condiciones de carrera
+        /// Paso 7: Actualizar la cita: nueva fecha, StatusId vuelve a 1 (Pendiente),
+        ///         UpdatedAt se registra automáticamente
+        /// Paso 8: Liberar el horario anterior en DoctorAvailability
+        /// Paso 9: Enviar notificación por correo a médico y paciente
+        /// </summary>
         public async Task<OperationResult> RescheduleAsync(int appointmentId, DateTime newDate)
         {
             if (appointmentId <= 0)
                 return OperationResult.Fallo("El ID de la cita es inválido.");
 
+            if (newDate <= DateTime.Now)
+                return OperationResult.Fallo("La nueva fecha y hora deben ser futuras.");
+
             try
             {
-                var appointment = await _repository.GetByIdAsync(appointmentId);
+                var appointment = await _repository.GetByIdWithDetailsAsync(appointmentId);
                 if (appointment is null)
                     return OperationResult.Fallo("La cita no existe.");
 
-                if (appointment.StatusId == 3)
-                    return OperationResult.Fallo("No se puede reprogramar una cita cancelada.");
+                // Solo se pueden reprogramar citas Pendientes (1) o Confirmadas (2)
+                if (appointment.StatusId != 1 && appointment.StatusId != 2)
+                    return OperationResult.Fallo(
+                        "Solo se pueden reprogramar citas en estado Pendiente o Confirmada.");
 
-                if (appointment.StatusId == 4)
-                    return OperationResult.Fallo("No se puede reprogramar una cita completada.");
+                var oldAppointmentDate = appointment.AppointmentDate;
 
-                // Verificar disponibilidad en nueva fecha
                 var date = DateOnly.FromDateTime(newDate);
                 var time = TimeOnly.FromDateTime(newDate);
 
+                // ── PRIMERA VERIFICACIÓN: disponibilidad del mismo médico ─────────
                 var isAvailable = await _availabilityRepository.IsAvailableAsync(
                     appointment.DoctorId, date, time);
 
                 if (!isAvailable)
                     return OperationResult.Fallo(
-                        "El médico no tiene disponibilidad en la nueva fecha y hora seleccionadas.");
+                        "El médico no tiene disponibilidad en la fecha y hora seleccionadas. " +
+                        "Por favor selecciona otro horario.");
 
+                // ── SEGUNDA VERIFICACIÓN: conflicto con otra cita ─────────────────
                 var hasConflict = await _repository.ExistsInTimeSlotAsync(appointment.DoctorId, newDate);
                 if (hasConflict)
-                    return OperationResult.Fallo("La nueva fecha entra en conflicto con otra cita.");
+                    return OperationResult.Fallo(
+                        "El horario seleccionado ya no está disponible. " +
+                        "Por favor selecciona otra fecha u hora.");
 
+                // ── DOBLE VERIFICACIÓN ULTRAMICRO ─────────────────────────────────
+                // Repite las dos validaciones anteriores justo antes de guardar,
+                // para cubrir el caso de que otro paciente tome el horario
+                // en el instante entre la verificación y el guardado
+                var stillAvailable = await _availabilityRepository.IsAvailableAsync(
+                    appointment.DoctorId, date, time);
+                var stillNoConflict = !await _repository.ExistsInTimeSlotAsync(
+                    appointment.DoctorId, newDate);
+
+                if (!stillAvailable || !stillNoConflict)
+                    return OperationResult.Fallo(
+                        "El horario fue tomado por otro paciente en este momento. " +
+                        "Por favor selecciona otro horario.");
+
+                // ── Actualizar la cita ─────────────────────────────────────────────
                 appointment.AppointmentDate = newDate;
+                appointment.StatusId = 1; // Vuelve a Pendiente hasta nueva confirmación
                 appointment.UpdatedAt = DateTime.Now;
 
                 await _repository.UpdateAsync(appointment);
-                return OperationResult.Exito("Cita reprogramada correctamente.");
+
+                // ── Liberar el horario anterior en DoctorAvailability ─────────────
+                var oldDate = DateOnly.FromDateTime(oldAppointmentDate);
+                var oldTime = TimeOnly.FromDateTime(oldAppointmentDate);
+
+                var slots = await _availabilityRepository.GetByDoctorAndDateRangeAsync(
+                    appointment.DoctorId, oldDate, oldDate);
+
+                var slotToFree = slots.FirstOrDefault(s =>
+                    s.StartTime <= oldTime && oldTime < s.EndTime);
+
+                if (slotToFree is not null && !slotToFree.IsActive)
+                {
+                    slotToFree.IsActive = true;
+                    slotToFree.UpdatedAt = DateTime.Now;
+                    await _availabilityRepository.UpdateAsync(slotToFree);
+                }
+
+                // ── Notificación por correo a médico y paciente ───────────────────
+                try
+                {
+                    await _notificationService.NotifyAppointmentRescheduledAsync(
+                        appointment, oldAppointmentDate);
+                }
+                catch (Exception notifyEx)
+                {
+                    // La reprogramación ya se guardó correctamente; un fallo de correo
+                    // no debe revertir la operación, solo se registra en el log
+                    _logger.LogWarning(notifyEx,
+                        "La cita {Id} se reprogramó pero falló el envío de la notificación por correo.",
+                        appointmentId);
+                }
+
+                _logger.LogInformation(
+                    "Cita {Id} reprogramada de {OldDate} a {NewDate}. Horario anterior liberado.",
+                    appointmentId, oldAppointmentDate, newDate);
+
+                return OperationResult.Exito(
+                    "Cita reprogramada correctamente. Quedará pendiente hasta que el médico la confirme.");
             }
             catch (Exception ex)
             {

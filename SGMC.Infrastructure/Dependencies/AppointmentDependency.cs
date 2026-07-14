@@ -16,6 +16,8 @@ namespace SGMC.Infrastructure.Dependencies
 
             // Services
             services.AddScoped<IAppointmentService, AppointmentService>();
+            services.AddScoped<IAppointmentNotificationService, AppointmentNotificationService>();
+
         }
     }
 }
