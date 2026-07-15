@@ -1,0 +1,50 @@
+name: CI - Build y Pruebas Unitarias
+
+on:
+  pull_request:
+    branches: [ dev, qa, main ]
+  push:
+    branches: [ dev, qa, main ]
+
+jobs:
+  build-and-test:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restaurar dependencias (dotnet restore)
+        run: dotnet restore SGMC.sln
+
+      - name: Compilar el proyecto (dotnet build)
+        run: dotnet build SGMC.sln --configuration Release --no-restore
+
+      - name: Ejecutar pruebas unitarias (dotnet test)
+        run: >
+          dotnet test SGMC.sln
+          --configuration Release
+          --no-build
+          --logger trx
+          --collect:"XPlat Code Coverage"
+          --results-directory ./TestResults
+
+      - name: Publicar resultados de las pruebas
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: Resultados de Pruebas Unitarias
+          path: TestResults/**/*.trx
+          reporter: dotnet-trx
+
+      - name: Publicar artefactos (logs y reportes)
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: TestResults/
