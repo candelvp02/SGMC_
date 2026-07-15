@@ -1,0 +1,182 @@
+@using SGMC.Web.Models.Appointment
+@{
+    ViewData["Title"] = "Mis Citas";
+    var appointments = ViewBag.Appointments as List<AppointmentListViewModel> ?? new();
+    var currentStatusId = ViewBag.StatusId as int?;
+    var currentFrom   = ViewBag.From   as string;
+    var currentTo     = ViewBag.To     as string;
+}
+
+<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 pb-10">
+
+    <!-- Encabezado -->
+    <div class="flex items-center gap-3 mb-6">
+        <div class="bg-blue-100 rounded-full p-3">
+            <i class="fas fa-calendar-alt text-blue-600 text-2xl"></i>
+        </div>
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800">Mis Citas</h1>
+            <p class="text-gray-500 text-sm">Historial completo de tus consultas médicas</p>
+        </div>
+    </div>
+
+    <!-- Alertas -->
+    @if (TempData["Error"] != null)
+    {
+        <div class="flex items-center gap-3 bg-red-50 border border-red-300 text-red-800 px-4 py-3 rounded-lg mb-5">
+            <i class="fas fa-exclamation-circle text-red-500"></i>
+            <span>@TempData["Error"]</span>
+        </div>
+    }
+
+    <!-- Filtros -->
+    <form method="get" asp-controller="PatientAppointments" asp-action="Index"
+          class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-6">
+        <p class="text-sm font-semibold text-gray-600 mb-3">
+            <i class="fas fa-filter text-blue-400 mr-1"></i> Filtrar citas
+        </p>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+
+            <!-- Filtro por estado -->
+            <div>
+                <label class="block text-xs font-medium text-gray-500 mb-1">Estado</label>
+                <select name="statusId"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition">
+                    <option value="">Todos los estados</option>
+                    <option value="1" selected="@(currentStatusId == 1)">Pendiente</option>
+                    <option value="2" selected="@(currentStatusId == 2)">Confirmada</option>
+                    <option value="3" selected="@(currentStatusId == 3)">Cancelada</option>
+                    <option value="4" selected="@(currentStatusId == 4)">Completada</option>
+                </select>
+            </div>
+
+            <!-- Filtro desde -->
+            <div>
+                <label class="block text-xs font-medium text-gray-500 mb-1">Desde</label>
+                <input type="date" name="from" value="@currentFrom"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition" />
+            </div>
+
+            <!-- Filtro hasta -->
+            <div>
+                <label class="block text-xs font-medium text-gray-500 mb-1">Hasta</label>
+                <input type="date" name="to" value="@currentTo"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition" />
+            </div>
+        </div>
+        <div class="flex items-center gap-3 mt-4">
+            <button type="submit"
+                    class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2 px-5 rounded-lg transition shadow-sm">
+                <i class="fas fa-search"></i> Buscar
+            </button>
+            <a asp-controller="PatientAppointments" asp-action="Index"
+               class="inline-flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-600 text-sm font-semibold py-2 px-5 rounded-lg transition">
+                <i class="fas fa-times"></i> Limpiar
+            </a>
+        </div>
+    </form>
+
+    <!-- Tabla de citas -->
+    @if (!appointments.Any())
+    {
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center py-16 text-center">
+            <div class="bg-gray-100 rounded-full p-5 mb-4">
+                <i class="fas fa-calendar-times text-gray-400 text-4xl"></i>
+            </div>
+            <p class="text-gray-600 font-semibold text-lg">No tienes citas registradas</p>
+            <p class="text-gray-400 text-sm mt-1">
+                @if (currentStatusId.HasValue || !string.IsNullOrEmpty(currentFrom) || !string.IsNullOrEmpty(currentTo))
+                {
+                    <span>No se encontraron citas con los filtros aplicados.</span>
+                }
+                else
+                {
+                    <span>Cuando agendes una cita aparecerá aquí.</span>
+                }
+            </p>
+        </div>
+    }
+    else
+    {
+        <!-- Contador -->
+        <p class="text-sm text-gray-500 mb-3">
+            Mostrando <span class="font-semibold text-gray-700">@appointments.Count</span> cita(s)
+        </p>
+
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-100">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Médico</th>
+                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Fecha y Hora</th>
+                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Agendada el</th>
+                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Estado</th>
+                            <th class="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wide">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-50">
+                        @foreach (var appt in appointments)
+                        {
+                            var rowClass = appt.StatusId switch
+                            {
+                                1 => "bg-yellow-50 hover:bg-yellow-100",   // Pendiente
+                                2 => "bg-green-50  hover:bg-green-100",    // Confirmada
+                                3 => "bg-red-50    hover:bg-red-100",      // Cancelada
+                                4 => "bg-blue-50   hover:bg-blue-100",     // Completada
+                                _ => "hover:bg-gray-50"
+                            };
+                            var badgeClass = appt.StatusId switch
+                            {
+                                1 => "bg-yellow-100 text-yellow-800 border border-yellow-300",
+                                2 => "bg-green-100  text-green-800  border border-green-300",
+                                3 => "bg-red-100    text-red-800    border border-red-300",
+                                4 => "bg-blue-100   text-blue-800   border border-blue-300",
+                                _ => "bg-gray-100   text-gray-700"
+                            };
+                            var statusIcon = appt.StatusId switch
+                            {
+                                1 => "fas fa-clock",
+                                2 => "fas fa-check-circle",
+                                3 => "fas fa-times-circle",
+                                4 => "fas fa-check-double",
+                                _ => "fas fa-circle"
+                            };
+                            <!-- Color de fila por estado -->
+
+                            <tr class="transition @rowClass">
+                                <td class="px-5 py-4">
+                                    <div class="flex items-center gap-2">
+                                        <div class="bg-white rounded-full p-1.5 shadow-sm">
+                                            <i class="fas fa-user-md text-blue-500 text-sm"></i>
+                                        </div>
+                                        <span class="text-sm font-medium text-gray-800">Dr. @appt.DoctorName</span>
+                                    </div>
+                                </td>
+                                <td class="px-5 py-4">
+                                    <p class="text-sm font-semibold text-gray-800">@appt.AppointmentDate.ToString("dd/MM/yyyy")</p>
+                                    <p class="text-xs text-gray-500">@appt.AppointmentDate.ToString("hh:mm tt")</p>
+                                </td>
+                                <td class="px-5 py-4 text-sm text-gray-500">
+                                    @appt.CreatedAt.ToString("dd/MM/yyyy")
+                                </td>
+                                <td class="px-5 py-4">
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold @badgeClass">
+                                        <i class="@statusIcon text-xs"></i>
+                                        @appt.StatusName
+                                    </span>
+                                </td>
+                                <td class="px-5 py-4 text-right">
+                                    <a asp-controller="PatientAppointments" asp-action="Details" asp-route-id="@appt.AppointmentId"
+                                       class="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 text-sm font-medium transition">
+                                        <i class="fas fa-eye text-xs"></i> Ver detalle
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>

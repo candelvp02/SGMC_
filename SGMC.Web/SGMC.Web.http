@@ -1,6 +1,7 @@
-@SGMC.Web_HostAddress = http://localhost:5138
+@HttpAddress = http://localhost:5098
+@HttpsAddress = https://localhost:7098
 
-GET {{SGMC.Web_HostAddress}}/weatherforecast/
+GET {{HttpsAddress}}/weatherforecast/
 Accept: application/json
 
 ###

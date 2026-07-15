@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SGMC.Application.Dto.Appointments;
+using SGMC.Application.Dto.System;
 using SGMC.Application.Dto.Users;
 using SGMC.Application.Interfaces.Service;
 using SGMC.Domain.Base;
@@ -15,6 +16,14 @@ namespace SGMC.Api.Controllers
         public DoctorsController(IDoctorService doctorService)
         {
             _doctorService = doctorService;
+        }
+
+        [HttpGet("search")]
+        public async Task<ActionResult<OperationResult<List<DoctorDto>>>> Search(
+    [FromQuery] string? name, [FromQuery] short? specialtyId)
+        {
+            var result = await _doctorService.SearchAsync(name, specialtyId);
+            return Ok(result);
         }
 
         [HttpGet]

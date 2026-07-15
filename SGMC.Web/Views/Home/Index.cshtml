@@ -2,9 +2,29 @@
     ViewData["Title"] = "Página de Inicio";
 }
 
-<div class="text-center">
-    <h1 class="display-4">¡Bienvenido al Sistema de Gestion de Citas!</h1>
+<div class="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div class="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
+        <div class="mb-6">
+            <svg class="mx-auto h-16 w-16 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+        </div>
 
-    <p>Puedes ir a la administración de citas aquí:</p>
-    <a asp-controller="AppointmentAdm" asp-action="Index" class="btn btn-primary">Ir a Citas</a>
+        <h1 class="text-3xl font-bold text-gray-800 mb-3">
+            Sistema de Gestión de Citas
+        </h1>
+
+        <p class="text-gray-500 mb-6">
+            Administra todas tus citas de manera eficiente
+        </p>
+
+        <a asp-controller="AppointmentAdm" asp-action="Index"
+           class="inline-flex items-center justify-center w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200">
+            Ir a Administración de Citas
+            <svg class="ml-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+        </a>
+    </div>
 </div>

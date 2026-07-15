@@ -7,6 +7,7 @@
   </PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.0" />
 		<PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.7" />
 		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
 	</ItemGroup>
@@ -16,6 +17,10 @@
     <ProjectReference Include="..\SGMC.Domain\SGMC.Domain.csproj" />
     <ProjectReference Include="..\SGMC.Infrastructure\SGMC.Infrastructure.csproj" />
     <ProjectReference Include="..\SGMC.Persistence\SGMC.Persistence.csproj" />
+  </ItemGroup>
+	
+  <ItemGroup>
+    <Folder Include="Views\Auth\" />
   </ItemGroup>
 
 </Project>
