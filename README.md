@@ -17,7 +17,7 @@ Sistema web para la gestión de citas médicas, desarrollado como proyecto acad�
 - **Base de Datos:** SQL Server 2022
 - **Arquitectura:** MVC + Repository Pattern
 - **Metodología:** SCRUM
-- **CI/CD:** Azure DevOps Pipelines
+- **CI/CD:** GitHub Actions (build + pruebas unitarias automatizadas en cada Pull Request)
 
 ## Estructura del Proyecto
 - `SGMC.Api` — Capa de presentación (API)
