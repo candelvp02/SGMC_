@@ -1,5 +1,7 @@
 # SGMC - Sistema de Gestión de Citas Médicas
 
+![CI Status](https://github.com/candelvp02/SGMC_/actions/workflows/ci.yml/badge.svg)
+
 ## Descripción
 Sistema web para la gestión de citas médicas, desarrollado como proyecto académico.
 
