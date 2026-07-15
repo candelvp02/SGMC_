@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Moq;
-using SGMC.Application.Dto.Users;
+using SGMC.Application.Dto.System;
 using SGMC.Application.Interfaces.Service;
 using SGMC.Application.Services;
 using SGMC.Domain.Repositories.Appointments;
@@ -13,6 +13,7 @@ namespace SGMC.Tests.Services
     {
         private readonly Mock<IDoctorRepository> _repoMock;
         private readonly Mock<IAppointmentRepository> _apptRepoMock;
+        private readonly Mock<IDoctorAvailabilityRepository> _availabilityRepoMock;
         private readonly Mock<ILogger<DoctorService>> _loggerMock;
         private readonly IDoctorService _service;
         private readonly Mock<IUserRepository> _userRepoMock;
@@ -23,6 +24,7 @@ namespace SGMC.Tests.Services
         {
             _repoMock = new Mock<IDoctorRepository>();
             _apptRepoMock = new Mock<IAppointmentRepository>();
+            _availabilityRepoMock = new Mock<IDoctorAvailabilityRepository>();
             _loggerMock = new Mock<ILogger<DoctorService>>();
             _userRepoMock = new Mock<IUserRepository>();
             _personRepoMock = new Mock<IPersonRepository>();
@@ -31,6 +33,7 @@ namespace SGMC.Tests.Services
             _service = new DoctorService(
                 _repoMock.Object,
                 _apptRepoMock.Object,
+                _availabilityRepoMock.Object,
                 _loggerMock.Object,
                 _userRepoMock.Object,
                 _personRepoMock.Object,
@@ -45,7 +48,7 @@ namespace SGMC.Tests.Services
                 LastName = "Perez",
                 IdentificationNumber = "001-0000001-1",
                 DateOfBirth = new DateOnly(1985, 1, 1),
-                Gender = "M",
+                Gender = "Masculino",
                 Email = $"test-{Guid.NewGuid()}@doctor.com",
                 Password = "ValidPassword123",
                 PhoneNumber = "809-555-1234",
@@ -61,7 +64,6 @@ namespace SGMC.Tests.Services
         [Fact]
         public async Task CreateAsync_WhenLicenseNumberEmpty_ReturnsFailure()
         {
-            // ARRANGE
             var futureDate = DateOnly.FromDateTime(DateTime.Now.AddYears(1));
             var dto = GetValidDto(string.Empty, futureDate);
 
@@ -69,24 +71,22 @@ namespace SGMC.Tests.Services
             _userRepoMock.Setup(r => r.ExistsByEmailAsync(It.IsAny<string>())).ReturnsAsync(false);
             _specialtyRepoMock.Setup(r => r.ExistsAsync(1)).ReturnsAsync(true);
 
-            // ACT
             var result = await _service.CreateAsync(dto);
 
-            // ASSERT
             Assert.False(result.Exitoso);
-            var mensajeLower = result.Mensaje.ToLower();
+
+            var detalle = string.Join(" ", result.Errores ?? new List<string>()).ToLower();
             Assert.True(
-                mensajeLower.Contains("licencia") ||
-                mensajeLower.Contains("requerido") ||
-                mensajeLower.Contains("no se pudo"),
-                $"Expected message to contain 'licencia', 'requerido' or 'no se pudo', but got: {result.Mensaje}"
+                detalle.Contains("licencia") ||
+                detalle.Contains("requerido") ||
+                detalle.Contains("no se pudo"),
+                $"Expected errors to contain 'licencia', 'requerido' or 'no se pudo', but got: {detalle}"
             );
         }
 
         [Fact]
         public async Task CreateAsync_WhenLicenseExpired_ReturnsFailure()
         {
-            // ARRANGE
             var expiredDate = DateOnly.FromDateTime(DateTime.Now.AddDays(-1));
             var dto = GetValidDto("L123-VALID", expiredDate);
 
@@ -95,18 +95,17 @@ namespace SGMC.Tests.Services
             _repoMock.Setup(r => r.ExistsByLicenseNumberAsync(It.IsAny<string>())).ReturnsAsync(false);
             _specialtyRepoMock.Setup(r => r.ExistsAsync(1)).ReturnsAsync(true);
 
-            // ACT
             var result = await _service.CreateAsync(dto);
 
-            // ASSERT
             Assert.False(result.Exitoso);
-            var mensajeLower = result.Mensaje.ToLower();
+
+            var detalle = string.Join(" ", result.Errores ?? new List<string>()).ToLower();
             Assert.True(
-                mensajeLower.Contains("vigente") ||
-                mensajeLower.Contains("expirad") ||
-                mensajeLower.Contains("vencid") ||
-                mensajeLower.Contains("no se pudo"),
-                $"Expected message to contain 'vigente', 'expirad', 'vencid' or 'no se pudo', but got: {result.Mensaje}"
+                detalle.Contains("vigente") ||
+                detalle.Contains("expirad") ||
+                detalle.Contains("vencid") ||
+                detalle.Contains("no se pudo"),
+                $"Expected errors to contain 'vigente', 'expirad', 'vencid' or 'no se pudo', but got: {detalle}"
             );
         }
     }

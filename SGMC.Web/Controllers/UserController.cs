@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using SGMC.Application.Dto.System;
 using SGMC.Application.Dto.Users;
 using SGMC.Application.Interfaces.Service;
@@ -8,7 +7,6 @@ using SGMC.Web.Models.User;
 
 namespace SGMC.Web.Controllers
 {
-    [Authorize(Roles = "Administrador")]
     public class UserController : Controller
     {
         private readonly IUserService _userService;
@@ -30,24 +28,6 @@ namespace SGMC.Web.Controllers
             }
 
             return View(result.Datos);
-        }
-
-        // GET: User/Search?query=
-        public async Task<ActionResult> Search(string query)
-        {
-            if (string.IsNullOrWhiteSpace(query))
-                return RedirectToAction(nameof(Index));
-
-            OperationResult<List<UserDto>> result = await _userService.SearchAsync(query);
-
-            if (!result.Exitoso)
-            {
-                ViewBag.ErrorMessage = result.Mensaje;
-                return View("Index", new List<UserDto>());
-            }
-
-            ViewBag.Query = query;
-            return View("Index", result.Datos);
         }
 
         // GET: User/Details/5
@@ -78,7 +58,9 @@ namespace SGMC.Web.Controllers
             try
             {
                 if (!ModelState.IsValid)
+                {
                     return View(registerUserDto);
+                }
 
                 OperationResult<UserDto> result = await _userService.RegisterAsync(registerUserDto);
 
@@ -88,7 +70,6 @@ namespace SGMC.Web.Controllers
                     return View(registerUserDto);
                 }
 
-                TempData["SuccessMessage"] = "Usuario creado correctamente.";
                 return RedirectToAction(nameof(Index));
             }
             catch
@@ -125,7 +106,9 @@ namespace SGMC.Web.Controllers
             try
             {
                 if (!ModelState.IsValid)
+                {
                     return View(updateUserDto);
+                }
 
                 OperationResult<UserDto> result = await _userService.UpdateProfileAsync(updateUserDto);
 
@@ -135,7 +118,6 @@ namespace SGMC.Web.Controllers
                     return View(updateUserDto);
                 }
 
-                TempData["SuccessMessage"] = "Usuario actualizado correctamente.";
                 return RedirectToAction(nameof(Index));
             }
             catch
@@ -144,63 +126,33 @@ namespace SGMC.Web.Controllers
             }
         }
 
-        // POST: User/Activate/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Activate(int id)
+        // GET: User/Delete/5
+        public async Task<ActionResult> Delete(int id)
         {
-            try
+            OperationResult<UserDto> result = await _userService.GetByIdAsync(id);
+
+            if (!result.Exitoso)
             {
-                OperationResult result = await _userService.ActivateAccountAsync(id);
-
-                if (!result.Exitoso)
-                    TempData["ErrorMessage"] = result.Mensaje;
-                else
-                    TempData["SuccessMessage"] = "Usuario activado correctamente.";
-
+                ViewBag.ErrorMessage = result.Mensaje;
                 return RedirectToAction(nameof(Index));
             }
-            catch
-            {
-                return RedirectToAction(nameof(Index));
-            }
+
+            return View(result.Datos);
         }
 
-        // POST: User/Deactivate/5
-        [HttpPost]
+        // POST: User/Delete/5
+        [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Deactivate(int id)
+        public async Task<ActionResult> DeleteConfirmed(int id)
         {
             try
             {
-                OperationResult result = await _userService.DeactivateAsync(id);
+                OperationResult result = await _userService.DeleteAsync(id);
 
                 if (!result.Exitoso)
-                    TempData["ErrorMessage"] = result.Mensaje;
-                else
-                    TempData["SuccessMessage"] = "Usuario desactivado correctamente.";
-
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return RedirectToAction(nameof(Index));
-            }
-        }
-
-        // POST: User/ChangeRole/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<ActionResult> ChangeRole(int id, int roleId)
-        {
-            try
-            {
-                OperationResult result = await _userService.ChangeRoleAsync(id, roleId);
-
-                if (!result.Exitoso)
-                    TempData["ErrorMessage"] = result.Mensaje;
-                else
-                    TempData["SuccessMessage"] = "Rol actualizado correctamente.";
+                {
+                    ViewBag.ErrorMessage = result.Mensaje;
+                }
 
                 return RedirectToAction(nameof(Index));
             }
@@ -225,7 +177,9 @@ namespace SGMC.Web.Controllers
             try
             {
                 if (!ModelState.IsValid)
+                {
                     return View(changePasswordDto);
+                }
 
                 OperationResult result = await _userService.ChangePasswordAsync(changePasswordDto);
 
@@ -235,7 +189,7 @@ namespace SGMC.Web.Controllers
                     return View(changePasswordDto);
                 }
 
-                TempData["SuccessMessage"] = "Contraseña cambiada exitosamente.";
+                ViewBag.SuccessMessage = "Contraseña cambiada exitosamente";
                 return RedirectToAction(nameof(Index));
             }
             catch

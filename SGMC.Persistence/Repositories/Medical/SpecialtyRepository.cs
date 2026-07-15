@@ -14,7 +14,9 @@ namespace SGMC.Persistence.Repositories.Medical
             => await _dbSet.FirstOrDefaultAsync(s => s.SpecialtyId == specialtyId);
 
         public async Task<IEnumerable<Specialty>> GetActiveSpecialtiesAsync()
-            => await _dbSet.Where(s => s.IsActive).ToListAsync();
+            => await _dbSet.Where(s => s.IsActive)
+                            .OrderBy(s => s.SpecialtyName)
+                            .ToListAsync();
 
         public async Task<IEnumerable<Specialty>> GetActiveAsync()
             => await GetActiveSpecialtiesAsync();

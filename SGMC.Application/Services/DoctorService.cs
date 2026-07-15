@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using SGMC.Application.Dto.Appointments;
-using SGMC.Application.Dto.Users;
 using SGMC.Application.Validators.Users;
 using SGMC.Application.Interfaces.Service;
 using SGMC.Domain.Base;
@@ -8,6 +7,8 @@ using SGMC.Domain.Entities.Users;
 using SGMC.Domain.Repositories.Appointments;
 using SGMC.Domain.Repositories.Medical;
 using SGMC.Domain.Repositories.Users;
+using SGMC.Application.Dto.System;
+using SGMC.Application.Dto.Users;
 
 namespace SGMC.Application.Services
 {
@@ -15,6 +16,7 @@ namespace SGMC.Application.Services
     {
         private readonly IDoctorRepository _repository;
         private readonly IAppointmentRepository _appointmentRepository;
+        private readonly IDoctorAvailabilityRepository _availabilityRepository;
         private readonly ILogger<DoctorService> _logger;
         private readonly IUserRepository _userRepository;
         private readonly IPersonRepository _personRepository;
@@ -23,6 +25,7 @@ namespace SGMC.Application.Services
         public DoctorService(
             IDoctorRepository repository,
             IAppointmentRepository appointmentRepository,
+            IDoctorAvailabilityRepository availabilityRepository,
             ILogger<DoctorService> logger,
             IUserRepository userRepository,
             IPersonRepository personRepository,
@@ -30,6 +33,7 @@ namespace SGMC.Application.Services
         {
             _repository = repository;
             _appointmentRepository = appointmentRepository;
+            _availabilityRepository = availabilityRepository;
             _logger = logger;
             _userRepository = userRepository;
             _personRepository = personRepository;
@@ -42,14 +46,12 @@ namespace SGMC.Application.Services
             if (doctorDto == null)
                 return OperationResult<DoctorDto>.Fallo("Los datos del doctor son requeridos");
 
-            // validaciones de campo fuera del try-catch
             var validationResult = doctorDto.IsValidDto();
             if (!validationResult.Exitoso)
                 return OperationResult<DoctorDto>.Fallo(validationResult.Mensaje, validationResult.Errores);
 
             try
             {
-                // validaciones de negocio
                 if (await _personRepository.ExistsByIdentificationNumberAsync(doctorDto.IdentificationNumber))
                     return OperationResult<DoctorDto>.Fallo("Ya existe una persona con esa cédula");
 
@@ -112,7 +114,6 @@ namespace SGMC.Application.Services
                 if (createdDoctor == null)
                     return OperationResult<DoctorDto>.Fallo("No se pudo crear el doctor");
 
-                // reconsultar con detalles para tener navs llenas
                 var doctorWithDetails = await _repository.GetByIdWithDetailsAsync(createdDoctor.DoctorId)
                                         ?? createdDoctor;
 
@@ -133,7 +134,6 @@ namespace SGMC.Application.Services
             if (doctorDto == null)
                 return OperationResult<DoctorDto>.Fallo("Los datos del doctor son requeridos");
 
-            // validaciones de campo fuera del trycatch
             var validationResult = doctorDto.IsValidDto();
             if (!validationResult.Exitoso)
                 return OperationResult<DoctorDto>.Fallo(validationResult.Mensaje, validationResult.Errores);
@@ -144,7 +144,11 @@ namespace SGMC.Application.Services
                 if (doctor == null)
                     return OperationResult<DoctorDto>.Fallo("Doctor no encontrado");
 
-                // update de Entidades
+                var specialtyExists = await _specialtyRepository.ExistsAsync(doctorDto.SpecialtyId);
+                if (!specialtyExists)
+                    return OperationResult<DoctorDto>.Fallo("La especialidad seleccionada no existe");
+
+                doctor.SpecialtyId = doctorDto.SpecialtyId;
                 doctor.PhoneNumber = doctorDto.PhoneNumber.Trim();
                 doctor.YearsOfExperience = doctorDto.YearsOfExperience;
                 doctor.Education = doctorDto.Education.Trim();
@@ -153,6 +157,7 @@ namespace SGMC.Application.Services
                 doctor.ClinicAddress = doctorDto.ClinicAddress?.Trim() ?? string.Empty;
                 doctor.AvailabilityModeId = doctorDto.AvailabilityMode;
                 doctor.LicenseExpirationDate = doctorDto.LicenseExpirationDate;
+                doctor.IsActive = doctorDto.IsActive;
                 doctor.UpdatedAt = DateTime.Now;
 
                 await _repository.UpdateAsync(doctor);
@@ -206,7 +211,6 @@ namespace SGMC.Application.Services
                 return OperationResult.Fallo($"Error al eliminar doctor: {ex.Message}");
             }
         }
-
 
         //   METODOS DE CONSULTA
         public async Task<OperationResult<List<DoctorDto>>> GetAllAsync()
@@ -404,44 +408,47 @@ namespace SGMC.Application.Services
                 return OperationResult<bool>.Fallo("Error al verificar doctor");
             }
         }
-        public async Task<OperationResult<DoctorDto>> AssignSpecialtyAsync(int doctorId, short specialtyId)
+
+        public async Task<OperationResult<List<DoctorDto>>> SearchAsync(string? name, short? specialtyId)
         {
             try
             {
-                if (doctorId <= 0)
-                    return OperationResult<DoctorDto>.Fallo("El ID del doctor es inválido");
+                var doctors = await _repository.SearchAsync(name, specialtyId);
+                var dtoList = new List<DoctorDto>();
 
-                if (specialtyId <= 0)
-                    return OperationResult<DoctorDto>.Fallo("El ID de la especialidad es inválido");
+                var today = DateOnly.FromDateTime(DateTime.Now);
 
-                var doctor = await _repository.GetByIdAsync(doctorId);
-                if (doctor == null)
-                    return OperationResult<DoctorDto>.Fallo("Doctor no encontrado");
+                foreach (var doctor in doctors)
+                {
+                    var dto = MapToDtoWithDetails(doctor);
 
-                // Verificar que la especialidad existe y está activa
-                var specialty = await _specialtyRepository.GetByIdAsync(specialtyId);
-                if (specialty == null)
-                    return OperationResult<DoctorDto>.Fallo("La especialidad no existe");
+                    var availability = await _availabilityRepository.GetByDoctorAndDateRangeAsync(
+                        doctor.DoctorId, today, today.AddDays(30));
 
-                if (!specialty.IsActive)
-                    return OperationResult<DoctorDto>.Fallo("No se puede asociar una especialidad inactiva");
+                    dto.UpcomingAvailability = availability
+                        .Where(a => a.IsActive)
+                        .Select(a => new AvailabilityDto
+                        {
+                            AvailabilityId = a.AvailabilityId,
+                            DoctorId = a.DoctorId,
+                            AvailableDate = a.AvailableDate,
+                            StartTime = a.StartTime,
+                            EndTime = a.EndTime,
+                            AvailabilityModeId = a.AvailabilityModeId,
+                            AvailabilityModeName = a.AvailabilityMode?.AvailabilityMode1,
+                            IsActive = a.IsActive,
+                            CreatedAt = a.CreatedAt
+                        }).ToList();
 
-                doctor.SpecialtyId = specialtyId;
-                doctor.UpdatedAt = DateTime.Now;
+                    dtoList.Add(dto);
+                }
 
-                await _repository.UpdateAsync(doctor);
-
-                var updatedDoctor = await _repository.GetByIdWithDetailsAsync(doctor.DoctorId);
-
-                return OperationResult<DoctorDto>.Exito(
-                    MapToDtoWithDetails(updatedDoctor!),
-                    "Especialidad asociada correctamente"
-                );
+                return OperationResult<List<DoctorDto>>.Exito(dtoList, "Búsqueda de doctores completada");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al asignar especialidad al doctor {DoctorId}", doctorId);
-                return OperationResult<DoctorDto>.Fallo($"Error al asignar especialidad: {ex.Message}");
+                _logger.LogError(ex, "Error al buscar doctores por nombre/especialidad");
+                return OperationResult<List<DoctorDto>>.Fallo("Error al buscar doctores");
             }
         }
 
@@ -464,10 +471,10 @@ namespace SGMC.Application.Services
             Bio = d.Bio,
             ConsultationFee = d.ConsultationFee,
             ClinicAddress = d.ClinicAddress,
-            AvailabilityMode = d.AvailabilityModeId?.ToString() ?? string.Empty,
+            AvailabilityModeId = d.AvailabilityModeId,
+            AvailabilityMode = d.AvailabilityMode?.AvailabilityMode1,
             LicenseExpirationDate = d.LicenseExpirationDate,
             IsActive = d.IsActive
         };
     }
 }
-

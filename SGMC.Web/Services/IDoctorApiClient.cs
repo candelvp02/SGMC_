@@ -1,4 +1,5 @@
-﻿using SGMC.Application.Dto.Users;
+﻿using SGMC.Application.Dto.System;
+using SGMC.Application.Dto.Users;
 
 namespace SGMC.Web.Services
 {
@@ -9,5 +10,6 @@ namespace SGMC.Web.Services
         Task<ApiResponse<DoctorDto>> CreateAsync(RegisterDoctorDto dto);
         Task<ApiResponse<DoctorDto>> UpdateAsync(UpdateDoctorDto dto);
         Task<ApiResponse<bool>> DeleteAsync(int id);
+        Task<ApiResponse<List<DoctorDto>>> GetBySpecialtyAsync(short specialtyId);
     }
 }

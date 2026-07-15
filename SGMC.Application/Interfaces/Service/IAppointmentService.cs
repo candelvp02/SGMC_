@@ -9,6 +9,7 @@ namespace SGMC.Application.Interfaces.Service
         Task<OperationResult<AppointmentDto>> CreateAsync(CreateAppointmentDto appointmentDto);
         Task<OperationResult> CancelAsync(int appointmentId);
         Task<OperationResult> ConfirmAsync(int appointmentId);
+        Task<OperationResult> RejectAsync(int appointmentId);
         Task<OperationResult> RescheduleAsync(int appointmentId, DateTime newDate);
         Task<OperationResult<AppointmentDto>> UpdateAsync(UpdateAppointmentDto appointmentDto);
         Task<OperationResult> DeleteAsync(int id);

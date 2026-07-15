@@ -1,0 +1,67 @@
+﻿@model List<SGMC.Application.Dto.Users.DoctorDto>
+
+@{
+    ViewData["Title"] = "Médicos Disponibles";
+}
+
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 pb-10">
+
+    <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center gap-3">
+            <div class="bg-blue-100 rounded-full p-3">
+                <i class="fas fa-user-md text-blue-600 text-3xl"></i>
+            </div>
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">@ViewBag.SpecialtyName</h1>
+                <p class="text-gray-500 text-sm">Médicos disponibles para esta especialidad</p>
+            </div>
+        </div>
+        <a asp-action="Index" class="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 font-medium">
+            <i class="fas fa-arrow-left"></i> Volver a especialidades
+        </a>
+    </div>
+
+    @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
+    {
+        <div class="flex items-center gap-3 bg-red-50 border border-red-300 text-red-800 px-4 py-3 rounded-lg mb-5">
+            <i class="fas fa-exclamation-circle text-red-500 text-lg"></i>
+            <span>@ViewBag.ErrorMessage</span>
+        </div>
+    }
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-10 text-center">
+            <i class="fas fa-info-circle text-gray-300 text-4xl mb-3"></i>
+            <p class="text-gray-500">No hay médicos disponibles para esta especialidad por el momento.</p>
+        </div>
+    }
+    else
+    {
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            @foreach (var doctor in Model)
+            {
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex items-start gap-4">
+                    <div class="bg-blue-50 rounded-full w-12 h-12 flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-user-doctor text-blue-600"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="font-semibold text-gray-800">@doctor.FullName</p>
+                        <p class="text-xs text-gray-400 mb-2">@doctor.SpecialtyName</p>
+                        <div class="space-y-1 text-sm text-gray-600">
+                            <p><i class="fas fa-graduation-cap text-gray-300 w-4 text-center mr-1"></i>@doctor.YearsOfExperience años de experiencia</p>
+                            @if (!string.IsNullOrEmpty(doctor.ClinicAddress))
+                            {
+                                <p><i class="fas fa-map-marker-alt text-gray-300 w-4 text-center mr-1"></i>@doctor.ClinicAddress</p>
+                            }
+                            @if (doctor.ConsultationFee.HasValue)
+                            {
+                                <p><i class="fas fa-dollar-sign text-gray-300 w-4 text-center mr-1"></i>Consulta: @doctor.ConsultationFee.Value.ToString("C")</p>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

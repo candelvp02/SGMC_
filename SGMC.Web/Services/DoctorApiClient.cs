@@ -1,6 +1,7 @@
 ﻿using System.Net.Http;
 using System.Text;
 using System.Text.Json;
+using SGMC.Application.Dto.System;
 using SGMC.Application.Dto.Users;
 using SGMC.Web.Models;
 
@@ -30,6 +31,12 @@ namespace SGMC.Web.Services
         {
             var response = await _httpClient.GetAsync($"Doctors/{id}");
             return await HandleResponse<DoctorDto>(response);
+        }
+
+        public async Task<ApiResponse<List<DoctorDto>>> GetBySpecialtyAsync(short specialtyId)
+        {
+            var response = await _httpClient.GetAsync($"Doctors/specialty/{specialtyId}");
+            return await HandleResponse<List<DoctorDto>>(response);
         }
 
         public async Task<ApiResponse<DoctorDto>> CreateAsync(RegisterDoctorDto dto)

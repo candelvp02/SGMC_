@@ -100,4 +100,11 @@
         public int? DoctorId { get; set; }
         public int? StatusId { get; set; }
     }
+
+    // DTO de reprogramación — PBI-34
+    public record RescheduleAppointmentDto
+    {
+        public int AppointmentId { get; set; }
+        public DateTime NewAppointmentDate { get; set; }
+    }
 }
