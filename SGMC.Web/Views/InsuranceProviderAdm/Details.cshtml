@@ -1,134 +1,45 @@
 ﻿@model SGMC.Application.Dto.Insurance.InsuranceProviderDto
-
 @{
     ViewData["Title"] = "Detalles del Proveedor";
 }
 
-<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<h1>Detalles del Proveedor</h1>
 
-    <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-900">Detalles del Proveedor</h1>
-        <p class="text-gray-600 mt-2">Información completa del proveedor de seguro</p>
-    </div>
+<div>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-3">ID</dt>
+        <dd class="col-sm-9">@Model.InsuranceProviderId</dd>
 
-    <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-6">
-        <div class="border-b border-gray-200 bg-gray-50 px-6 py-4 flex items-center justify-between">
-            <h3 class="text-lg font-semibold text-gray-900">
-                @if (!string.IsNullOrEmpty(Model.LogoUrl))
-                {
-                    <img src="@Model.LogoUrl" alt="@Model.Name" class="w-8 h-8 rounded object-contain inline mr-2" onerror="this.style.display='none'" />
-                }
-                @Model.Name
-            </h3>
+        <dt class="col-sm-3">Nombre</dt>
+        <dd class="col-sm-9">@Model.Name</dd>
+
+        <dt class="col-sm-3">Teléfono</dt>
+        <dd class="col-sm-9">@Model.PhoneNumber</dd>
+
+        <dt class="col-sm-3">Email</dt>
+        <dd class="col-sm-9">@Model.Email</dd>
+
+        <dt class="col-sm-3">Sitio Web</dt>
+        <dd class="col-sm-9">@Model.Website</dd>
+
+        <dt class="col-sm-3">Dirección</dt>
+        <dd class="col-sm-9">@Model.Address</dd>
+
+        <dt class="col-sm-3">Estado</dt>
+        <dd class="col-sm-9">
             @if (Model.IsActive)
             {
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                    <span class="w-1.5 h-1.5 bg-green-500 rounded-full mr-1.5"></span>
-                    Activo
-                </span>
+                <span class="badge bg-success">Activo</span>
             }
             else
             {
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                    <span class="w-1.5 h-1.5 bg-red-500 rounded-full mr-1.5"></span>
-                    Inactivo
-                </span>
+                <span class="badge bg-danger">Inactivo</span>
             }
-        </div>
-
-        <div class="p-6">
-            <dl class="divide-y divide-gray-200">
-                <div class="py-4 flex flex-col sm:flex-row">
-                    <dt class="sm:w-1/3 text-sm font-medium text-gray-500">Tipo de Red</dt>
-                    <dd class="sm:w-2/3 text-sm text-gray-900">
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                            @Model.NetworkTypeName
-                        </span>
-                    </dd>
-                </div>
-                <div class="py-4 flex flex-col sm:flex-row">
-                    <dt class="sm:w-1/3 text-sm font-medium text-gray-500">Teléfono</dt>
-                    <dd class="sm:w-2/3 text-sm text-gray-900">@Model.PhoneNumber</dd>
-                </div>
-                <div class="py-4 flex flex-col sm:flex-row">
-                    <dt class="sm:w-1/3 text-sm font-medium text-gray-500">Email</dt>
-                    <dd class="sm:w-2/3 text-sm text-gray-900">@Model.Email</dd>
-                </div>
-                @if (!string.IsNullOrEmpty(Model.Website))
-                {
-                    <div class="py-4 flex flex-col sm:flex-row">
-                        <dt class="sm:w-1/3 text-sm font-medium text-gray-500">Sitio Web</dt>
-                        <dd class="sm:w-2/3 text-sm text-blue-600">
-                            <a href="@Model.Website" target="_blank">@Model.Website</a>
-                        </dd>
-                    </div>
-                }
-                <div class="py-4 flex flex-col sm:flex-row">
-                    <dt class="sm:w-1/3 text-sm font-medium text-gray-500">Dirección</dt>
-                    <dd class="sm:w-2/3 text-sm text-gray-900">
-                        @Model.Address
-                        @if (!string.IsNullOrEmpty(Model.City))
-                        {
-                            <span>, @Model.City</span>
-                        }
-                        @if (!string.IsNullOrEmpty(Model.Country))
-                        {
-                            <span>, @Model.Country</span>
-                        }
-                    </dd>
-                </div>
-                <div class="py-4 flex flex-col sm:flex-row">
-                    <dt class="sm:w-1/3 text-sm font-medium text-gray-500">Cobertura</dt>
-                    <dd class="sm:w-2/3 text-sm text-gray-900">@Model.CoverageDetails</dd>
-                </div>
-                @if (Model.MaxCoverageAmount.HasValue)
-                {
-                    <div class="py-4 flex flex-col sm:flex-row">
-                        <dt class="sm:w-1/3 text-sm font-medium text-gray-500">Monto Máximo</dt>
-                        <dd class="sm:w-2/3 text-sm text-gray-900">$@Model.MaxCoverageAmount.Value.ToString("N2")</dd>
-                    </div>
-                }
-                <div class="py-4 flex flex-col sm:flex-row">
-                    <dt class="sm:w-1/3 text-sm font-medium text-gray-500">Preferencial</dt>
-                    <dd class="sm:w-2/3 text-sm text-gray-900">
-                        @if (Model.IsPreferred)
-                        {
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                <i class="fas fa-star mr-1"></i> Sí
-                            </span>
-                        }
-                        else
-                        {
-                            <span class="text-gray-400">No</span>
-                        }
-                    </dd>
-                </div>
-                <div class="py-4 flex flex-col sm:flex-row">
-                    <dt class="sm:w-1/3 text-sm font-medium text-gray-500">Fecha de Creación</dt>
-                    <dd class="sm:w-2/3 text-sm text-gray-900">@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</dd>
-                </div>
-                <div class="py-4 flex flex-col sm:flex-row">
-                    <dt class="sm:w-1/3 text-sm font-medium text-gray-500">Última Actualización</dt>
-                    <dd class="sm:w-2/3 text-sm text-gray-900">@(Model.UpdatedAt?.ToString("dd/MM/yyyy HH:mm") ?? "—")</dd>
-                </div>
-            </dl>
-        </div>
-    </div>
-
-    <div class="flex flex-wrap gap-3">
-        <a asp-action="Edit" asp-route-id="@Model.InsuranceProviderId"
-           class="inline-flex items-center px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white font-medium rounded-lg transition duration-200 shadow-md">
-            <i class="fas fa-edit mr-2"></i>
-            Editar
-        </a>
-        <a asp-action="Index"
-           class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition duration-200 shadow-md">
-            <i class="fas fa-arrow-left mr-2"></i>
-            Volver
-        </a>
-    </div>
+        </dd>
+    </dl>
 </div>
-
-@section Styles {
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-}
+<div>
+    <a asp-action="Edit" asp-route-id="@Model.InsuranceProviderId" class="btn btn-warning">Editar</a> |
+    <a asp-action="Index" class="btn btn-secondary">Volver a la Lista</a>
+</div>

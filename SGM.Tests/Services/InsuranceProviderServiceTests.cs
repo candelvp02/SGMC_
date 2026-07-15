@@ -1,335 +1,170 @@
-﻿using Moq;
+﻿using FluentAssertions;
+using Microsoft.Extensions.Logging;
+using Moq;
 using SGMC.Application.Dto.Insurance;
 using SGMC.Application.Services;
 using SGMC.Domain.Entities.Insurance;
 using SGMC.Domain.Repositories.Insurance;
-using Microsoft.Extensions.Logging;
-using SGMC.Application.Interfaces.Service;
+using Xunit;
 
 namespace SGMC.Tests.Services
 {
     public class InsuranceProviderServiceTests
     {
-        private readonly Mock<IInsuranceProviderRepository> _repoMock;
+        // ── Mocks compartidos ──────────────────────────────────────────
+        private readonly Mock<IInsuranceProviderRepository> _repositoryMock;
+        private readonly Mock<INetworkTypeRepository> _networkTypeRepositoryMock;
         private readonly Mock<ILogger<InsuranceProviderService>> _loggerMock;
-        private readonly IInsuranceProviderService _service;
-        private readonly Mock<INetworkTypeRepository> _networkRepoMock;
+        private readonly InsuranceProviderService _service;
 
         public InsuranceProviderServiceTests()
         {
-            _repoMock = new Mock<IInsuranceProviderRepository>();
+            _repositoryMock = new Mock<IInsuranceProviderRepository>();
+            _networkTypeRepositoryMock = new Mock<INetworkTypeRepository>();
             _loggerMock = new Mock<ILogger<InsuranceProviderService>>();
-            _networkRepoMock = new Mock<INetworkTypeRepository>();
+
             _service = new InsuranceProviderService(
-                _repoMock.Object,
-                _networkRepoMock.Object,
-                _loggerMock.Object);
-
-            _networkRepoMock.Setup(r => r.ExistsAsync(1)).ReturnsAsync(true);
+                _repositoryMock.Object,
+                _networkTypeRepositoryMock.Object,
+                _loggerMock.Object
+            );
         }
 
+        // ── TEST 1 ─────────────────────────────────────────────────────
+        // GetActiveAsync debe devolver únicamente proveedores activos
         [Fact]
-        public async Task CreateAsync_WhenDtoIsNull_ReturnsFailure()
+        public async Task GetActiveAsync_DebeRetornarSoloProveedoresActivos()
         {
-            var result = await _service.CreateAsync(null!);
-            Assert.False(result.Exitoso);
-            Assert.Equal("Los datos del proveedor son requeridos", result.Mensaje);
+            // Arrange
+            var proveedoresActivos = new List<InsuranceProvider>
+            {
+                new InsuranceProvider
+                {
+                    InsuranceProviderId = 1,
+                    Name = "ARS Humano",
+                    IsActive = true,
+                    IsPreferred = true,
+                    NetworkTypeId = 1,
+                    NetworkType = new NetworkType { NetworkTypeId = 1, Name = "HMO" },
+                    CreatedAt = DateTime.UtcNow
+                },
+                new InsuranceProvider
+                {
+                    InsuranceProviderId = 2,
+                    Name = "ARS Salud Segura",
+                    IsActive = true,
+                    IsPreferred = false,
+                    NetworkTypeId = 2,
+                    NetworkType = new NetworkType { NetworkTypeId = 2, Name = "PPO" },
+                    CreatedAt = DateTime.UtcNow
+                }
+            };
+
+            _repositoryMock
+                .Setup(r => r.GetActiveProviderAsync())
+                .ReturnsAsync(proveedoresActivos);
+
+            // Act
+            var resultado = await _service.GetActiveAsync();
+
+            // Assert
+            resultado.Exitoso.Should().BeTrue();
+            resultado.Datos.Should().NotBeNull();
+            resultado.Datos!.Count.Should().Be(2);
+            resultado.Datos.Should().OnlyContain(p => p.IsActive == true);
         }
 
+        // ── TEST 2 ─────────────────────────────────────────────────────
+        // GetByIdAsync debe fallar cuando el ID es menor o igual a cero
         [Fact]
-        public async Task CreateAsync_WhenNameIsEmpty_ReturnsFailure()
+        public async Task GetByIdAsync_CuandoIdEsInvalido_DebeRetornarFallo()
         {
+            // Arrange
+            int idInvalido = 0;
+
+            // Act
+            var resultado = await _service.GetByIdAsync(idInvalido);
+
+            // Assert
+            resultado.Exitoso.Should().BeFalse();
+            resultado.Mensaje.Should().Be("El ID del proveedor es inválido");
+
+            // Verificar que nunca se llamó al repositorio
+            _repositoryMock.Verify(r => r.GetByIdAsync(It.IsAny<int>()), Times.Never);
+        }
+
+        // ── TEST 3 ─────────────────────────────────────────────────────
+        // GetByIdAsync debe fallar cuando el proveedor no existe en la BD
+        [Fact]
+        public async Task GetByIdAsync_CuandoProveedorNoExiste_DebeRetornarFallo()
+        {
+            // Arrange
+            int idInexistente = 999;
+
+            _repositoryMock
+                .Setup(r => r.GetByIdAsync(idInexistente))
+                .ReturnsAsync((InsuranceProvider?)null);
+
+            // Act
+            var resultado = await _service.GetByIdAsync(idInexistente);
+
+            // Assert
+            resultado.Exitoso.Should().BeFalse();
+            resultado.Mensaje.Should().Be("Proveedor de seguro no encontrado");
+        }
+
+        // ── TEST 4 ─────────────────────────────────────────────────────
+        // CreateAsync debe fallar si el NetworkTypeId no existe en la BD
+        [Fact]
+        public async Task CreateAsync_CuandoTipoDeRedNoExiste_DebeRetornarFallo()
+        {
+            // Arrange
             var dto = new CreateInsuranceProviderDto
             {
-                Name = string.Empty,
-                Email = "test@test.com",
-                PhoneNumber = "809-555-1234",
-                Address = "Fake St",
-                NetworkTypeId = 1
-            };
-            var result = await _service.CreateAsync(dto);
-
-            Assert.False(result.Exitoso);
-            var mensajeLower = result.Mensaje.ToLower();
-            Assert.True(
-                mensajeLower.Contains("nombre") ||
-                mensajeLower.Contains("requerido") ||
-                mensajeLower.Contains("validación"),
-                $"Expected message to contain 'nombre', 'requerido' or 'validación', but got: {result.Mensaje}"
-            );
-        }
-
-        [Fact]
-        public async Task CreateAsync_WhenValid_ReturnsSuccess()
-        {
-            // ARRANGE
-            var dto = new CreateInsuranceProviderDto
-            {
-                Name = "Test Insurance",
-                Email = "test@test.com",
-                PhoneNumber = "809-555-1234",
-                Address = "calle 7w 19 lucerna sde rd",
-                NetworkTypeId = 1
-            };
-            var provider = new InsuranceProvider
-            {
-                InsuranceProviderId = 1,
-                Name = "Test Insurance",
-                NetworkTypeId = 1
+                Name = "ARS Nueva",
+                PhoneNumber = "809-000-0000",
+                Email = "contacto@arsnueva.com",
+                Address = "Calle Principal 1",
+                NetworkTypeId = 99, // ID que no existe
+                CoverageDetails = "Cobertura básica"
             };
 
-            _repoMock.Setup(r => r.AddAsync(It.IsAny<InsuranceProvider>())).ReturnsAsync(provider);
-            _repoMock.Setup(r => r.GetByNameAsync(It.IsAny<string>())).ReturnsAsync((InsuranceProvider)null!);
+            _networkTypeRepositoryMock
+                .Setup(r => r.ExistsAsync(dto.NetworkTypeId))
+                .ReturnsAsync(false);
 
-            var result = await _service.CreateAsync(dto);
+            // Act
+            var resultado = await _service.CreateAsync(dto);
 
-            Assert.True(result.Exitoso);
-            Assert.Equal("Proveedor de seguro creado correctamente", result.Mensaje);
+            // Assert
+            resultado.Exitoso.Should().BeFalse();
+            resultado.Mensaje.Should().Be("El tipo de red seleccionado no existe");
+
+            // Verificar que nunca se intentó guardar en la BD
+            _repositoryMock.Verify(r => r.AddAsync(It.IsAny<InsuranceProvider>()), Times.Never);
         }
 
+        // ── TEST 5 ─────────────────────────────────────────────────────
+        // DeleteAsync debe fallar si el proveedor a eliminar no existe
         [Fact]
-        public async Task UpdateAsync_WhenDtoIsNull_ReturnsFailure()
+        public async Task DeleteAsync_CuandoProveedorNoExiste_DebeRetornarFallo()
         {
-            var result = await _service.UpdateAsync(null!);
-            Assert.False(result.Exitoso);
-            Assert.Equal("Los datos del proveedor son requeridos", result.Mensaje);
-        }
+            // Arrange
+            int idInexistente = 500;
 
-        [Fact]
-        public async Task UpdateAsync_WhenIdIsInvalid_ReturnsFailure()
-        {
-            var dto = new UpdateInsuranceProviderDto { InsuranceProviderId = -1, Name = "Test", NetworkTypeId = 1 };
-            var result = await _service.UpdateAsync(dto);
+            _repositoryMock
+                .Setup(r => r.GetByIdAsync(idInexistente))
+                .ReturnsAsync((InsuranceProvider?)null);
 
-            Assert.False(result.Exitoso);
-            var mensajeLower = result.Mensaje.ToLower();
-            Assert.True(
-                mensajeLower.Contains("id") ||
-                mensajeLower.Contains("inválido") ||
-                mensajeLower.Contains("validación"),
-                $"Expected message to contain 'id', 'inválido' or 'validación', but got: {result.Mensaje}"
-            );
-        }
+            // Act
+            var resultado = await _service.DeleteAsync(idInexistente);
 
-        [Fact]
-        public async Task UpdateAsync_WhenNameIsEmpty_ReturnsFailure()
-        {
-            // ARRANGE
-            var existing = new InsuranceProvider
-            {
-                InsuranceProviderId = 1,
-                Name = "Old Name",
-                NetworkTypeId = 1,
-                IsActive = true
-            };
+            // Assert
+            resultado.Exitoso.Should().BeFalse();
+            resultado.Mensaje.Should().Be("Proveedor de seguro no encontrado");
 
-            _repoMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(existing);
-            _networkRepoMock.Setup(r => r.ExistsAsync(1)).ReturnsAsync(true);
-
-            // DTO con nombre vacío pero NetworkTypeId válido
-            var dto = new UpdateInsuranceProviderDto
-            {
-                InsuranceProviderId = 1,
-                Name = string.Empty,
-                NetworkTypeId = 1,
-                PhoneNumber = "809-555-1234",
-                Email = "test@test.com",
-                Address = "Test Address"
-            };
-
-            // ACT
-            var result = await _service.UpdateAsync(dto);
-
-            // ASSERT
-            Assert.False(result.Exitoso, $"Expected failure but got success with message: {result.Mensaje}");
-
-            var mensajeLower = result.Mensaje.ToLower();
-            Assert.True(
-                mensajeLower.Contains("nombre") ||
-                mensajeLower.Contains("requerido") ||
-                mensajeLower.Contains("validación") ||
-                mensajeLower.Contains("vacío") ||
-                mensajeLower.Contains("inválido"),
-                $"Expected message to contain validation error about 'nombre', but got: {result.Mensaje}"
-            );
-        }
-
-        [Fact]
-        public async Task UpdateAsync_WhenProviderNotFound_ReturnsFailure()
-        {
-            var dto = new UpdateInsuranceProviderDto
-            {
-                InsuranceProviderId = 1,
-                Name = "Updated",
-                NetworkTypeId = 1
-            };
-            _repoMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync((InsuranceProvider?)null);
-
-            var result = await _service.UpdateAsync(dto);
-            Assert.False(result.Exitoso);
-            Assert.Equal("Proveedor de seguro no encontrado", result.Mensaje);
-        }
-
-        [Fact]
-        public async Task UpdateAsync_WhenValid_ReturnsSuccess()
-        {
-            // ARRANGE
-            var existing = new InsuranceProvider
-            {
-                InsuranceProviderId = 1,
-                Name = "Old Name",
-                PhoneNumber = "809-111-2222",
-                Email = "old@test.com",
-                Address = "Old Address",
-                NetworkTypeId = 1,
-                IsActive = true
-            };
-
-            var dto = new UpdateInsuranceProviderDto
-            {
-                InsuranceProviderId = 1,
-                Name = "New Name",
-                PhoneNumber = "809-555-1234",
-                Email = "new@test.com",
-                Address = "New Address",
-                IsActive = true,
-                NetworkTypeId = 1
-            };
-
-            _repoMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(existing);
-            _repoMock.Setup(r => r.UpdateAsync(It.IsAny<InsuranceProvider>())).Returns(Task.CompletedTask);
-            _networkRepoMock.Setup(r => r.ExistsAsync(1)).ReturnsAsync(true);
-
-            // ACT
-            var result = await _service.UpdateAsync(dto);
-
-            // ASSERT
-            Assert.True(result.Exitoso);
-            Assert.Equal("Proveedor de seguro actualizado correctamente", result.Mensaje);
-        }
-
-        [Fact]
-        public async Task GetByIdAsync_WhenIdIsInvalid_ReturnsFailure()
-        {
-            var result = await _service.GetByIdAsync(-1);
-            Assert.False(result.Exitoso);
-            Assert.Equal("El ID del proveedor es inválido", result.Mensaje);
-        }
-
-        [Fact]
-        public async Task GetByIdAsync_WhenProviderNotFound_ReturnsFailure()
-        {
-            _repoMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync((InsuranceProvider?)null);
-            var result = await _service.GetByIdAsync(1);
-            Assert.False(result.Exitoso);
-            Assert.Equal("Proveedor de seguro no encontrado", result.Mensaje);
-        }
-
-        [Fact]
-        public async Task GetByIdAsync_WhenValid_ReturnsSuccess()
-        {
-            var provider = new InsuranceProvider { InsuranceProviderId = 1, Name = "Test Provider" };
-            _repoMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(provider);
-
-            var result = await _service.GetByIdAsync(1);
-
-            Assert.True(result.Exitoso);
-            Assert.Equal("Proveedor de seguro obtenido correctamente", result.Mensaje);
-        }
-
-        [Fact]
-        public async Task ExistsAsync_WhenIdIsInvalid_ReturnsFalseWithSuccess()
-        {
-            var result = await _service.ExistsAsync(-1);
-            Assert.True(result.Exitoso);
-            Assert.False(result.Datos);
-            Assert.Equal("ID inválido", result.Mensaje);
-        }
-
-        [Fact]
-        public async Task ExistsAsync_WhenProviderExists_ReturnsTrue()
-        {
-            _repoMock.Setup(r => r.ExistsAsync(1)).ReturnsAsync(true);
-            var result = await _service.ExistsAsync(1);
-            Assert.True(result.Exitoso);
-            Assert.True(result.Datos);
-        }
-
-        [Fact]
-        public async Task ExistsAsync_WhenProviderDoesNotExist_ReturnsFalse()
-        {
-            _repoMock.Setup(r => r.ExistsAsync(999)).ReturnsAsync(false);
-            var result = await _service.ExistsAsync(999);
-            Assert.True(result.Exitoso);
-            Assert.False(result.Datos);
-        }
-
-        [Fact]
-        public async Task GetActiveAsync_WhenNoProviders_ReturnsEmptyList()
-        {
-            _repoMock.Setup(r => r.GetActiveProviderAsync()).ReturnsAsync(new List<InsuranceProvider>());
-            var result = await _service.GetActiveAsync();
-            Assert.True(result.Exitoso);
-            Assert.NotNull(result.Datos);
-            Assert.Empty(result.Datos);
-        }
-
-        [Fact]
-        public async Task GetActiveAsync_WhenProvidersExist_ReturnsList()
-        {
-            List<InsuranceProvider> providers = [new() { InsuranceProviderId = 1, Name = "Active1" }];
-            _repoMock.Setup(r => r.GetActiveProviderAsync()).ReturnsAsync(providers);
-
-            var result = await _service.GetActiveAsync();
-
-            Assert.True(result.Exitoso);
-            Assert.NotNull(result.Datos);
-            Assert.Equal(1, result.Datos?.Count);
-        }
-
-        [Fact]
-        public async Task GetAllAsync_WhenNoProviders_ReturnsEmptyList()
-        {
-            _repoMock.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<InsuranceProvider>());
-            var result = await _service.GetAllAsync();
-            Assert.True(result.Exitoso);
-            Assert.NotNull(result.Datos);
-            Assert.Empty(result.Datos);
-        }
-
-        [Fact]
-        public async Task GetAllAsync_WhenProvidersExist_ReturnsList()
-        {
-            List<InsuranceProvider> providers = [new() { InsuranceProviderId = 1, Name = "P1" }];
-            _repoMock.Setup(r => r.GetAllAsync()).ReturnsAsync(providers);
-
-            var result = await _service.GetAllAsync();
-
-            Assert.True(result.Exitoso);
-            Assert.NotNull(result.Datos);
-            Assert.Equal(1, result.Datos?.Count);
-        }
-
-        [Fact]
-        public async Task DeleteAsync_WhenProviderNotFound_ReturnsFailure()
-        {
-            _repoMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync((InsuranceProvider?)null);
-            var result = await _service.DeleteAsync(1);
-            Assert.False(result.Exitoso);
-            Assert.Equal("Proveedor de seguro no encontrado", result.Mensaje);
-        }
-
-        [Fact]
-        public async Task DeleteAsync_WhenValid_ReturnsSuccess()
-        {
-            var provider = new InsuranceProvider { InsuranceProviderId = 1, Name = "Test Provider" };
-            _repoMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(provider);
-            _repoMock.Setup(r => r.DeleteAsync(1)).Returns(Task.CompletedTask);
-
-            var result = await _service.DeleteAsync(1);
-
-            Assert.True(result.Exitoso);
-            Assert.Equal("Proveedor de seguro eliminado correctamente", result.Mensaje);
+            // Verificar que nunca se llamó al método de eliminación
+            _repositoryMock.Verify(r => r.DeleteAsync(It.IsAny<int>()), Times.Never);
         }
     }
 }

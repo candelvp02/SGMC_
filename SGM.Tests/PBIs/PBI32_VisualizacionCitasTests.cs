@@ -8,6 +8,7 @@ using SGMC.Api.Controllers;
 using SGMC.Application.Dto.Appointments;
 using SGMC.Application.Interfaces.Service;
 using SGMC.Domain.Base;
+using SGMC.Domain.Repositories.Appointments;
 using SGMC.Web.Controllers;
 using SGMC.Web.Models.Appointment;
 using Xunit;
@@ -168,7 +169,7 @@ namespace SGMC.Tests.PBIs
                 .Setup(s => s.GetByIdAsync(5))
                 .ReturnsAsync(OperationResult<AppointmentDto>.Exito(BuildAppointment(5, patientId: 99, doctorId: 7)));
 
-            var controller = new AppointmentsController(appointmentServiceMock.Object, Mock.Of<ILogger<AppointmentsController>>())
+            var controller = new AppointmentsController(appointmentServiceMock.Object, Mock.Of<IDoctorAvailabilityRepository>(), Mock.Of<ILogger<AppointmentsController>>())
             {
                 ControllerContext = new ControllerContext
                 {
@@ -189,7 +190,7 @@ namespace SGMC.Tests.PBIs
                 .Setup(s => s.GetByIdAsync(8))
                 .ReturnsAsync(OperationResult<AppointmentDto>.Exito(BuildAppointment(8, patientId: 3, doctorId: 50)));
 
-            var controller = new AppointmentsController(appointmentServiceMock.Object, Mock.Of<ILogger<AppointmentsController>>())
+            var controller = new AppointmentsController(appointmentServiceMock.Object, Mock.Of<IDoctorAvailabilityRepository>(), Mock.Of<ILogger<AppointmentsController>>())
             {
                 ControllerContext = new ControllerContext
                 {
@@ -210,7 +211,7 @@ namespace SGMC.Tests.PBIs
                 .Setup(s => s.GetByIdAsync(5))
                 .ReturnsAsync(OperationResult<AppointmentDto>.Exito(BuildAppointment(5, patientId: 1, doctorId: 7)));
 
-            var controller = new AppointmentsController(appointmentServiceMock.Object, Mock.Of<ILogger<AppointmentsController>>())
+            var controller = new AppointmentsController(appointmentServiceMock.Object, Mock.Of<IDoctorAvailabilityRepository>(), Mock.Of<ILogger<AppointmentsController>>())
             {
                 ControllerContext = new ControllerContext
                 {
@@ -234,7 +235,7 @@ namespace SGMC.Tests.PBIs
                 .ReturnsAsync(OperationResult<List<AppointmentDto>>.Exito(
                     new List<AppointmentDto> { BuildAppointment(1, patientId: 10, doctorId: 2) }));
 
-            var controller = new AppointmentsController(appointmentServiceMock.Object, Mock.Of<ILogger<AppointmentsController>>())
+            var controller = new AppointmentsController(appointmentServiceMock.Object, Mock.Of<IDoctorAvailabilityRepository>(), Mock.Of<ILogger<AppointmentsController>>())
             {
                 ControllerContext = new ControllerContext
                 {
@@ -259,7 +260,7 @@ namespace SGMC.Tests.PBIs
                 .Setup(s => s.GetByDoctorIdAsync(2))
                 .ReturnsAsync(OperationResult<List<AppointmentDto>>.Exito(new List<AppointmentDto>()));
 
-            var controller = new AppointmentsController(appointmentServiceMock.Object, Mock.Of<ILogger<AppointmentsController>>())
+            var controller = new AppointmentsController(appointmentServiceMock.Object, Mock.Of<IDoctorAvailabilityRepository>(), Mock.Of<ILogger<AppointmentsController>>())
             {
                 ControllerContext = new ControllerContext
                 {

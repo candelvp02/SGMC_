@@ -49,7 +49,7 @@ namespace SGMC.Application.Services
                 if (await _personRepository.ExistsByIdentificationNumberAsync(dto.IdentificationNumber))
                     return OperationResult<PatientDto>.Fallo("Ya existe una persona con esa cédula");
 
-                if (await _userRepository.ExistsByEmailAsync(dto.Email.Trim().ToLower()))
+                if (await _userRepository.ExistsByEmailAsync(dto.Email))
                     return OperationResult<PatientDto>.Fallo("El email ya está en uso");
 
                 var insuranceExists = await _insuranceProviderRepository.ExistsAsync(dto.InsuranceProviderId);
@@ -64,7 +64,7 @@ namespace SGMC.Application.Services
                     Email = dto.Email.ToLower().Trim(),
                     PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
                     RoleId = 3, // Paciente
-                    IsActive = true,
+                    IsActive = false, //En espera a autenticación.
                     CreatedAt = DateTime.Now
                 };
 
@@ -102,7 +102,7 @@ namespace SGMC.Application.Services
                     BloodType = dto.BloodType,
                     Allergies = dto.Allergies?.Trim() ?? string.Empty,
                     InsuranceProviderId = dto.InsuranceProviderId,
-                    IsActive = true,
+                    IsActive = false, //En espera a autenticación.
                     CreatedAt = DateTime.Now,
                     PatientNavigation = person
                 };

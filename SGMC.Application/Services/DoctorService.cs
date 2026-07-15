@@ -8,6 +8,7 @@ using SGMC.Domain.Repositories.Appointments;
 using SGMC.Domain.Repositories.Medical;
 using SGMC.Domain.Repositories.Users;
 using SGMC.Application.Dto.System;
+using SGMC.Application.Dto.Users;
 
 namespace SGMC.Application.Services
 {
@@ -54,7 +55,7 @@ namespace SGMC.Application.Services
                 if (await _personRepository.ExistsByIdentificationNumberAsync(doctorDto.IdentificationNumber))
                     return OperationResult<DoctorDto>.Fallo("Ya existe una persona con esa cédula");
 
-                if (await _userRepository.ExistsByEmailAsync(doctorDto.Email.Trim().ToLower()))
+                if (await _userRepository.ExistsByEmailAsync(doctorDto.Email))
                     return OperationResult<DoctorDto>.Fallo("El email ya está en uso");
 
                 var specialtyExists = await _specialtyRepository.ExistsAsync(doctorDto.SpecialtyId);
@@ -405,46 +406,6 @@ namespace SGMC.Application.Services
             {
                 _logger.LogError(ex, "Error al verificar licencia {License}", licenseNumber);
                 return OperationResult<bool>.Fallo("Error al verificar doctor");
-            }
-        }
-        public async Task<OperationResult<DoctorDto>> AssignSpecialtyAsync(int doctorId, short specialtyId)
-        {
-            try
-            {
-                if (doctorId <= 0)
-                    return OperationResult<DoctorDto>.Fallo("El ID del doctor es inválido");
-
-                if (specialtyId <= 0)
-                    return OperationResult<DoctorDto>.Fallo("El ID de la especialidad es inválido");
-
-                var doctor = await _repository.GetByIdAsync(doctorId);
-                if (doctor == null)
-                    return OperationResult<DoctorDto>.Fallo("Doctor no encontrado");
-
-                // Verificar que la especialidad existe y está activa
-                var specialty = await _specialtyRepository.GetByIdAsync(specialtyId);
-                if (specialty == null)
-                    return OperationResult<DoctorDto>.Fallo("La especialidad no existe");
-
-                if (!specialty.IsActive)
-                    return OperationResult<DoctorDto>.Fallo("No se puede asociar una especialidad inactiva");
-
-                doctor.SpecialtyId = specialtyId;
-                doctor.UpdatedAt = DateTime.Now;
-
-                await _repository.UpdateAsync(doctor);
-
-                var updatedDoctor = await _repository.GetByIdWithDetailsAsync(doctor.DoctorId);
-
-                return OperationResult<DoctorDto>.Exito(
-                    MapToDtoWithDetails(updatedDoctor!),
-                    "Especialidad asociada correctamente"
-                );
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al asignar especialidad al doctor {DoctorId}", doctorId);
-                return OperationResult<DoctorDto>.Fallo($"Error al asignar especialidad: {ex.Message}");
             }
         }
 

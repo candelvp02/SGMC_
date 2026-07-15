@@ -58,7 +58,7 @@ namespace SGMC.Web.Controllers
             if (!doctorsResult.Success || doctorsResult.Data == null)
             {
                 ViewBag.ErrorMessage = doctorsResult.ErrorMessage ?? "No se pudieron obtener los médicos de esta especialidad.";
-                return View(new List<SGMC.Application.Dto.System.DoctorDto>());
+                return View(new List<SGMC.Application.Dto.Users.DoctorDto>());
             }
 
             var activeDoctors = doctorsResult.Data
