@@ -1,0 +1,132 @@
+@model SGMC.Web.Models.Appointment.DoctorCalendarViewModel
+@{
+    ViewData["Title"] = "Calendario de Citas";
+
+    var firstOfMonth = new DateTime(Model.DisplayedMonth.Year, Model.DisplayedMonth.Month, 1);
+    var daysInMonth = DateTime.DaysInMonth(Model.DisplayedMonth.Year, Model.DisplayedMonth.Month);
+
+    // Offset para que la semana empiece en Lunes (DayOfWeek.Monday = 1, Domingo = 0)
+    var startOffset = ((int)firstOfMonth.DayOfWeek + 6) % 7;
+
+    var totalCells = startOffset + daysInMonth;
+    var totalWeeks = (int)Math.Ceiling(totalCells / 7.0);
+
+    var today = DateTime.Today;
+    var hasAnyAppointment = Model.AppointmentsByDay.Any();
+}
+
+<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 pb-10">
+
+    <!-- Encabezado -->
+    <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center gap-3">
+            <div class="bg-blue-100 rounded-full p-3">
+                <i class="fas fa-calendar-days text-blue-600 text-2xl"></i>
+            </div>
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">Calendario de Citas</h1>
+                <p class="text-gray-500 text-sm">Vista mensual de tu agenda</p>
+            </div>
+        </div>
+        <a asp-controller="DoctorAppointments" asp-action="Index"
+           class="inline-flex items-center gap-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-semibold py-2 px-4 rounded-lg transition shadow-sm">
+            <i class="fas fa-list"></i> Ver lista
+        </a>
+    </div>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="flex items-center gap-3 bg-red-50 border border-red-300 text-red-800 px-4 py-3 rounded-lg mb-5">
+            <i class="fas fa-exclamation-circle text-red-500"></i>
+            <span>@TempData["Error"]</span>
+        </div>
+    }
+
+    <!-- Navegación de mes -->
+    <div class="flex items-center justify-between bg-white rounded-xl shadow-sm border border-gray-100 px-5 py-4 mb-4">
+        <a asp-controller="DoctorAppointments" asp-action="Calendar"
+           asp-route-year="@Model.PreviousMonth.Year" asp-route-month="@Model.PreviousMonth.Month"
+           class="inline-flex items-center gap-2 text-gray-500 hover:text-blue-600 text-sm font-semibold transition">
+            <i class="fas fa-chevron-left"></i> Mes anterior
+        </a>
+        <h2 class="text-lg font-bold text-gray-800 capitalize">@Model.MonthLabel</h2>
+        <a asp-controller="DoctorAppointments" asp-action="Calendar"
+           asp-route-year="@Model.NextMonth.Year" asp-route-month="@Model.NextMonth.Month"
+           class="inline-flex items-center gap-2 text-gray-500 hover:text-blue-600 text-sm font-semibold transition">
+            Mes siguiente <i class="fas fa-chevron-right"></i>
+        </a>
+    </div>
+
+    @if (!hasAnyAppointment)
+    {
+        <div class="flex items-center gap-3 bg-gray-50 border border-gray-200 text-gray-600 px-4 py-3 rounded-lg mb-4 text-sm">
+            <i class="fas fa-calendar-times text-gray-400"></i>
+            <span>No tienes citas registradas en este mes.</span>
+        </div>
+    }
+
+    <!-- Grid del calendario -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="grid grid-cols-7 bg-gray-50 border-b border-gray-100">
+            @foreach (var dayName in new[] { "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom" })
+            {
+                <div class="px-2 py-2 text-center text-xs font-semibold text-gray-500 uppercase tracking-wide">@dayName</div>
+            }
+        </div>
+
+        <div class="grid grid-cols-7">
+            @for (var week = 0; week < totalWeeks; week++)
+            {
+                @for (var dow = 0; dow < 7; dow++)
+                {
+                    var cellIndex = week * 7 + dow;
+                    var dayNumber = cellIndex - startOffset + 1;
+                    var isValidDay = dayNumber >= 1 && dayNumber <= daysInMonth;
+
+                    if (!isValidDay)
+                    {
+                        <div class="min-h-[110px] border-b border-r border-gray-50 bg-gray-50/40"></div>
+                    }
+                    else
+                    {
+                        var cellDate = new DateTime(Model.DisplayedMonth.Year, Model.DisplayedMonth.Month, dayNumber);
+                        var dayAppointments = Model.AppointmentsOn(cellDate);
+                        var isToday = cellDate.Date == today;
+
+                        <div class="min-h-[110px] border-b border-r border-gray-50 p-1.5 align-top @(isToday ? "bg-blue-50/60" : "")">
+                            <p class="text-xs font-semibold mb-1 @(isToday ? "text-blue-600" : "text-gray-500")">
+                                @dayNumber
+                                @if (isToday)
+                                {
+                                    <span class="ml-1 inline-block w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                                }
+                            </p>
+                            <div class="space-y-1">
+                                @foreach (var appt in dayAppointments.Take(3))
+                                {
+                                    var badgeClass = appt.StatusId switch
+                                    {
+                                        1 => "bg-yellow-100 text-yellow-800",
+                                        2 => "bg-green-100  text-green-800",
+                                        3 => "bg-red-100    text-red-800",
+                                        4 => "bg-blue-100   text-blue-800",
+                                        _ => "bg-gray-100   text-gray-700"
+                                    };
+                                    <a asp-controller="DoctorAppointments" asp-action="Details" asp-route-id="@appt.AppointmentId"
+                                       class="block truncate text-[11px] font-medium px-1.5 py-0.5 rounded @badgeClass hover:opacity-75 transition"
+                                       title="@appt.PatientName - @appt.AppointmentDate.ToString("hh:mm tt")">
+                                        @appt.AppointmentDate.ToString("hh:mm tt") @appt.PatientName
+                                    </a>
+                                }
+                                @if (dayAppointments.Count > 3)
+                                {
+                                    <p class="text-[11px] text-gray-400 pl-1.5">+@(dayAppointments.Count - 3) más</p>
+                                }
+                            </div>
+                        </div>
+                    }
+                }
+            }
+        </div>
+    </div>
+</div>
