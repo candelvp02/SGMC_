@@ -1,10 +1,14 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using SGMC.Application.Interfaces.Service;
+using SGMC.Domain.Entities.Appointments;
+using SGMC.Domain.Entities.Medical;
+using SGMC.Domain.Entities.System;
+using SGMC.Domain.Entities.Users;
 using SGMC.Infrastructure.Dependencies;
 using SGMC.Infrastructure.Services;
 using SGMC.Persistence.Context;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -95,8 +99,8 @@ static void SeedData(HealtSyncContext context)
     context.Users.AddRange(user1, user2);
     context.SaveChanges();
 
-    var person1 = new Person { PersonId = 1, FirstName = "Juan", LastName = "Pérez", DateOfBirth = new DateOnly(1980, 5, 10), IdentificationNumber = "00112223334", Gender = "M", UserId = user1.UserId };
-    var person2 = new Person { PersonId = 2, FirstName = "Ana", LastName = "Gómez", DateOfBirth = new DateOnly(1985, 3, 22), IdentificationNumber = "00112223335", Gender = "F", UserId = user2.UserId };
+    var person1 = new Person { PersonId = 1, FirstName = "Juan", LastName = "Pérez", DateOfBirth = new DateOnly(1980, 5, 10), IdentificationNumber = "00112223334", Gender = "Masculino", UserId = user1.UserId };
+    var person2 = new Person { PersonId = 2, FirstName = "Ana", LastName = "Gómez", DateOfBirth = new DateOnly(1985, 3, 22), IdentificationNumber = "00112223335", Gender = "Femenino", UserId = user2.UserId };
     context.Persons.AddRange(person1, person2);
     context.SaveChanges();
 
@@ -133,6 +137,97 @@ static void SeedData(HealtSyncContext context)
         CreatedAt = DateTime.Now,
         IsActive = true
     };
+
+    // Paciente de prueba
+    var patientUser = new User { UserId = 3, Email = "paciente1@sgmc.com", PasswordHash = "1234", RoleId = doctorRole.RoleId, CreatedAt = DateTime.Now, IsActive = true };
+    context.Users.Add(patientUser);
+    context.SaveChanges();
+
+    var patientPerson = new Person { PersonId = 3, FirstName = "Carlos", LastName = "Ramirez", DateOfBirth = new DateOnly(1990, 7, 15), IdentificationNumber = "00112223336", Gender = "Masculino", UserId = patientUser.UserId };
+    context.Persons.Add(patientPerson);
+    context.SaveChanges();
+
+    var patient1 = new Patient
+    {
+        PatientId = patientPerson.PersonId,
+        Gender = "Masculino",
+        PhoneNumber = "8095551234",
+        Address = "Calle Duarte #45, Santo Domingo",
+        EmergencyContactName = "Maria Ramirez",
+        EmergencyContactPhone = "8095555678",
+        BloodType = "O+",
+        Allergies = "Ninguna conocida",
+        InsuranceProviderId = 1,
+        CreatedAt = DateTime.Now,
+        IsActive = true
+    };
+    context.Patients.Add(patient1);
+    context.SaveChanges();
+
+    // Historial médico de prueba
+    var record1 = new MedicalRecord
+    {
+        PatientId = patient1.PatientId,
+        DoctorId = doctor1.DoctorId,
+        Diagnosis = "Hipertension arterial leve",
+        Treatment = "Losartan 50mg una vez al dia, control en 30 dias",
+        Notes = "Paciente refiere dolores de cabeza ocasionales. Se recomienda reducir consumo de sal.",
+        DateOfVisit = DateTime.Now.AddMonths(-2),
+        CreatedAt = DateTime.Now.AddMonths(-2)
+    };
+
+    var record2 = new MedicalRecord
+    {
+        PatientId = patient1.PatientId,
+        DoctorId = doctor1.DoctorId,
+        Diagnosis = "Control de seguimiento - hipertension estable",
+        Treatment = "Continuar Losartan 50mg, dieta baja en sodio",
+        Notes = "Presion arterial dentro de rango normal en esta visita. Buena adherencia al tratamiento.",
+        DateOfVisit = DateTime.Now.AddDays(-15),
+        CreatedAt = DateTime.Now.AddDays(-15)
+    };
+
+    // Statuses de citas (Pendiente, Confirmada, Cancelada, Completada)
+    var statusPendiente = new Status { StatusId = 1, StatusName = "Pendiente" };
+    var statusConfirmada = new Status { StatusId = 2, StatusName = "Confirmada" };
+    var statusCancelada = new Status { StatusId = 3, StatusName = "Cancelada" };
+    var statusCompletada = new Status { StatusId = 4, StatusName = "Completada" };
+    context.Statuses.AddRange(statusPendiente, statusConfirmada, statusCancelada, statusCompletada);
+    context.SaveChanges();
+
+    // Citas de prueba para la agenda del doctor 1
+    var appointment1 = new Appointment
+    {
+        PatientId = patient1.PatientId,
+        DoctorId = doctor1.DoctorId,
+        AppointmentDate = DateTime.Now.AddDays(2).Date.AddHours(9),
+        StatusId = statusPendiente.StatusId,
+        CreatedAt = DateTime.Now
+    };
+
+    var appointment2 = new Appointment
+    {
+        PatientId = patient1.PatientId,
+        DoctorId = doctor1.DoctorId,
+        AppointmentDate = DateTime.Now.AddDays(5).Date.AddHours(11),
+        StatusId = statusConfirmada.StatusId,
+        CreatedAt = DateTime.Now
+    };
+
+    var appointment3 = new Appointment
+    {
+        PatientId = patient1.PatientId,
+        DoctorId = doctor1.DoctorId,
+        AppointmentDate = DateTime.Now.AddDays(-10).Date.AddHours(10),
+        StatusId = statusCompletada.StatusId,
+        CreatedAt = DateTime.Now.AddDays(-10)
+    };
+
+    context.Appointments.AddRange(appointment1, appointment2, appointment3);
+    context.SaveChanges();
+
+    context.MedicalRecords.AddRange(record1, record2);
+    context.SaveChanges();
 
     context.Doctors.AddRange(doctor1, doctor2);
     context.SaveChanges();
