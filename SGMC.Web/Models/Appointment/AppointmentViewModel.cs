@@ -235,4 +235,18 @@ namespace SGMC.Web.Models.Appointment
         public int StatusId { get; set; }
         public string StatusName { get; set; } = string.Empty;
     }
+
+    // ViewModel para la vista de calendario del médico (PBI #32)
+    public class DoctorCalendarViewModel
+    {
+        public DateTime DisplayedMonth { get; set; }
+        public Dictionary<DateTime, List<AppointmentListViewModel>> AppointmentsByDay { get; set; } = new();
+
+        public string MonthLabel => DisplayedMonth.ToString("MMMM yyyy");
+        public DateTime PreviousMonth => DisplayedMonth.AddMonths(-1);
+        public DateTime NextMonth => DisplayedMonth.AddMonths(1);
+
+        public List<AppointmentListViewModel> AppointmentsOn(DateTime day) =>
+            AppointmentsByDay.TryGetValue(day.Date, out var list) ? list : new List<AppointmentListViewModel>();
+    }
 }
