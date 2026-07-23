@@ -15,5 +15,8 @@ namespace SGMC.Application.Interfaces.Service
         Task<OperationResult<List<MedicalRecordDto>>> GetAllAsync();
         Task<OperationResult<List<MedicalRecordDto>>> GetByPatientIdAsync(int patientId);
         Task<OperationResult<List<MedicalRecordDto>>> GetByDoctorIdAsync(int doctorId);
+
+        // Acceso desde la Agenda del Médico
+        Task<OperationResult<List<MedicalRecordDto>>> GetPatientHistoryForDoctorAsync(int doctorId, int patientId);
     }
 }

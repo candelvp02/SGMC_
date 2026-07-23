@@ -11,7 +11,7 @@ namespace SGMC.Persistence.Configuration.Medical
             entity.HasKey(e => e.RecordId).HasName("PK__MedicalR__FBDF78C96E650FFC");
 
             entity.ToTable("MedicalRecords", "medical");
-
+            entity.Property(e => e.Notes).HasColumnType("text");
             entity.Property(e => e.RecordId).HasColumnName("RecordID");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")

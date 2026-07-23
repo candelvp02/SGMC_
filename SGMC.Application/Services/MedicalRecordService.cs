@@ -7,7 +7,6 @@ using SGMC.Domain.Entities.Medical;
 using SGMC.Domain.Repositories.Medical;
 using SGMC.Domain.Repositories.Users;
 
-
 namespace SGMC.Application.Services
 {
     public class MedicalRecordService : IMedicalRecordService
@@ -29,38 +28,36 @@ namespace SGMC.Application.Services
             _logger = logger;
         }
 
-        // metodos CRUD
-
         public async Task<OperationResult<MedicalRecordDto>> CreateAsync(CreateMedicalRecordDto dto)
         {
             if (dto is null) return OperationResult<MedicalRecordDto>.Fallo("Datos de registro médico requeridos.");
 
-            // validaciones de campo fuera de trycatch
             var validationResult = dto.IsValidDto();
             if (!validationResult.Exitoso)
                 return OperationResult<MedicalRecordDto>.Fallo(validationResult.Mensaje, validationResult.Errores);
 
             try
             {
-                // validaciones de negocio
                 if (!await _patientRepository.ExistsAsync(dto.PatientId))
                     return OperationResult<MedicalRecordDto>.Fallo("El paciente no existe.");
 
                 if (!await _doctorRepository.ExistsAsync(d => d.DoctorId == dto.DoctorId))
                     return OperationResult<MedicalRecordDto>.Fallo("El doctor no existe.");
 
-                // create entity
                 var record = new MedicalRecord
                 {
                     PatientId = dto.PatientId,
                     DoctorId = dto.DoctorId,
                     Diagnosis = dto.Diagnosis.Trim(),
                     Treatment = dto.Treatment.Trim(),
+                    Notes = dto.Notes?.Trim(),
+                    DateOfVisit = dto.RecordDate == default ? DateTime.Now : dto.RecordDate,
                     CreatedAt = DateTime.Now
                 };
 
                 var created = await _repository.AddAsync(record);
-                var dtoResult = MapToDto(created);
+                var withDetails = await _repository.GetByIdWithDetailsAsync(created.RecordId) ?? created;
+                var dtoResult = MapToDto(withDetails);
 
                 return OperationResult<MedicalRecordDto>.Exito(dtoResult!, "Registro médico creado correctamente.");
             }
@@ -75,7 +72,6 @@ namespace SGMC.Application.Services
         {
             if (dto is null) return OperationResult<MedicalRecordDto>.Fallo("Datos de actualización requeridos.");
 
-            // validaciones de campo fuera de trycatch
             var validationResult = dto.IsValidDto();
             if (!validationResult.Exitoso)
                 return OperationResult<MedicalRecordDto>.Fallo(validationResult.Mensaje, validationResult.Errores);
@@ -86,9 +82,11 @@ namespace SGMC.Application.Services
                 if (existing is null)
                     return OperationResult<MedicalRecordDto>.Fallo("Registro médico no encontrado.");
 
-                // update entity
                 existing.Diagnosis = dto.Diagnosis.Trim();
                 existing.Treatment = dto.Treatment.Trim();
+                existing.Notes = dto.Notes?.Trim();
+                if (dto.RecordDate.HasValue)
+                    existing.DateOfVisit = dto.RecordDate.Value;
                 existing.UpdatedAt = DateTime.Now;
 
                 await _repository.UpdateAsync(existing);
@@ -122,8 +120,6 @@ namespace SGMC.Application.Services
                 return OperationResult.Fallo($"Error al eliminar registro: {ex.Message}");
             }
         }
-
-        // metodos de consulta
 
         public async Task<OperationResult<MedicalRecordDto>> GetByIdAsync(int id)
         {
@@ -194,8 +190,35 @@ namespace SGMC.Application.Services
             }
         }
 
+        // Pensado específicamente para la Agenda del Médico: historial de un paciente puntual, visto por un doctor puntual
+        public async Task<OperationResult<List<MedicalRecordDto>>> GetPatientHistoryForDoctorAsync(int doctorId, int patientId)
+        {
+            if (doctorId <= 0) return OperationResult<List<MedicalRecordDto>>.Fallo("ID de doctor inválido.");
+            if (patientId <= 0) return OperationResult<List<MedicalRecordDto>>.Fallo("ID de paciente inválido.");
 
-        // private mapping
+            try
+            {
+                if (!await _doctorRepository.ExistsAsync(d => d.DoctorId == doctorId))
+                    return OperationResult<List<MedicalRecordDto>>.Fallo("El doctor no existe.");
+
+                if (!await _patientRepository.ExistsAsync(patientId))
+                    return OperationResult<List<MedicalRecordDto>>.Fallo("El paciente no existe.");
+
+                var records = await _repository.GetByPatientIdAsync(patientId);
+                var dtoList = records
+                    .OrderByDescending(r => r.DateOfVisit)
+                    .Select(MapToDto)
+                    .ToList();
+
+                return OperationResult<List<MedicalRecordDto>>.Exito(dtoList!, "Historial del paciente obtenido correctamente.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener historial del paciente {PatientId} para el doctor {DoctorId}", patientId, doctorId);
+                return OperationResult<List<MedicalRecordDto>>.Fallo($"Error al obtener historial: {ex.Message}");
+            }
+        }
+
         private static MedicalRecordDto? MapToDto(MedicalRecord r)
         {
             if (r == null) return null;
@@ -210,8 +233,10 @@ namespace SGMC.Application.Services
                 DoctorId = r.DoctorId,
                 Diagnosis = r.Diagnosis,
                 Treatment = r.Treatment,
+                Notes = r.Notes,
                 PatientName = patientName,
                 DoctorName = doctorName,
+                DateOfVisit = r.DateOfVisit,
                 CreatedAt = r.CreatedAt,
                 UpdatedAt = r.UpdatedAt
             };

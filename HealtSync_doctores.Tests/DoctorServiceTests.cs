@@ -50,7 +50,7 @@ namespace SGMC.Tests.Services
                 LastName = "Perez",
                 IdentificationNumber = "001-0000001-1",
                 DateOfBirth = new DateOnly(1985, 1, 1),
-                Gender = "M",
+                Gender = "Masculino",
                 Email = $"test-{Guid.NewGuid()}@doctor.com",
                 Password = "ValidPassword123",
                 PhoneNumber = "809-555-1234",
