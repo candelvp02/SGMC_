@@ -1,149 +1,405 @@
-﻿@model SGMC.Web.Models.Appointment.CreateAppointmentViewModel
-
+﻿@* SGMC.Web/Views/Appointments/Create.cshtml *@
 @{
     ViewData["Title"] = "Agendar Cita";
 }
 
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-md-8 offset-md-2">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h3 class="mb-0"><i class="bi bi-calendar-plus"></i> Agendar Nueva Cita</h3>
+<div class="container py-4">
+    <h2 class="mb-1 fw-bold text-primary">
+        <i class="bi bi-calendar-plus me-2"></i>Agendar Cita
+    </h2>
+    <p class="text-muted mb-4">Sigue los pasos para reservar tu cita médica.</p>
 
-                </div>
-                <div class="card-body">
-                    @if (ViewBag.ErrorMessage != null)
-                    {
-                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+    {{-- Barra de progreso del wizard --}}
+    <div class="d-flex align-items-center mb-4 gap-2">
+        <div class="step-item active" id="step-indicator-1">
+            <span class="step-circle">1</span>
+            <span class="step-label d-none d-md-inline">Médico</span>
+        </div>
+        <div class="step-line flex-grow-1"></div>
+        <div class="step-item" id="step-indicator-2">
+            <span class="step-circle">2</span>
+            <span class="step-label d-none d-md-inline">Fecha y hora</span>
+        </div>
+        <div class="step-line flex-grow-1"></div>
+        <div class="step-item" id="step-indicator-3">
+            <span class="step-circle">3</span>
+            <span class="step-label d-none d-md-inline">Confirmar</span>
+        </div>
+    </div>
 
-                            @ViewBag.ErrorMessage
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    }
+    {{-- Alertas --}}
+    <div id="alertContainer"></div>
 
+    {{-- ═══ PASO 1: Seleccionar médico ═══ --}}
+    <div id="step1" class="wizard-step card shadow-sm border-0 mb-3">
+        <div class="card-body p-4">
+            <h5 class="card-title mb-3">Paso 1 — Selecciona un médico</h5>
 
-                    <form asp-action="Create" method="post">
-                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-
-                        <fieldset class="border p-3 mb-4">
-
-                            <legend class="w-auto px-2"><i class="bi bi-person"></i> Información del Paciente</legend>
-
-                            <div class="mb-3">
-                                <label asp-for="PatientId" class="form-label">Paciente</label>
-
-                                <select asp-for="PatientId" class="form-select" id="patientSelect">
-                                    <option value="">-- Seleccione un paciente --</option>
-
-                                    @if (Model.Patients != null)
-                                    {
-                                        @foreach (var patient in Model.Patients)
-
-                                        {
-                                            <option value="@patient.PatientId">@patient.DisplayText</option>
-
-                                        }
-                                    }
-                                </select>
-
-                                <span asp-validation-for="PatientId" class="text-danger"></span>
-                            </div>
-                        </fieldset>
-
-                        <fieldset class="border p-3 mb-4">
-                            <legend class="w-auto px-2"><i class="bi bi-person-badge"></i> Información del Doctor</legend>
-
-                            <div class="mb-3">
-
-                                <label asp-for="DoctorId" class="form-label">Doctor</label>
-                                <select asp-for="DoctorId" class="form-select" id="doctorSelect">
-                                    <option value="">-- Seleccione un doctor --</option>
-
-                                    @if (Model.Doctors != null)
-                                    {
-
-                                        @foreach (var doctor in Model.Doctors)
-                                        {
-
-                                            <option value="@doctor.DoctorId">@doctor.DisplayText</option>
-                                        }
-                                    }
-
-                                </select>
-                                <span asp-validation-for="DoctorId" class="text-danger"></span>
-                            </div>
-                        </fieldset>
-
-
-                        <fieldset class="border p-3 mb-4">
-                            <legend class="w-auto px-2"><i class="bi bi-calendar-event"></i> Fecha y Hora de la Cita</legend>
-
-
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label asp-for="AppointmentDate" class="form-label">Fecha y Hora</label>
-
-                                    <input asp-for="AppointmentDate" type="datetime-local" class="form-control" />
-                                    <span asp-validation-for="AppointmentDate" class="text-danger"></span>
-
-                                    <small class="form-text text-muted">
-                                        Horario de atención: 8:00 AM - 8:00 PM (Lunes a Sábado)
-                                    </small>
-
-                                </div>
-                            </div>
-
-                            <div class="alert alert-info mb-0">
-
-                                <i class="bi bi-info-circle"></i>
-                                <strong>Nota:</strong> Las citas deben agendarse con al menos 10 minutos de anticipación.
-                            </div>
-                        </fieldset>
-
-                        <fieldset class="border p-3 mb-4">
-
-                            <legend class="w-auto px-2"><i class="bi bi-journal-text"></i> Notas (Opcional)</legend>
-
-                            <div class="mb-3">
-                                <label asp-for="Notes" class="form-label">Observaciones</label>
-
-                                <textarea asp-for="Notes" class="form-control" rows="3"
-                                          placeholder="Ingrese cualquier nota o instrucción especial para la cita"></textarea>
-                                <span asp-validation-for="Notes" class="text-danger"></span>
-
-                            </div>
-                        </fieldset>
-
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-
-                            <a asp-action="Index" class="btn btn-secondary">
-                                <i class="bi bi-arrow-left"></i> Cancelar
-                            </a>
-                            <button type="submit" class="btn btn-primary">
-
-                                <i class="bi bi-save"></i> Agendar Cita
-                            </button>
-                        </div>
-
-                    </form>
-                </div>
+            <div class="mb-3">
+                <label for="specialtySelect" class="form-label fw-semibold">Especialidad</label>
+                <select id="specialtySelect" class="form-select">
+                    <option value="">-- Todas las especialidades --</option>
+                </select>
             </div>
+
+            <div id="doctorListContainer" class="row g-3 mt-1"></div>
+
+            <div class="mt-4 d-flex justify-content-end">
+                <button id="btnStep1Next" class="btn btn-primary" disabled>
+                    Siguiente <i class="bi bi-arrow-right ms-1"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {{-- ═══ PASO 2: Seleccionar fecha y hora ═══ --}}
+    <div id="step2" class="wizard-step card shadow-sm border-0 mb-3 d-none">
+        <div class="card-body p-4">
+            <h5 class="card-title mb-3">Paso 2 — Selecciona fecha y hora</h5>
+
+            <div class="mb-3">
+                <label for="appointmentDate" class="form-label fw-semibold">Fecha</label>
+                <input type="date" id="appointmentDate" class="form-control"
+                       min="@DateTime.Now.AddDays(1).ToString("yyyy-MM-dd")" />
+            </div>
+
+            <div id="slotsContainer" class="mt-3">
+                <p class="text-muted">Selecciona una fecha para ver los horarios disponibles.</p>
+            </div>
+
+            <div class="mt-4 d-flex justify-content-between">
+                <button id="btnStep2Back" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i> Atrás
+                </button>
+                <button id="btnStep2Next" class="btn btn-primary" disabled>
+                    Siguiente <i class="bi bi-arrow-right ms-1"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {{-- ═══ PASO 3: Confirmar cita ═══ --}}
+    <div id="step3" class="wizard-step card shadow-sm border-0 mb-3 d-none">
+        <div class="card-body p-4">
+            <h5 class="card-title mb-3">Paso 3 — Confirma tu cita</h5>
+
+            <div class="table-responsive">
+                <table class="table table-borderless">
+                    <tbody>
+                        <tr>
+                            <th class="text-muted" style="width:40%">Médico</th>
+                            <td id="confirmDoctor" class="fw-semibold"></td>
+                        </tr>
+                        <tr>
+                            <th class="text-muted">Especialidad</th>
+                            <td id="confirmSpecialty"></td>
+                        </tr>
+                        <tr>
+                            <th class="text-muted">Fecha y hora</th>
+                            <td id="confirmDateTime" class="fw-semibold text-primary"></td>
+                        </tr>
+                        <tr>
+                            <th class="text-muted">Estado inicial</th>
+                            <td><span class="badge bg-warning text-dark">Pendiente</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="alert alert-info d-flex align-items-start gap-2 mt-2">
+                <i class="bi bi-info-circle-fill mt-1"></i>
+                <span>
+                    La cita quedará en estado <strong>Pendiente</strong> hasta que el médico la confirme.
+                    Recibirás un correo de confirmación al agendar.
+                </span>
+            </div>
+
+            <div class="mt-4 d-flex justify-content-between">
+                <button id="btnStep3Back" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i> Atrás
+                </button>
+                <button id="btnConfirm" class="btn btn-success px-4">
+                    <i class="bi bi-check-circle me-1"></i> Confirmar cita
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {{-- ═══ PASO 4: Éxito ═══ --}}
+    <div id="step4" class="wizard-step card shadow-sm border-0 d-none">
+        <div class="card-body p-4 text-center">
+            <div class="mb-3">
+                <i class="bi bi-check-circle-fill text-success" style="font-size:3rem"></i>
+            </div>
+            <h5 class="fw-bold">¡Cita agendada con éxito!</h5>
+            <p class="text-muted">Tu solicitud fue recibida y está <strong>Pendiente</strong> de confirmación por el médico.</p>
+            <p class="text-muted small">Recibirás un correo de confirmación en breve.</p>
+            <a asp-controller="Appointments" asp-action="Index" class="btn btn-primary mt-2">
+                Ver mis citas
+            </a>
         </div>
     </div>
 </div>
 
+@section Styles {
+    <style>
+        .step-item {
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+            flex-direction: column;
+        }
+        .step-circle {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            background: #dee2e6;
+            color: #6c757d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: .85rem;
+            transition: background .3s;
+        }
+        .step-item.active .step-circle {
+            background: #0d6efd;
+            color: #fff;
+        }
+        .step-item.done .step-circle {
+            background: #198754;
+            color: #fff;
+        }
+        .step-label { font-size: .78rem; color: #6c757d; }
+        .step-line  { height: 2px; background: #dee2e6; }
+        .slot-btn   { min-width: 90px; }
+        .slot-btn.selected { background: #0d6efd; color: #fff; border-color: #0d6efd; }
+        .doctor-card { cursor: pointer; border: 2px solid transparent; transition: border .2s; }
+        .doctor-card.selected { border-color: #0d6efd; background: #f0f6ff; }
+    </style>
+}
+
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
     <script>
-        $(document).ready(function() {
-            // Configurar fecha mínima
-            var now = new Date();
-            now.setMinutes(now.getMinutes() + 10);
-            var minDateTime = now.toISOString().slice(0, 16);
-            $('#AppointmentDate').attr('min', minDateTime);
+        // ── Estado del wizard ────────────────────────────────────────────────────
+        const state = {
+            doctorId:        null,
+            doctorName:      '',
+            specialtyName:   '',
+            appointmentDate: null,
+            selectedTime:    null,
+            patientId:       1   // TODO: reemplazar con el ID del paciente autenticado
+        };
+
+        // ── Helpers ──────────────────────────────────────────────────────────────
+        const API = 'https://localhost:7038/api';
+
+        function showAlert(msg, type = 'danger') {
+            document.getElementById('alertContainer').innerHTML =
+                `<div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                    ${msg}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                 </div>`;
+        }
+
+        function clearAlert() {
+            document.getElementById('alertContainer').innerHTML = '';
+        }
+
+        function goToStep(n) {
+            document.querySelectorAll('.wizard-step').forEach(el => el.classList.add('d-none'));
+            document.getElementById(`step${n}`).classList.remove('d-none');
+
+            // Actualizar indicadores
+            for (let i = 1; i <= 3; i++) {
+                const ind = document.getElementById(`step-indicator-${i}`);
+                ind.classList.remove('active', 'done');
+                if (i < n)      ind.classList.add('done');
+                else if (i === n) ind.classList.add('active');
+            }
+            clearAlert();
+        }
+
+        // ── Paso 1: cargar especialidades y médicos ───────────────────────────────
+        async function loadSpecialties() {
+            try {
+                const res  = await fetch(`${API}/specialties`);
+                const data = await res.json();
+                const sel  = document.getElementById('specialtySelect');
+                (data.datos || []).forEach(s => {
+                    const opt = document.createElement('option');
+                    opt.value       = s.specialtyId;
+                    opt.textContent = s.specialtyName;
+                    sel.appendChild(opt);
+                });
+            } catch { /* silencioso */ }
+        }
+
+        async function loadDoctors(specialtyId = null) {
+            try {
+                const url = specialtyId
+                    ? `${API}/doctors?specialtyId=${specialtyId}`
+                    : `${API}/doctors`;
+                const res  = await fetch(url);
+                const data = await res.json();
+                renderDoctors(data.datos || []);
+            } catch {
+                document.getElementById('doctorListContainer').innerHTML =
+                    '<p class="text-danger">Error al cargar médicos.</p>';
+            }
+        }
+
+        function renderDoctors(doctors) {
+            const container = document.getElementById('doctorListContainer');
+            if (!doctors.length) {
+                container.innerHTML = '<p class="text-muted">No hay médicos disponibles.</p>';
+                return;
+            }
+            container.innerHTML = doctors.map(d => `
+                <div class="col-12 col-md-6 col-lg-4">
+                    <div class="card doctor-card h-100 p-3"
+                         onclick="selectDoctor(${d.doctorId}, '${d.fullName}', '${d.specialtyName}')">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="rounded-circle bg-primary text-white d-flex align-items-center
+                                        justify-content-center" style="width:48px;height:48px;font-size:1.2rem">
+                                <i class="bi bi-person-fill"></i>
+                            </div>
+                            <div>
+                                <div class="fw-bold">${d.fullName}</div>
+                                <div class="text-muted small">${d.specialtyName}</div>
+                                <div class="text-muted small">
+                                    <i class="bi bi-currency-dollar"></i> RD$${d.consultationFee?.toLocaleString() ?? '--'}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>`).join('');
+        }
+
+        function selectDoctor(id, name, specialty) {
+            state.doctorId      = id;
+            state.doctorName    = name;
+            state.specialtyName = specialty;
+
+            document.querySelectorAll('.doctor-card').forEach(c => c.classList.remove('selected'));
+            event.currentTarget.closest('.doctor-card').classList.add('selected');
+            document.getElementById('btnStep1Next').disabled = false;
+        }
+
+        document.getElementById('specialtySelect').addEventListener('change', e =>
+            loadDoctors(e.target.value || null));
+
+        document.getElementById('btnStep1Next').addEventListener('click', () => goToStep(2));
+
+        // ── Paso 2: cargar horarios disponibles ───────────────────────────────────
+        document.getElementById('appointmentDate').addEventListener('change', async function () {
+            state.appointmentDate = this.value;
+            state.selectedTime    = null;
+            document.getElementById('btnStep2Next').disabled = true;
+
+            const container = document.getElementById('slotsContainer');
+            container.innerHTML = '<p class="text-muted">Cargando horarios...</p>';
+
+            try {
+                const res  = await fetch(
+                    `${API}/appointments/availability?doctorId=${state.doctorId}&date=${this.value}`);
+                const data = await res.json();
+                const slots = data.datos || [];
+
+                if (!slots.length) {
+                    container.innerHTML =
+                        '<div class="alert alert-warning">El médico no tiene disponibilidad en esta fecha.</div>';
+                    return;
+                }
+
+                container.innerHTML = `
+                    <p class="fw-semibold mb-2">Horarios disponibles:</p>
+                    <div class="d-flex flex-wrap gap-2">
+                        ${slots.map(s => `
+                            <button type="button"
+                                    class="btn btn-outline-primary slot-btn"
+                                    onclick="selectSlot('${s.startTime}', this)">
+                                ${s.startTime}
+                            </button>`).join('')}
+                    </div>`;
+            } catch {
+                container.innerHTML = '<div class="alert alert-danger">Error al cargar horarios.</div>';
+            }
         });
+
+        function selectSlot(time, btn) {
+            state.selectedTime = time;
+            document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            document.getElementById('btnStep2Next').disabled = false;
+        }
+
+        document.getElementById('btnStep2Back').addEventListener('click', () => goToStep(1));
+        document.getElementById('btnStep2Next').addEventListener('click', () => {
+            // Rellenar resumen del paso 3
+            const dt = new Date(`${state.appointmentDate}T${state.selectedTime}`);
+            document.getElementById('confirmDoctor').textContent    = state.doctorName;
+            document.getElementById('confirmSpecialty').textContent = state.specialtyName;
+            document.getElementById('confirmDateTime').textContent  =
+                dt.toLocaleDateString('es-DO', { weekday:'long', year:'numeric', month:'long', day:'numeric' }) +
+                ' a las ' + state.selectedTime;
+            goToStep(3);
+        });
+
+        // ── Paso 3: verificación ultramicro + confirmar ───────────────────────────
+        document.getElementById('btnStep3Back').addEventListener('click', () => goToStep(2));
+
+        document.getElementById('btnConfirm').addEventListener('click', async () => {
+            const btn = document.getElementById('btnConfirm');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Verificando...';
+
+            const appointmentDate = `${state.appointmentDate}T${state.selectedTime}:00`;
+
+            try {
+                // Task 132: doble verificación ultramicro antes del guardado
+                const checkRes  = await fetch(
+                    `${API}/appointments/check-slot?doctorId=${state.doctorId}&appointmentDate=${appointmentDate}`);
+                const checkData = await checkRes.json();
+
+                if (!checkData.disponible) {
+                    showAlert(checkData.mensaje);
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="bi bi-check-circle me-1"></i> Confirmar cita';
+                    return;
+                }
+
+                // Crear la cita
+                const payload = {
+                    patientId:       state.patientId,
+                    doctorId:        state.doctorId,
+                    appointmentDate: appointmentDate,
+                    statusId:        1
+                };
+
+                const res  = await fetch(`${API}/appointments`, {
+                    method:  'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body:    JSON.stringify(payload)
+                });
+                const data = await res.json();
+
+                if (data.exitoso) {
+                    goToStep(4);
+                } else {
+                    showAlert(data.mensaje || 'No se pudo agendar la cita.');
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="bi bi-check-circle me-1"></i> Confirmar cita';
+                }
+            } catch {
+                showAlert('Error de conexión. Por favor intenta de nuevo.');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-check-circle me-1"></i> Confirmar cita';
+            }
+        });
+
+        // ── Inicializar ───────────────────────────────────────────────────────────
+        loadSpecialties();
+        loadDoctors();
     </script>
 }

@@ -91,6 +91,41 @@ namespace SGMC.Web.Controllers
             return View(AppointmentDetailsViewModel.FromDto(result.Datos));
         }
 
+        // GET: /PatientAppointments/Reschedule/5
+        public async Task<IActionResult> Reschedule(int id)
+        {
+            if (id <= 0)
+                return RedirectToAction(nameof(Index));
+
+            var patientId = GetCurrentPatientId();
+            if (patientId == null)
+                return RedirectToAction("Login", "Account");
+
+            var result = await _appointmentService.GetByIdAsync(id);
+
+            if (!result.Exitoso || result.Datos == null)
+            {
+                TempData["Error"] = "Cita no encontrada.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            // Verificar que la cita pertenezca al paciente autenticado
+            if (result.Datos.PatientId != patientId.Value)
+            {
+                TempData["Error"] = "No tienes permiso para reprogramar esta cita.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            // Solo se pueden reprogramar citas Pendiente (1) o Confirmada (2)
+            if (result.Datos.StatusId != 1 && result.Datos.StatusId != 2)
+            {
+                TempData["Error"] = "Solo puedes reprogramar citas en estado Pendiente o Confirmada.";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+
+            return View(RescheduleAppointmentViewModel.FromDto(result.Datos));
+        }
+
         private int? GetCurrentPatientId()
         {
             var claim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
