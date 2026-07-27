@@ -134,6 +134,18 @@ namespace SGMC.Application.Services
                 };
 
                 var created = await _repository.AddAsync(appointment);
+
+                try
+                {
+                    await _notificationService.NotifyAppointmentCreatedAsync(created);
+                }
+                catch (Exception notifyEx)
+                {
+                    _logger.LogWarning(notifyEx,
+                        "La cita {Id} se creó pero falló el encolado de la notificación al médico.",
+                        created.AppointmentId);
+                }
+
                 var dtoResult = MapToDto(created);
 
                 return OperationResult<AppointmentDto>.Exito(dtoResult, "Cita agendada correctamente. Quedará pendiente hasta que el médico la confirme.");
@@ -166,7 +178,7 @@ namespace SGMC.Application.Services
 
             try
             {
-                var appointment = await _repository.GetByIdAsync(appointmentId);
+                var appointment = await _repository.GetByIdWithDetailsAsync(appointmentId);
                 if (appointment is null)
                     return OperationResult.Fallo("La cita no existe.");
 
@@ -197,6 +209,17 @@ namespace SGMC.Application.Services
                     slotToFree.IsActive = true;
                     slotToFree.UpdatedAt = DateTime.Now;
                     await _availabilityRepository.UpdateAsync(slotToFree);
+                }
+
+                try
+                {
+                    await _notificationService.NotifyAppointmentCancelledAsync(appointment);
+                }
+                catch (Exception notifyEx)
+                {
+                    _logger.LogWarning(notifyEx,
+                        "La cita {Id} se canceló pero falló el encolado de la notificación.",
+                        appointmentId);
                 }
 
                 _logger.LogInformation(
@@ -299,7 +322,7 @@ namespace SGMC.Application.Services
 
                 try
                 {
-                    await _notificationService.NotifyAppointmentRejectedAsync(appointment);
+                    await _notificationService.NotifyAppointmentCancelledAsync(appointment);
                 }
                 catch (Exception notifyEx)
                 {
