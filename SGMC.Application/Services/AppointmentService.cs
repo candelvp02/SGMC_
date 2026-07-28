@@ -16,6 +16,7 @@ namespace SGMC.Application.Services
         private readonly IDoctorRepository _doctorRepository;
         private readonly IDoctorAvailabilityRepository _availabilityRepository;
         private readonly IAppointmentNotificationService _notificationService;
+        private readonly IReminderService _reminderService;
         private readonly ILogger<AppointmentService> _logger;
 
         public AppointmentService(
@@ -24,6 +25,7 @@ namespace SGMC.Application.Services
             IDoctorRepository doctorRepository,
             IDoctorAvailabilityRepository availabilityRepository,
             IAppointmentNotificationService notificationService,
+            IReminderService reminderService,
             ILogger<AppointmentService> logger)
         {
             _repository = repository;
@@ -31,6 +33,7 @@ namespace SGMC.Application.Services
             _doctorRepository = doctorRepository;
             _availabilityRepository = availabilityRepository;
             _notificationService = notificationService;
+            _reminderService = reminderService;
             _logger = logger;
         }
 
@@ -222,6 +225,18 @@ namespace SGMC.Application.Services
                         appointmentId);
                 }
 
+                try
+                {
+                    // Task 107: purgar recordatorios pendientes de esta cita
+                    await _reminderService.CancelPendingRemindersForAppointmentAsync(appointmentId);
+                }
+                catch (Exception reminderEx)
+                {
+                    _logger.LogWarning(reminderEx,
+                        "La cita {Id} se canceló pero falló la purga de recordatorios pendientes.",
+                        appointmentId);
+                }
+
                 _logger.LogInformation(
                     "Cita {Id} cancelada. Slot liberado para doctor {DoctorId} en {Date} {Time}",
                     appointmentId, appointment.DoctorId, date, time);
@@ -328,6 +343,18 @@ namespace SGMC.Application.Services
                 {
                     _logger.LogWarning(notifyEx,
                         "La cita {Id} se rechazó pero falló el envío de la notificación por correo.",
+                        appointmentId);
+                }
+
+                try
+                {
+                    // Task 107: purgar recordatorios pendientes de esta cita
+                    await _reminderService.CancelPendingRemindersForAppointmentAsync(appointmentId);
+                }
+                catch (Exception reminderEx)
+                {
+                    _logger.LogWarning(reminderEx,
+                        "La cita {Id} se rechazó pero falló la purga de recordatorios pendientes.",
                         appointmentId);
                 }
 
