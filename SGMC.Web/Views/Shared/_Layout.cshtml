@@ -159,9 +159,16 @@
                     {
                         <li>
                             <a class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-700 hover:translate-x-1 transition-all duration-300"
-                               asp-controller="DoctorInbox" asp-action="Index">
+                               asp-controller="DoctorAppointments" asp-action="Pending">
                                 <i class="fas fa-inbox text-lg"></i>
                                 <span>Mis Solicitudes</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-700 hover:translate-x-1 transition-all duration-300"
+                               asp-controller="DoctorAppointments" asp-action="Index">
+                                <i class="fas fa-calendar-alt text-lg"></i>
+                                <span>Mis Citas</span>
                             </a>
                         </li>
                     }

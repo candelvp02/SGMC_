@@ -1,211 +1,79 @@
 ﻿@model SGMC.Application.Dto.Insurance.UpdateInsuranceProviderDto
-
 @{
-    ViewData["Title"] = "Editar Proveedor de Seguro";
+    ViewData["Title"] = "Editar Proveedor";
 }
 
-<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<h1>Editar Proveedor de Seguro</h1>
+<hr />
+<div class="row">
+    <div class="col-md-6">
+        <form asp-action="Edit">
+            <input type="hidden" asp-for="InsuranceProviderId" />
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-    <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-900">Editar Proveedor de Seguro</h1>
-        <p class="text-gray-600 mt-2">Actualiza la información del proveedor</p>
+            @if (ViewBag.ErrorMessage != null)
+            {
+
+                <div class="alert alert-danger">@ViewBag.ErrorMessage</div>
+            }
+
+            <div class="form-group mb-3">
+                <label asp-for="Name" class="control-label"></label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+
+
+            <div class="form-group mb-3">
+                <label asp-for="PhoneNumber" class="control-label">Teléfono</label>
+                <input asp-for="PhoneNumber" class="form-control" />
+                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+
+                <label asp-for="Email" class="control-label"></label>
+                <input asp-for="Email" class="form-control" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Website" class="control-label"></label>
+
+                <input asp-for="Website" class="form-control" />
+                <span asp-validation-for="Website" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Address" class="control-label">Dirección</label>
+                <input asp-for="Address" class="form-control" />
+
+                <span asp-validation-for="Address" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="NetworkTypeId" class="control-label">Tipo de Red (ID)</label>
+                <input asp-for="NetworkTypeId" class="form-control" type="number" />
+                <span asp-validation-for="NetworkTypeId" class="text-danger"></span>
+            </div>
+
+            <div class="form-group form-check mb-3">
+                <label class="form-check-label">
+                    <input class="form-check-input" asp-for="IsActive" /> @Html.DisplayNameFor(model => model.IsActive)
+                </label>
+
+            </div>
+
+            <div class="form-group">
+                <input type="submit" value="Guardar Cambios" class="btn btn-primary" />
+                <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
     </div>
-
-    @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
-    {
-        <div class="mb-6 bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg shadow-sm">
-            <div class="flex items-center">
-                <i class="fas fa-exclamation-circle mr-2 text-red-500"></i>
-                <span>@ViewBag.ErrorMessage</span>
-            </div>
-        </div>
-    }
-
-    <form asp-action="Edit">
-        @Html.AntiForgeryToken()
-        <input type="hidden" asp-for="InsuranceProviderId" />
-        <div asp-validation-summary="ModelOnly" class="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm"></div>
-
-        <!-- Información Principal -->
-        <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-6">
-            <div class="border-b border-gray-200 bg-gray-50 px-6 py-4">
-                <h3 class="text-lg font-semibold text-gray-900">
-                    <i class="fas fa-building mr-2 text-blue-600"></i>
-                    Información Principal
-                </h3>
-            </div>
-            <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                <div>
-                    <label asp-for="Name" class="block text-sm font-medium text-gray-700 mb-2">
-                        Nombre del Proveedor <span class="text-red-500">*</span>
-                    </label>
-                    <input asp-for="Name" type="text"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition" />
-                    <span asp-validation-for="Name" class="text-sm text-red-600 mt-1 block"></span>
-                </div>
-
-                <div>
-                    <label asp-for="NetworkTypeId" class="block text-sm font-medium text-gray-700 mb-2">
-                        Tipo de Red <span class="text-red-500">*</span>
-                    </label>
-                    <select asp-for="NetworkTypeId"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
-                        @foreach (var nt in ViewBag.NetworkTypes as IEnumerable<SGMC.Application.Dto.Insurance.NetworkTypeDto> ?? new List<SGMC.Application.Dto.Insurance.NetworkTypeDto>())
-                        {
-                            <option value="@nt.NetworkTypeId">@nt.Name</option>
-                        }
-                    </select>
-                    <span asp-validation-for="NetworkTypeId" class="text-sm text-red-600 mt-1 block"></span>
-                </div>
-
-                <div>
-                    <label asp-for="PhoneNumber" class="block text-sm font-medium text-gray-700 mb-2">
-                        Teléfono <span class="text-red-500">*</span>
-                    </label>
-                    <input asp-for="PhoneNumber" type="text"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition" />
-                    <span asp-validation-for="PhoneNumber" class="text-sm text-red-600 mt-1 block"></span>
-                </div>
-
-                <div>
-                    <label asp-for="Email" class="block text-sm font-medium text-gray-700 mb-2">
-                        Correo Electrónico <span class="text-red-500">*</span>
-                    </label>
-                    <input asp-for="Email" type="email"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition" />
-                    <span asp-validation-for="Email" class="text-sm text-red-600 mt-1 block"></span>
-                </div>
-
-                <div>
-                    <label asp-for="Website" class="block text-sm font-medium text-gray-700 mb-2">Sitio Web</label>
-                    <input asp-for="Website" type="text"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition" />
-                </div>
-
-                <div>
-                    <label asp-for="LogoUrl" class="block text-sm font-medium text-gray-700 mb-2">URL del Logo</label>
-                    <input asp-for="LogoUrl" type="text"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition" />
-                </div>
-
-                <div class="md:col-span-2 flex items-center gap-3">
-                    <input asp-for="IsPreferred" type="checkbox"
-                           class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" />
-                    <label asp-for="IsPreferred" class="text-sm font-medium text-gray-700">
-                        ¿Es proveedor preferencial?
-                    </label>
-                </div>
-            </div>
-        </div>
-
-        <!-- Dirección -->
-        <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-6">
-            <div class="border-b border-gray-200 bg-gray-50 px-6 py-4">
-                <h3 class="text-lg font-semibold text-gray-900">
-                    <i class="fas fa-map-marker-alt mr-2 text-blue-600"></i>
-                    Dirección
-                </h3>
-            </div>
-            <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="md:col-span-2">
-                    <label asp-for="Address" class="block text-sm font-medium text-gray-700 mb-2">
-                        Dirección <span class="text-red-500">*</span>
-                    </label>
-                    <input asp-for="Address" type="text"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition" />
-                    <span asp-validation-for="Address" class="text-sm text-red-600 mt-1 block"></span>
-                </div>
-                <div>
-                    <label asp-for="City" class="block text-sm font-medium text-gray-700 mb-2">Ciudad</label>
-                    <input asp-for="City" type="text"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition" />
-                </div>
-                <div>
-                    <label asp-for="State" class="block text-sm font-medium text-gray-700 mb-2">Estado / Provincia</label>
-                    <input asp-for="State" type="text"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition" />
-                </div>
-                <div>
-                    <label asp-for="Country" class="block text-sm font-medium text-gray-700 mb-2">País</label>
-                    <input asp-for="Country" type="text"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition" />
-                </div>
-                <div>
-                    <label asp-for="ZipCode" class="block text-sm font-medium text-gray-700 mb-2">Código Postal</label>
-                    <input asp-for="ZipCode" type="text"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition" />
-                </div>
-            </div>
-        </div>
-
-        <!-- Cobertura -->
-        <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-6">
-            <div class="border-b border-gray-200 bg-gray-50 px-6 py-4">
-                <h3 class="text-lg font-semibold text-gray-900">
-                    <i class="fas fa-file-medical mr-2 text-blue-600"></i>
-                    Cobertura y Contacto
-                </h3>
-            </div>
-            <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="md:col-span-2">
-                    <label asp-for="CoverageDetails" class="block text-sm font-medium text-gray-700 mb-2">
-                        Detalles de Cobertura <span class="text-red-500">*</span>
-                    </label>
-                    <textarea asp-for="CoverageDetails" rows="4"
-                              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition"></textarea>
-                    <span asp-validation-for="CoverageDetails" class="text-sm text-red-600 mt-1 block"></span>
-                </div>
-                <div>
-                    <label asp-for="CustomerSupportContact" class="block text-sm font-medium text-gray-700 mb-2">
-                        Contacto de Soporte
-                    </label>
-                    <input asp-for="CustomerSupportContact" type="text"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition" />
-                </div>
-                <div>
-                    <label asp-for="AcceptedRegions" class="block text-sm font-medium text-gray-700 mb-2">
-                        Regiones que Acepta
-                    </label>
-                    <input asp-for="AcceptedRegions" type="text"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition" />
-                </div>
-                <div>
-                    <label asp-for="MaxCoverageAmount" class="block text-sm font-medium text-gray-700 mb-2">
-                        Monto Máximo de Cobertura
-                    </label>
-                    <div class="relative">
-                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500 text-sm">$</span>
-                        <input asp-for="MaxCoverageAmount" type="number" step="0.01" min="0"
-                               class="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition" />
-                    </div>
-                    <span asp-validation-for="MaxCoverageAmount" class="text-sm text-red-600 mt-1 block"></span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Botones -->
-        <div class="flex flex-wrap gap-3">
-            <button type="submit"
-                    class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition duration-200 shadow-md">
-                <i class="fas fa-save mr-2"></i>
-                Guardar Cambios
-            </button>
-            <a asp-action="Index"
-               class="inline-flex items-center px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white font-medium rounded-lg transition duration-200 shadow-md">
-                <i class="fas fa-times mr-2"></i>
-                Cancelar
-            </a>
-        </div>
-    </form>
 </div>
 
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-}
-
-@section Styles {
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 }

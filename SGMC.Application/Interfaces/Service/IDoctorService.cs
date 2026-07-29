@@ -1,5 +1,6 @@
 ﻿using SGMC.Application.Dto.Appointments;
 using SGMC.Application.Dto.System;
+using SGMC.Application.Dto.Users;
 using SGMC.Domain.Base;
 
 namespace SGMC.Application.Interfaces.Service
@@ -21,8 +22,5 @@ namespace SGMC.Application.Interfaces.Service
         Task<OperationResult<List<DoctorDto>>> GetActiveDoctorsAsync();
         Task<OperationResult<DoctorDto>> GetByLicenseNumberAsync(string licenseNumber);
         Task<OperationResult<bool>> ExistsByLicenseNumberAsync(string licenseNumber);
-
-        // Especialidad
-        Task<OperationResult<DoctorDto>> AssignSpecialtyAsync(int doctorId, short specialtyId);
     }
 }
