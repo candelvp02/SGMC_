@@ -310,15 +310,25 @@ namespace SGMC.Application.Services
                     return OperationResult<List<AppointmentDto>>.Fallo("El ID del doctor es inválido");
 
                 var appointments = await _appointmentRepository.GetByDoctorIdAsync(doctorId);
-                var appointmentDtos = appointments.Select(a => new AppointmentDto
-                {
-                    AppointmentId = a.AppointmentId,
-                    PatientId = a.PatientId,
-                    DoctorId = a.DoctorId,
-                    AppointmentDate = a.AppointmentDate,
-                    StatusId = a.StatusId,
-                    CreatedAt = a.CreatedAt
-                }).ToList();
+                var appointmentDtos = appointments
+                    .OrderBy(a => a.AppointmentDate)
+                    .Select(a => new AppointmentDto
+                    {
+                        AppointmentId = a.AppointmentId,
+                        PatientId = a.PatientId,
+                        DoctorId = a.DoctorId,
+                        AppointmentDate = a.AppointmentDate,
+                        StatusId = a.StatusId,
+                        PatientName = a.Patient?.PatientNavigation != null
+                            ? $"{a.Patient.PatientNavigation.FirstName} {a.Patient.PatientNavigation.LastName}"
+                            : string.Empty,
+                        DoctorName = a.Doctor?.DoctorNavigation != null
+                            ? $"{a.Doctor.DoctorNavigation.FirstName} {a.Doctor.DoctorNavigation.LastName}"
+                            : string.Empty,
+                        StatusName = a.Status?.StatusName ?? string.Empty,
+                        CreatedAt = a.CreatedAt,
+                        UpdatedAt = a.UpdatedAt
+                    }).ToList();
 
                 return OperationResult<List<AppointmentDto>>.Exito(
                     appointmentDtos,
