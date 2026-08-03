@@ -17,6 +17,7 @@ namespace SGMC.Application.Tests.Services
         private readonly Mock<IDoctorRepository> _doctorRepositoryMock = new();
         private readonly Mock<IDoctorAvailabilityRepository> _availabilityRepositoryMock = new();
         private readonly Mock<IAppointmentNotificationService> _notificationServiceMock = new();
+        private readonly Mock<IReminderService> _reminderServiceMock = new();
         private readonly Mock<ILogger<AppointmentService>> _loggerMock = new();
 
         private AppointmentService CreateService() => new(
@@ -25,6 +26,7 @@ namespace SGMC.Application.Tests.Services
             _doctorRepositoryMock.Object,
             _availabilityRepositoryMock.Object,
             _notificationServiceMock.Object,
+            _reminderServiceMock.Object,
             _loggerMock.Object);
 
         private static Appointment CrearCitaBase(int statusId = 1) => new()
