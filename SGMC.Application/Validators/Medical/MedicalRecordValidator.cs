@@ -16,6 +16,8 @@ namespace SGMC.Application.Validators.Medical
                 errores.Add("El campo de diagnóstico es requerido.");
             if (string.IsNullOrWhiteSpace(dto.Treatment))
                 errores.Add("El campo de tratamiento es requerido.");
+            if (dto.RecordDate == default)
+                errores.Add("La fecha de la visita es requerida.");
             return errores.Count > 0
                 ? OperationResult.Fallo("Errores de validación de registro médico.", errores)
                 : OperationResult.Exito();
@@ -34,5 +36,6 @@ namespace SGMC.Application.Validators.Medical
                 ? OperationResult.Fallo("Errores de validación de actualización de registro médico.", errores)
                 : OperationResult.Exito();
         }
+
     }
 }

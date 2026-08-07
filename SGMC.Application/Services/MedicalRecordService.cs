@@ -4,6 +4,7 @@ using SGMC.Application.Interfaces.Service;
 using SGMC.Application.Validators.Medical;
 using SGMC.Domain.Base;
 using SGMC.Domain.Entities.Medical;
+using SGMC.Domain.Repositories.Appointments;
 using SGMC.Domain.Repositories.Medical;
 using SGMC.Domain.Repositories.Users;
 
@@ -14,17 +15,20 @@ namespace SGMC.Application.Services
         private readonly IMedicalRecordRepository _repository;
         private readonly IPatientRepository _patientRepository;
         private readonly IDoctorRepository _doctorRepository;
+        private readonly IAppointmentRepository _appointmentRepository;
         private readonly ILogger<MedicalRecordService> _logger;
 
         public MedicalRecordService(
-            IMedicalRecordRepository repository,
-            IPatientRepository patientRepository,
-            IDoctorRepository doctorRepository,
-            ILogger<MedicalRecordService> logger)
+    IMedicalRecordRepository repository,
+    IPatientRepository patientRepository,
+    IDoctorRepository doctorRepository,
+    IAppointmentRepository appointmentRepository,
+    ILogger<MedicalRecordService> logger)
         {
             _repository = repository;
             _patientRepository = patientRepository;
             _doctorRepository = doctorRepository;
+            _appointmentRepository = appointmentRepository;
             _logger = logger;
         }
 
@@ -38,24 +42,51 @@ namespace SGMC.Application.Services
 
             try
             {
-                if (!await _patientRepository.ExistsAsync(dto.PatientId))
+                int patientId = dto.PatientId;
+                int doctorId = dto.DoctorId;
+
+                // Si viene de una cita en la agenda, la cita es la fuente de verdad del paciente/doctor
+                if (dto.AppointmentId.HasValue)
+                {
+                    var appointment = await _appointmentRepository.GetByIdAsync(dto.AppointmentId.Value);
+                    if (appointment is null)
+                        return OperationResult<MedicalRecordDto>.Fallo("La cita seleccionada no existe.");
+
+                    patientId = appointment.PatientId;
+                    doctorId = appointment.DoctorId;
+                }
+
+                if (!await _patientRepository.ExistsAsync(patientId))
                     return OperationResult<MedicalRecordDto>.Fallo("El paciente no existe.");
 
-                if (!await _doctorRepository.ExistsAsync(d => d.DoctorId == dto.DoctorId))
+                if (!await _doctorRepository.ExistsAsync(d => d.DoctorId == doctorId))
                     return OperationResult<MedicalRecordDto>.Fallo("El doctor no existe.");
 
                 var record = new MedicalRecord
                 {
-                    PatientId = dto.PatientId,
-                    DoctorId = dto.DoctorId,
+                    PatientId = patientId,
+                    DoctorId = doctorId,
                     Diagnosis = dto.Diagnosis.Trim(),
                     Treatment = dto.Treatment.Trim(),
                     Notes = dto.Notes?.Trim(),
-                    DateOfVisit = dto.RecordDate == default ? DateTime.Now : dto.RecordDate,
+                    DateOfVisit = dto.RecordDate,
                     CreatedAt = DateTime.Now
                 };
 
                 var created = await _repository.AddAsync(record);
+
+                // Marca la cita como Completada (4) si el registro vino de una cita
+                if (dto.AppointmentId.HasValue)
+                {
+                    var appointment = await _appointmentRepository.GetByIdAsync(dto.AppointmentId.Value);
+                    if (appointment != null)
+                    {
+                        appointment.StatusId = 4; // Completada
+                        appointment.UpdatedAt = DateTime.Now;
+                        await _appointmentRepository.UpdateAsync(appointment);
+                    }
+                }
+
                 var withDetails = await _repository.GetByIdWithDetailsAsync(created.RecordId) ?? created;
                 var dtoResult = MapToDto(withDetails);
 
@@ -67,7 +98,6 @@ namespace SGMC.Application.Services
                 return OperationResult<MedicalRecordDto>.Fallo($"Error interno al crear registro: {ex.Message}");
             }
         }
-
         public async Task<OperationResult<MedicalRecordDto>> UpdateAsync(UpdateMedicalRecordDto dto)
         {
             if (dto is null) return OperationResult<MedicalRecordDto>.Fallo("Datos de actualización requeridos.");
