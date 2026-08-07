@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SGMC.Application.Dto.Appointments;
 using SGMC.Application.Dto.System;
+using SGMC.Application.Dto.Users;
 using SGMC.Application.Interfaces.Service;
 using SGMC.Domain.Base;
 

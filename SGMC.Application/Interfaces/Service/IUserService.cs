@@ -23,5 +23,6 @@ namespace SGMC.Application.Interfaces.Service
 
         Task<OperationResult> DeactivateAsync(int id);
         Task<OperationResult> ChangeRoleAsync(int userId, int roleId);
+        Task<OperationResult> DeleteAsync(int id);
     }
 }

@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using SGMC.Infrastructure.Dependencies;
 using SGMC.Persistence.Context;
@@ -6,9 +5,9 @@ using SGMC.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// DbContext
+// DbContext InMemory
 builder.Services.AddDbContext<HealtSyncContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("HealtSyncConnection")));
+    options.UseInMemoryDatabase("HealtSyncDb"));
 
 // Dependencies
 builder.Services.AddUserDependencies();
@@ -28,24 +27,16 @@ builder.Services.AddHttpClient<IAppointmentApiClient, AppointmentApiClient>(clie
 {
     client.BaseAddress = new Uri("https://localhost:7038/api/");
 });
+
 builder.Services.AddHttpClient<IPatientApiClient, PatientApiClient>(client =>
 {
     client.BaseAddress = new Uri("https://localhost:7038/api/");
 });
+
 builder.Services.AddHttpClient<IDoctorApiClient, DoctorApiClient>(client =>
 {
     client.BaseAddress = new Uri("https://localhost:7038/api/");
 });
-
-// Autenticación por cookies
-builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-    .AddCookie(options =>
-    {
-        options.LoginPath = "/Account/Login";
-        options.AccessDeniedPath = "/Account/AccessDenied";
-        options.ExpireTimeSpan = TimeSpan.FromHours(8);
-        options.SlidingExpiration = true;
-    });
 
 // MVC
 builder.Services.AddControllersWithViews();
@@ -65,8 +56,6 @@ else
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
-
-app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(

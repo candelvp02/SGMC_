@@ -48,7 +48,7 @@ namespace SGMC.Tests.Services
                 LastName = "Perez",
                 IdentificationNumber = "001-0000001-1",
                 DateOfBirth = new DateOnly(1985, 1, 1),
-                Gender = "M",
+                Gender = "Masculino",
                 Email = $"test-{Guid.NewGuid()}@doctor.com",
                 Password = "ValidPassword123",
                 PhoneNumber = "809-555-1234",
@@ -74,12 +74,13 @@ namespace SGMC.Tests.Services
             var result = await _service.CreateAsync(dto);
 
             Assert.False(result.Exitoso);
-            var mensajeLower = result.Mensaje.ToLower();
+
+            var detalle = string.Join(" ", result.Errores ?? new List<string>()).ToLower();
             Assert.True(
-                mensajeLower.Contains("licencia") ||
-                mensajeLower.Contains("requerido") ||
-                mensajeLower.Contains("no se pudo"),
-                $"Expected message to contain 'licencia', 'requerido' or 'no se pudo', but got: {result.Mensaje}"
+                detalle.Contains("licencia") ||
+                detalle.Contains("requerido") ||
+                detalle.Contains("no se pudo"),
+                $"Expected errors to contain 'licencia', 'requerido' or 'no se pudo', but got: {detalle}"
             );
         }
 
@@ -97,13 +98,14 @@ namespace SGMC.Tests.Services
             var result = await _service.CreateAsync(dto);
 
             Assert.False(result.Exitoso);
-            var mensajeLower = result.Mensaje.ToLower();
+
+            var detalle = string.Join(" ", result.Errores ?? new List<string>()).ToLower();
             Assert.True(
-                mensajeLower.Contains("vigente") ||
-                mensajeLower.Contains("expirad") ||
-                mensajeLower.Contains("vencid") ||
-                mensajeLower.Contains("no se pudo"),
-                $"Expected message to contain 'vigente', 'expirad', 'vencid' or 'no se pudo', but got: {result.Mensaje}"
+                detalle.Contains("vigente") ||
+                detalle.Contains("expirad") ||
+                detalle.Contains("vencid") ||
+                detalle.Contains("no se pudo"),
+                $"Expected errors to contain 'vigente', 'expirad', 'vencid' or 'no se pudo', but got: {detalle}"
             );
         }
     }

@@ -9,8 +9,6 @@ using SGMC.Application.Dto.Base;
 
 namespace SGMC.Application.Dto.System 
 { 
-
-
     public class RegisterDoctorDto : RegisterPersonBaseDto
 {
     public short SpecialtyId { get; set; }
