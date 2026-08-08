@@ -17,6 +17,7 @@ namespace SGMC.Tests.Services
         private readonly Mock<IDoctorRepository> _doctorRepositoryMock = new();
         private readonly Mock<IDoctorAvailabilityRepository> _availabilityRepositoryMock = new();
         private readonly Mock<IAppointmentNotificationService> _notificationServiceMock = new();
+        private readonly Mock<IReminderService> _reminderServiceMock = new();
         private readonly Mock<ILogger<AppointmentService>> _loggerMock = new();
 
         private AppointmentService CreateService() => new(
@@ -25,6 +26,7 @@ namespace SGMC.Tests.Services
             _doctorRepositoryMock.Object,
             _availabilityRepositoryMock.Object,
             _notificationServiceMock.Object,
+            _reminderServiceMock.Object,
             _loggerMock.Object);
 
         private static Appointment CrearCitaBase(int statusId = 1) => new()
@@ -145,7 +147,7 @@ namespace SGMC.Tests.Services
 
             _repositoryMock.Verify(r => r.UpdateAsync(cita), Times.Once);
             _availabilityRepositoryMock.Verify(a => a.UpdateAsync(slot), Times.Once);
-            _notificationServiceMock.Verify(n => n.NotifyAppointmentRejectedAsync(cita), Times.Once);
+            _notificationServiceMock.Verify(n => n.NotifyAppointmentCancelledAsync(cita), Times.Once);
         }
 
         [Theory]
@@ -192,7 +194,7 @@ namespace SGMC.Tests.Services
                     It.IsAny<int>(), It.IsAny<DateOnly>(), It.IsAny<DateOnly>()))
                 .ReturnsAsync(new List<DoctorAvailability>());
             _notificationServiceMock
-                .Setup(n => n.NotifyAppointmentRejectedAsync(It.IsAny<Appointment>()))
+                .Setup(n => n.NotifyAppointmentCancelledAsync(It.IsAny<Appointment>()))
                 .ThrowsAsync(new InvalidOperationException("SMTP no disponible"));
 
             var service = CreateService();

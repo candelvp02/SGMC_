@@ -1,64 +1,144 @@
 ﻿using Microsoft.Extensions.Logging;
+using SGMC.Application.Dto.System;
 using SGMC.Application.Interfaces.Service;
 using SGMC.Domain.Entities.Appointments;
+using SGMC.Domain.Repositories.Users;
 
 namespace SGMC.Application.Services
 {
-    //Notificación de reprogramación de citas — PBI-34.
+    // Notificaciones de citas ------------------------
     public class AppointmentNotificationService : IAppointmentNotificationService
     {
         private readonly ILogger<AppointmentNotificationService> _logger;
+        private readonly IAppointmentNotificationEventQueue _queue;
+        private readonly IUserRepository _userRepository;
 
-        public AppointmentNotificationService(ILogger<AppointmentNotificationService> logger)
+        public AppointmentNotificationService(
+            ILogger<AppointmentNotificationService> logger,
+            IAppointmentNotificationEventQueue queue,
+            IUserRepository userRepository)
         {
             _logger = logger;
+            _queue = queue;
+            _userRepository = userRepository;
         }
 
-        public Task NotifyAppointmentRescheduledAsync(Appointment appointment, DateTime oldAppointmentDate)
-        {
-            _logger.LogInformation(
-                "SIMULACIÓN: Notificación de reprogramación — cita {Id}: {Old} → {New}. " +
-                "Se notifica al paciente {PatientId} y al médico {DoctorId}.",
-                appointment.AppointmentId, oldAppointmentDate, appointment.AppointmentDate,
-                appointment.PatientId, appointment.DoctorId);
+        // — solo notifica al médico
+        public Task NotifyAppointmentCreatedAsync(Appointment appointment)
+            => EnqueueForDoctorAsync(appointment, AppointmentNotificationEventType.NuevaCita);
 
-            return Task.CompletedTask;
+        // — notifica a ambos
+        public async Task NotifyAppointmentConfirmedAsync(Appointment appointment)
+        {
+            await EnqueueForPatientAsync(appointment, AppointmentNotificationEventType.CitaConfirmada);
+            await EnqueueForDoctorAsync(appointment, AppointmentNotificationEventType.CitaConfirmada);
         }
 
-        public Task NotifyAppointmentConfirmedAsync(Appointment appointment)
+        public async Task NotifyAppointmentCancelledAsync(Appointment appointment)
         {
-            if (appointment is null)
-                throw new ArgumentNullException(nameof(appointment));
+            await EnqueueForPatientAsync(appointment, AppointmentNotificationEventType.CitaCancelada);
+            await EnqueueForDoctorAsync(appointment, AppointmentNotificationEventType.CitaCancelada);
+        }
 
-            var patientName = appointment.Patient?.PatientNavigation != null
-                ? $"{appointment.Patient.PatientNavigation.FirstName} {appointment.Patient.PatientNavigation.LastName}"
+        public async Task NotifyAppointmentRescheduledAsync(Appointment appointment, DateTime oldAppointmentDate)
+        {
+            await EnqueueForPatientAsync(appointment, AppointmentNotificationEventType.CitaReprogramada, oldAppointmentDate);
+            await EnqueueForDoctorAsync(appointment, AppointmentNotificationEventType.CitaReprogramada, oldAppointmentDate);
+        }
+
+        // ── Helpers ────────────────────────────────────────────────────────
+
+        private Task EnqueueForDoctorAsync(Appointment appointment, AppointmentNotificationEventType eventType, DateTime? oldDate = null)
+        {
+            var doctorPerson = appointment.Doctor?.DoctorNavigation;
+            var doctorDisplayName = doctorPerson != null
+                ? $"Dr(a). {doctorPerson.FirstName} {doctorPerson.LastName}"
+                : $"Médico #{appointment.DoctorId}";
+
+            return EnqueueAsync(
+                personUserId: doctorPerson?.UserId,
+                recipientType: NotificationRecipientType.Doctor,
+                recipientDisplayName: doctorDisplayName,
+                counterpartName: GetPatientName(appointment),
+                appointment: appointment,
+                eventType: eventType,
+                oldDate: oldDate);
+        }
+
+        private Task EnqueueForPatientAsync(Appointment appointment, AppointmentNotificationEventType eventType, DateTime? oldDate = null)
+        {
+            var patientPerson = appointment.Patient?.PatientNavigation;
+            var patientDisplayName = patientPerson != null
+                ? $"{patientPerson.FirstName} {patientPerson.LastName}"
                 : $"Paciente #{appointment.PatientId}";
 
-            // SIMULACIÓN: aquí iría la llamada real al proveedor de correo
-            _logger.LogInformation(
-                "SIMULACIÓN: Notificación de confirmación — Cita {AppointmentId} confirmada por el médico. " +
-                "{PatientName} notificado para {AppointmentDate}.",
-                appointment.AppointmentId, patientName, appointment.AppointmentDate);
+            var doctorPerson = appointment.Doctor?.DoctorNavigation;
+            var doctorName = doctorPerson != null
+                ? $"Dr(a). {doctorPerson.FirstName} {doctorPerson.LastName}"
+                : $"Médico #{appointment.DoctorId}";
 
-            return Task.CompletedTask;
+            return EnqueueAsync(
+                personUserId: patientPerson?.UserId,
+                recipientType: NotificationRecipientType.Patient,
+                recipientDisplayName: patientDisplayName,
+                counterpartName: doctorName,
+                appointment: appointment,
+                eventType: eventType,
+                oldDate: oldDate);
         }
 
-        public Task NotifyAppointmentRejectedAsync(Appointment appointment)
+        private async Task EnqueueAsync(
+            int? personUserId,
+            NotificationRecipientType recipientType,
+            string recipientDisplayName,
+            string counterpartName,
+            Appointment appointment,
+            AppointmentNotificationEventType eventType,
+            DateTime? oldDate)
         {
-            if (appointment is null)
-                throw new ArgumentNullException(nameof(appointment));
+            if (personUserId is null)
+            {
+                _logger.LogWarning(
+                    "No se pudo notificar a {RecipientType} de la cita {Id}: faltan datos de la persona en el objeto Appointment.",
+                    recipientType, appointment.AppointmentId);
+                return;
+            }
 
-            var patientName = appointment.Patient?.PatientNavigation != null
+            var user = await _userRepository.GetByIdAsync(personUserId.Value);
+            if (user is null || string.IsNullOrWhiteSpace(user.Email))
+            {
+                _logger.LogWarning(
+                    "No se pudo notificar a {RecipientType} (UserId {UserId}) de la cita {Id}: no tiene un email registrado.",
+                    recipientType, personUserId, appointment.AppointmentId);
+                return;
+            }
+
+            var dto = new AppointmentNotificationEventDto
+            {
+                EventType = eventType,
+                RecipientType = recipientType,
+                AppointmentId = appointment.AppointmentId,
+                RecipientUserId = user.UserId,
+                RecipientEmail = user.Email,
+                RecipientName = recipientDisplayName,
+                CounterpartName = counterpartName,
+                AppointmentDate = appointment.AppointmentDate,
+                PreviousAppointmentDate = oldDate,
+                QueuedAt = DateTime.Now
+            };
+
+            _queue.Enqueue(dto);
+
+            _logger.LogInformation(
+                "Evento {EventType} encolado para notificar por correo a {RecipientType} {RecipientName} (cita {AppointmentId}).",
+                eventType, recipientType, recipientDisplayName, appointment.AppointmentId);
+        }
+
+        private static string GetPatientName(Appointment appointment)
+        {
+            return appointment.Patient?.PatientNavigation != null
                 ? $"{appointment.Patient.PatientNavigation.FirstName} {appointment.Patient.PatientNavigation.LastName}"
                 : $"Paciente #{appointment.PatientId}";
-
-            // SIMULACIÓN: aquí iría la llamada real al proveedor de correo
-            _logger.LogInformation(
-                "SIMULACIÓN: Notificación de rechazo — Cita {AppointmentId} rechazada por el médico. " +
-                "{PatientName} notificado para que seleccione una nueva fecha (horario anterior: {AppointmentDate}).",
-                appointment.AppointmentId, patientName, appointment.AppointmentDate);
-
-            return Task.CompletedTask;
         }
     }
 }
