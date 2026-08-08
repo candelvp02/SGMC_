@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SGMC.Application.Dto.Appointments;
+using SGMC.Application.Dto.System;
 using SGMC.Application.Interfaces.Service;
 using SGMC.Web.Models.Appointment;
 using System.Security.Claims;
@@ -13,23 +14,28 @@ namespace SGMC.Web.Controllers
     {
         private readonly IAppointmentService _appointmentService;
         private readonly IDoctorService? _doctorService;
+        private readonly IReminderService? _reminderService;
 
         // Constructor completo: usado por ASP.NET Core DI en producción,
-        // habilita Pending/Confirm/Reject (necesitan la lista de doctores).
+        // habilita Pending/Confirm/Reject/Reminder (necesitan la lista de
+        // doctores y el servicio de recordatorios).
         public DoctorAppointmentsController(
             IAppointmentService appointmentService,
-            IDoctorService doctorService)
+            IDoctorService doctorService,
+            IReminderService reminderService)
         {
             _appointmentService = appointmentService;
             _doctorService = doctorService;
+            _reminderService = reminderService;
         }
 
         // Constructor reducido: usado por Index/Calendar/Details (y por las
-        // pruebas unitarias), que no necesitan la lista de doctores.
+        // pruebas unitarias), que no necesitan la lista de doctores ni recordatorios.
         public DoctorAppointmentsController(IAppointmentService appointmentService)
         {
             _appointmentService = appointmentService;
             _doctorService = null;
+            _reminderService = null;
         }
 
         // GET: /DoctorAppointments
@@ -192,6 +198,72 @@ namespace SGMC.Web.Controllers
             TempData[result.Exitoso ? "Success" : "Error"] = result.Mensaje;
 
             return RedirectToAction(nameof(Pending), new { doctorId });
+        }
+
+        // GET: /DoctorAppointments/Reminder/5
+        public async Task<IActionResult> Reminder(int id)
+        {
+            if (_reminderService is null)
+            {
+                TempData["Error"] = "El servicio de recordatorios no está disponible.";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+
+            var doctorId = GetCurrentDoctorId();
+            if (doctorId == null)
+                return RedirectToAction("Login", "Account");
+
+            var appointmentResult = await _appointmentService.GetByIdAsync(id);
+            if (!appointmentResult.Exitoso || appointmentResult.Datos == null || appointmentResult.Datos.DoctorId != doctorId.Value)
+            {
+                TempData["Error"] = "Cita no encontrada.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var detailsVm = AppointmentDetailsViewModel.FromDto(appointmentResult.Datos);
+            var existingReminders = await _reminderService.GetByAppointmentIdAsync(id);
+
+            var viewModel = new ScheduleReminderViewModel
+            {
+                AppointmentId = id,
+                PatientName = detailsVm.PatientName,
+                AppointmentDateFormatted = detailsVm.AppointmentDateFormatted,
+                AppointmentDate = appointmentResult.Datos.AppointmentDate,
+                Templates = _reminderService.GetTemplates(),
+                ExistingReminders = existingReminders.Datos ?? new()
+            };
+
+            return View(viewModel);
+        }
+
+        // POST: /DoctorAppointments/Reminder
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Reminder(ScheduleReminderViewModel model)
+        {
+            if (_reminderService is null)
+            {
+                TempData["Error"] = "El servicio de recordatorios no está disponible.";
+                return RedirectToAction(nameof(Details), new { id = model.AppointmentId });
+            }
+
+            var doctorId = GetCurrentDoctorId();
+            if (doctorId == null)
+                return RedirectToAction("Login", "Account");
+
+            var dto = new ScheduleReminderDto
+            {
+                AppointmentId = model.AppointmentId,
+                TemplateId = model.SelectedTemplateId,
+                CustomMessage = model.CustomMessage,
+                ScheduledAt = model.ScheduledAt
+            };
+
+            var result = await _reminderService.ScheduleAsync(dto, doctorId.Value);
+
+            TempData[result.Exitoso ? "Success" : "Error"] = result.Mensaje;
+
+            return RedirectToAction(nameof(Details), new { id = model.AppointmentId });
         }
 
         private int? GetCurrentDoctorId()

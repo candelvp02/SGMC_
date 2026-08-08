@@ -104,7 +104,14 @@
         </div>
 
         <!-- Acciones -->
-        <div class="px-6 py-4 bg-gray-50 flex justify-end">
+        <div class="px-6 py-4 bg-gray-50 flex justify-end gap-3">
+            @if (Model.StatusId == 1 || Model.StatusId == 2)
+            {
+                <a asp-controller="DoctorAppointments" asp-action="Reminder" asp-route-id="@Model.AppointmentId"
+                   class="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold py-2.5 px-5 rounded-lg transition shadow-sm">
+                    <i class="fas fa-bell"></i> Enviar recordatorio
+                </a>
+            }
             <a asp-controller="DoctorAppointments" asp-action="Index"
                class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2.5 px-5 rounded-lg transition shadow-sm">
                 <i class="fas fa-list"></i> Ver todas mis citas
