@@ -62,7 +62,7 @@ namespace SGMC.Web.Controllers
         // POST: Account/Login
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Login(UserLoginDto dto, string? returnUrl = null)
+        public async Task<IActionResult> Login(SGMC.Application.Dto.Users.LoginDto dto, string? returnUrl = null)
         {
             if (!ModelState.IsValid)
                 return View(dto);

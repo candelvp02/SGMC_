@@ -23,7 +23,8 @@ namespace SGMC.Persistence.Configuration.System
 
             entity.HasOne(d => d.User).WithMany(p => p.Notifications)
                 .HasForeignKey(d => d.UserId)
-                .HasConstraintName("FK__Notificat__UserI__619B8048");
+                .HasConstraintName("FK__Notificat__UserI__619B8048")
+                .OnDelete(DeleteBehavior.Cascade); // Al eliminar el usuario se eliminan sus notificaciones
 
             OnConfigurePartial(entity);
         }

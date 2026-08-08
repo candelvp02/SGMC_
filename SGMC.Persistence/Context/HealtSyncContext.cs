@@ -20,34 +20,22 @@ namespace SGMC.Persistence.Context
         }
 
         public virtual DbSet<Appointment> Appointments { get; set; }
-
         public virtual DbSet<AvailabilityMode> AvailabilityModes { get; set; }
-
         public virtual DbSet<Doctor> Doctors { get; set; }
-
         public virtual DbSet<DoctorAvailability> DoctorAvailabilities { get; set; }
-
         public virtual DbSet<Employee> Employees { get; set; }
-
         public virtual DbSet<InsuranceProvider> InsuranceProviders { get; set; }
-
         public virtual DbSet<MedicalRecord> MedicalRecords { get; set; }
-
         public virtual DbSet<NetworkType> NetworkTypes { get; set; }
-
         public virtual DbSet<Notification> Notifications { get; set; }
-
         public virtual DbSet<Patient> Patients { get; set; }
-
         public virtual DbSet<Person> Persons { get; set; }
-
         public virtual DbSet<Role> Roles { get; set; }
-
         public virtual DbSet<Specialty> Specialties { get; set; }
-
         public virtual DbSet<Status> Statuses { get; set; }
-
         public virtual DbSet<User> Users { get; set; }
+        public virtual DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
+        public virtual DbSet<Reminder> Reminders { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -66,12 +54,11 @@ namespace SGMC.Persistence.Context
             modelBuilder.ApplyConfiguration(new PatientConfiguration());
             modelBuilder.ApplyConfiguration(new PersonConfiguration());
             modelBuilder.ApplyConfiguration(new UserConfiguration());
+            modelBuilder.ApplyConfiguration(new ReminderConfiguration());
 
             OnModelCreatingPartial(modelBuilder);
         }
 
         partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
-
-        public virtual DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
     }
 }

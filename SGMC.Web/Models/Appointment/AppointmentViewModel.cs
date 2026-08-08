@@ -173,6 +173,10 @@ namespace SGMC.Web.Models.Appointment
         public string StatusName { get; set; } = string.Empty;
         public int StatusId { get; set; }
         public DateTime CreatedAt { get; set; }
+        public string? Diagnosis { get; set; }
+        public string? Treatment { get; set; }
+        public string? ClinicalNotes { get; set; }
+        public bool HasClinicalRecord => !string.IsNullOrWhiteSpace(Diagnosis);
 
         // Propiedades calculadas
         public string AppointmentDateFormatted => AppointmentDate.ToString("dddd, dd 'de' MMMM 'de' yyyy");

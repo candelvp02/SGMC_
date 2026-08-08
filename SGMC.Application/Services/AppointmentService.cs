@@ -16,6 +16,7 @@ namespace SGMC.Application.Services
         private readonly IDoctorRepository _doctorRepository;
         private readonly IDoctorAvailabilityRepository _availabilityRepository;
         private readonly IAppointmentNotificationService _notificationService;
+        private readonly IReminderService _reminderService;
         private readonly ILogger<AppointmentService> _logger;
 
         public AppointmentService(
@@ -24,6 +25,7 @@ namespace SGMC.Application.Services
             IDoctorRepository doctorRepository,
             IDoctorAvailabilityRepository availabilityRepository,
             IAppointmentNotificationService notificationService,
+            IReminderService reminderService,
             ILogger<AppointmentService> logger)
         {
             _repository = repository;
@@ -31,6 +33,7 @@ namespace SGMC.Application.Services
             _doctorRepository = doctorRepository;
             _availabilityRepository = availabilityRepository;
             _notificationService = notificationService;
+            _reminderService = reminderService;
             _logger = logger;
         }
 
@@ -134,6 +137,18 @@ namespace SGMC.Application.Services
                 };
 
                 var created = await _repository.AddAsync(appointment);
+
+                try
+                {
+                    await _notificationService.NotifyAppointmentCreatedAsync(created);
+                }
+                catch (Exception notifyEx)
+                {
+                    _logger.LogWarning(notifyEx,
+                        "La cita {Id} se creó pero falló el encolado de la notificación al médico.",
+                        created.AppointmentId);
+                }
+
                 var dtoResult = MapToDto(created);
 
                 return OperationResult<AppointmentDto>.Exito(dtoResult, "Cita agendada correctamente. Quedará pendiente hasta que el médico la confirme.");
@@ -166,15 +181,17 @@ namespace SGMC.Application.Services
 
             try
             {
-                var appointment = await _repository.GetByIdAsync(appointmentId);
+                var appointment = await _repository.GetByIdWithDetailsAsync(appointmentId);
                 if (appointment is null)
                     return OperationResult.Fallo("La cita no existe.");
-
                 // Solo se pueden cancelar citas Pendientes (1) o Confirmadas (2)
                 if (appointment.StatusId != 1 && appointment.StatusId != 2)
                     return OperationResult.Fallo(
                         "Solo se pueden cancelar citas en estado Pendiente o Confirmada.");
 
+                // Task 91: no se pueden cancelar citas cuya fecha ya paso
+                if (appointment.AppointmentDate <= DateTime.Now)
+                    return OperationResult.Fallo("No se pueden cancelar citas que ya pasaron.");
                 // Paso 4: Cambiar estado a Cancelada
                 appointment.StatusId = 3;
                 appointment.UpdatedAt = DateTime.Now;
@@ -197,6 +214,29 @@ namespace SGMC.Application.Services
                     slotToFree.IsActive = true;
                     slotToFree.UpdatedAt = DateTime.Now;
                     await _availabilityRepository.UpdateAsync(slotToFree);
+                }
+
+                try
+                {
+                    await _notificationService.NotifyAppointmentCancelledAsync(appointment);
+                }
+                catch (Exception notifyEx)
+                {
+                    _logger.LogWarning(notifyEx,
+                        "La cita {Id} se canceló pero falló el encolado de la notificación.",
+                        appointmentId);
+                }
+
+                try
+                {
+                    // Task 107: purgar recordatorios pendientes de esta cita
+                    await _reminderService.CancelPendingRemindersForAppointmentAsync(appointmentId);
+                }
+                catch (Exception reminderEx)
+                {
+                    _logger.LogWarning(reminderEx,
+                        "La cita {Id} se canceló pero falló la purga de recordatorios pendientes.",
+                        appointmentId);
                 }
 
                 _logger.LogInformation(
@@ -299,12 +339,24 @@ namespace SGMC.Application.Services
 
                 try
                 {
-                    await _notificationService.NotifyAppointmentRejectedAsync(appointment);
+                    await _notificationService.NotifyAppointmentCancelledAsync(appointment);
                 }
                 catch (Exception notifyEx)
                 {
                     _logger.LogWarning(notifyEx,
                         "La cita {Id} se rechazó pero falló el envío de la notificación por correo.",
+                        appointmentId);
+                }
+
+                try
+                {
+                    // Task 107: purgar recordatorios pendientes de esta cita
+                    await _reminderService.CancelPendingRemindersForAppointmentAsync(appointmentId);
+                }
+                catch (Exception reminderEx)
+                {
+                    _logger.LogWarning(reminderEx,
+                        "La cita {Id} se rechazó pero falló la purga de recordatorios pendientes.",
                         appointmentId);
                 }
 
@@ -355,6 +407,10 @@ namespace SGMC.Application.Services
                 if (appointment.StatusId != 1 && appointment.StatusId != 2)
                     return OperationResult.Fallo(
                         "Solo se pueden reprogramar citas en estado Pendiente o Confirmada.");
+
+                // Task 91: no se pueden reprogramar citas cuya fecha original ya paso
+                if (appointment.AppointmentDate <= DateTime.Now)
+                    return OperationResult.Fallo("No se pueden reprogramar citas que ya pasaron.");
 
                 var oldAppointmentDate = appointment.AppointmentDate;
 
