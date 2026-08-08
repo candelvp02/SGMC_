@@ -184,12 +184,14 @@ namespace SGMC.Application.Services
                 var appointment = await _repository.GetByIdWithDetailsAsync(appointmentId);
                 if (appointment is null)
                     return OperationResult.Fallo("La cita no existe.");
-
                 // Solo se pueden cancelar citas Pendientes (1) o Confirmadas (2)
                 if (appointment.StatusId != 1 && appointment.StatusId != 2)
                     return OperationResult.Fallo(
                         "Solo se pueden cancelar citas en estado Pendiente o Confirmada.");
 
+                // Task 91: no se pueden cancelar citas cuya fecha ya paso
+                if (appointment.AppointmentDate <= DateTime.Now)
+                    return OperationResult.Fallo("No se pueden cancelar citas que ya pasaron.");
                 // Paso 4: Cambiar estado a Cancelada
                 appointment.StatusId = 3;
                 appointment.UpdatedAt = DateTime.Now;
@@ -405,6 +407,10 @@ namespace SGMC.Application.Services
                 if (appointment.StatusId != 1 && appointment.StatusId != 2)
                     return OperationResult.Fallo(
                         "Solo se pueden reprogramar citas en estado Pendiente o Confirmada.");
+
+                // Task 91: no se pueden reprogramar citas cuya fecha original ya paso
+                if (appointment.AppointmentDate <= DateTime.Now)
+                    return OperationResult.Fallo("No se pueden reprogramar citas que ya pasaron.");
 
                 var oldAppointmentDate = appointment.AppointmentDate;
 

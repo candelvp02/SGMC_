@@ -8,19 +8,17 @@
       "sslPort": 44387
     }
   },
-
   "profiles": {
     "SGMC.Web": {
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,
       "launchUrl": "",
-      "applicationUrl": "https://localhost:7098;http://localhost:5098",
+      "applicationUrl": "https://localhost:7099;http://localhost:5099",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
-
     "IIS Express": {
       "commandName": "IISExpress",
       "launchBrowser": true,

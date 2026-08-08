@@ -29,6 +29,14 @@
         </div>
     }
 
+    @if (TempData["Success"] != null)
+{
+    <div class="flex items-center gap-3 bg-green-50 border border-green-300 text-green-800 px-4 py-3 rounded-lg mb-5">
+        <i class="fas fa-check-circle text-green-500"></i>
+        <span>@TempData["Success"]</span>
+    </div>
+}
+
     <!-- Filtros -->
     <form method="get" asp-controller="PatientAppointments" asp-action="Index"
           class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-6">
