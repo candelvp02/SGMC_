@@ -105,7 +105,7 @@ static void SeedData(HealtSyncContext context)
     var ppo = new NetworkType { NetworkTypeId = 2, Name = "PPO", Description = "Preferred Provider Organization", CreatedAt = DateTime.Now, IsActive = true };
     context.NetworkTypes.AddRange(hmo, ppo);
 
-    // ── Statuses — solo StatusId y StatusName ──────────────────────────────
+    // ── Statuses ─────────────────────────────────────────────────────────
     var pendiente = new Status { StatusId = 1, StatusName = "Pendiente" };
     var confirmada = new Status { StatusId = 2, StatusName = "Confirmada" };
     var cancelada = new Status { StatusId = 3, StatusName = "Cancelada" };
@@ -194,7 +194,7 @@ static void SeedData(HealtSyncContext context)
         CustomerSupportContact = "809-960-1212",
         AcceptedRegions = "Nacional",
         CreatedAt = DateTime.Now,
-        IsActive = false  
+        IsActive = false
     };
     context.InsuranceProviders.AddRange(senasa, humano, mapfre, reservas);
 
@@ -282,6 +282,30 @@ static void SeedData(HealtSyncContext context)
         IsActive = true
     };
     context.Patients.AddRange(paciente1, paciente2);
+    context.SaveChanges();
+
+    // ── Historial médico (traído de dev) ────────────────────────────────────
+    var record1 = new MedicalRecord
+    {
+        PatientId = paciente1.PatientId,
+        DoctorId = doctor1.DoctorId,
+        Diagnosis = "Hipertensión arterial leve",
+        Treatment = "Losartan 50mg una vez al día, control en 30 días",
+        Notes = "Paciente refiere dolores de cabeza ocasionales. Se recomienda reducir consumo de sal.",
+        DateOfVisit = DateTime.Now.AddMonths(-2),
+        CreatedAt = DateTime.Now.AddMonths(-2)
+    };
+    var record2 = new MedicalRecord
+    {
+        PatientId = paciente1.PatientId,
+        DoctorId = doctor1.DoctorId,
+        Diagnosis = "Control de seguimiento - hipertensión estable",
+        Treatment = "Continuar Losartan 50mg, dieta baja en sodio",
+        Notes = "Presión arterial dentro de rango normal en esta visita. Buena adherencia al tratamiento.",
+        DateOfVisit = DateTime.Now.AddDays(-15),
+        CreatedAt = DateTime.Now.AddDays(-15)
+    };
+    context.MedicalRecords.AddRange(record1, record2);
     context.SaveChanges();
 
     // ── Citas ──────────────────────────────────────────────────────────────
