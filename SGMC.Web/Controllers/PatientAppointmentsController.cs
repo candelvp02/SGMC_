@@ -12,13 +12,16 @@ namespace SGMC.Web.Controllers
     {
         private readonly IAppointmentService _appointmentService;
         private readonly IPatientService _patientService;
+        private readonly IMedicalRecordService _medicalRecordService;
 
         public PatientAppointmentsController(
             IAppointmentService appointmentService,
-            IPatientService patientService)
+            IPatientService patientService,
+            IMedicalRecordService medicalRecordService)
         {
             _appointmentService = appointmentService;
             _patientService = patientService;
+            _medicalRecordService = medicalRecordService;
         }
 
         // GET: /PatientAppointments
@@ -88,7 +91,25 @@ namespace SGMC.Web.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            return View(AppointmentDetailsViewModel.FromDto(result.Datos));
+            var viewModel = AppointmentDetailsViewModel.FromDto(result.Datos);
+
+            // Task 111: cargar diagnostico/tratamiento SOLO LECTURA si el medico lo registro
+            var recordsResult = await _medicalRecordService.GetByPatientIdAsync(patientId.Value);
+            if (recordsResult != null && recordsResult.Exitoso && recordsResult.Datos != null)
+            {
+                var matchingRecord = recordsResult.Datos.FirstOrDefault(r =>
+                    r.DoctorId == result.Datos.DoctorId &&
+                    r.DateOfVisit.Date == result.Datos.AppointmentDate.Date);
+
+                if (matchingRecord != null)
+                {
+                    viewModel.Diagnosis = matchingRecord.Diagnosis;
+                    viewModel.Treatment = matchingRecord.Treatment;
+                    viewModel.ClinicalNotes = matchingRecord.Notes;
+                }
+            }
+
+            return View(viewModel);
         }
 
         // GET: /PatientAppointments/Reschedule/5
@@ -125,7 +146,46 @@ namespace SGMC.Web.Controllers
 
             return View(RescheduleAppointmentViewModel.FromDto(result.Datos));
         }
+        // POST: /PatientAppointments/CancelConfirmed/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CancelConfirmed(int id)
+        {
+            var patientId = GetCurrentPatientId();
+            if (patientId == null)
+                return RedirectToAction("Login", "Account");
 
+            var appointmentResult = await _appointmentService.GetByIdAsync(id);
+
+            if (!appointmentResult.Exitoso || appointmentResult.Datos == null)
+            {
+                TempData["Error"] = "Cita no encontrada.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            if (appointmentResult.Datos.PatientId != patientId.Value)
+            {
+                TempData["Error"] = "No tienes permiso para cancelar esta cita.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            if (appointmentResult.Datos.StatusId != 1 && appointmentResult.Datos.StatusId != 2)
+            {
+                TempData["Error"] = "Solo puedes cancelar citas en estado Pendiente o Confirmada.";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+
+            var result = await _appointmentService.CancelAsync(id);
+
+            if (!result.Exitoso)
+            {
+                TempData["Error"] = result.Mensaje;
+                return RedirectToAction(nameof(Details), new { id });
+            }
+
+            TempData["Success"] = "Tu cita fue cancelada correctamente. El médico ha sido notificado por correo.";
+            return RedirectToAction(nameof(Index));
+        }
         private int? GetCurrentPatientId()
         {
             var claim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;

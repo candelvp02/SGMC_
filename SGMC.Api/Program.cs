@@ -26,6 +26,8 @@ builder.Services.AddAvailabilityDependencies();
 builder.Services.AddInsuranceProviderDependencies();
 builder.Services.AddMedicalRecordDependencies();
 builder.Services.AddNotificationDependencies();
+builder.Services.AddAppointmentNotificationDependencies();
+builder.Services.AddReminderDependencies();
 builder.Services.AddReportDependencies();
 builder.Services.AddSpecialtyDependencies();
 builder.Services.AddAuthDependencies();

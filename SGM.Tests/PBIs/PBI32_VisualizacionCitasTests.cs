@@ -64,7 +64,7 @@ namespace SGMC.Tests.PBIs
                 .Setup(s => s.GetByIdAsync(5))
                 .ReturnsAsync(OperationResult<AppointmentDto>.Exito(BuildAppointment(5, patientId: 99, doctorId: 7)));
 
-            var controller = new PatientAppointmentsController(appointmentServiceMock.Object, Mock.Of<IPatientService>())
+            var controller = new PatientAppointmentsController(appointmentServiceMock.Object, Mock.Of<IPatientService>(), Mock.Of<IMedicalRecordService>())
             {
                 ControllerContext = new ControllerContext
                 {
@@ -90,7 +90,7 @@ namespace SGMC.Tests.PBIs
                 .Setup(s => s.GetByIdAsync(5))
                 .ReturnsAsync(OperationResult<AppointmentDto>.Exito(BuildAppointment(5, patientId: 1, doctorId: 7)));
 
-            var controller = new PatientAppointmentsController(appointmentServiceMock.Object, Mock.Of<IPatientService>())
+            var controller = new PatientAppointmentsController(appointmentServiceMock.Object, Mock.Of<IPatientService>(), Mock.Of<IMedicalRecordService>())
             {
                 ControllerContext = new ControllerContext
                 {

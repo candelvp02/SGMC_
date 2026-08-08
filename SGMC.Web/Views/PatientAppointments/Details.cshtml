@@ -104,8 +104,58 @@
             </div>
         </div>
 
+@if (Model.HasClinicalRecord)
+        {
+            <!-- Diagnostico y Tratamiento - SOLO LECTURA, sin botones de edicion -->
+            <div class="border-t border-gray-100 px-6 py-5 bg-gray-50">
+                <div class="flex items-center gap-2 mb-4">
+                    <i class="fas fa-notes-medical text-indigo-600"></i>
+                    <h3 class="text-sm font-bold text-gray-700 uppercase tracking-wide">
+                        Diagnostico y Tratamiento
+                    </h3>
+                    <span class="ml-auto inline-flex items-center gap-1 text-xs text-gray-400">
+                        <i class="fas fa-lock"></i> Solo lectura
+                    </span>
+                </div>
+
+                <div class="bg-white rounded-lg border border-gray-200 divide-y divide-gray-100">
+                    <div class="px-4 py-3">
+                        <p class="text-xs text-gray-400 mb-1">Diagnostico</p>
+                        <p class="text-sm text-gray-800">@Model.Diagnosis</p>
+                    </div>
+                    <div class="px-4 py-3">
+                        <p class="text-xs text-gray-400 mb-1">Tratamiento</p>
+                        <p class="text-sm text-gray-800">@Model.Treatment</p>
+                    </div>
+                    @if (!string.IsNullOrWhiteSpace(Model.ClinicalNotes))
+                    {
+                        <div class="px-4 py-3">
+                            <p class="text-xs text-gray-400 mb-1">Notas adicionales</p>
+                            <p class="text-sm text-gray-600">@Model.ClinicalNotes</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+        else if (Model.IsCompleted)
+        {
+            <div class="border-t border-gray-100 px-6 py-5 bg-gray-50">
+                <p class="text-sm text-gray-400 italic">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    El medico aun no ha registrado diagnostico para esta consulta.
+                </p>
+            </div>
+        }
+
         <!-- Acciones -->
         <div class="px-6 py-4 bg-gray-50 flex justify-end gap-3">
+            @if (Model.CanCancel)
+            {
+                <button type="button" onclick="openCancelModal()"
+                        class="inline-flex items-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-sm font-semibold py-2.5 px-5 rounded-lg transition">
+                    <i class="fas fa-times-circle"></i> Cancelar cita
+                </button>
+            }
             @if (canReschedule)
             {
                 <a asp-controller="PatientAppointments" asp-action="Reschedule" asp-route-id="@Model.AppointmentId"
@@ -120,3 +170,70 @@
         </div>
     </div>
 </div>
+
+@if (Model.CanCancel)
+{
+    <!-- ═══ MODAL: Advertencia y Confirmación de Cancelación ═══ -->
+    <div id="cancelModalOverlay"
+         class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-xl max-w-md w-full overflow-hidden">
+
+            <!-- Header de advertencia -->
+            <div class="bg-red-600 px-6 py-4 flex items-center gap-3">
+                <i class="fas fa-exclamation-triangle text-white text-xl"></i>
+                <h3 class="text-white font-bold text-lg">Confirmar cancelación</h3>
+            </div>
+
+            <div class="p-6">
+                <div class="bg-amber-50 border border-amber-200 text-amber-800 text-sm rounded-lg px-4 py-3 mb-4 flex gap-2">
+                    <i class="fas fa-info-circle mt-0.5"></i>
+                    <span><strong>Esta acción no se puede deshacer.</strong> Al cancelar, el horario quedará liberado y se notificará al médico.</span>
+                </div>
+
+                <p class="text-sm text-gray-600 mb-2">Estás por cancelar tu cita con:</p>
+                <div class="bg-gray-50 rounded-lg px-4 py-3 mb-5 text-sm">
+                    <p class="font-semibold text-gray-800">Dr. @Model.DoctorName</p>
+                    <p class="text-gray-500">@Model.AppointmentDateFormatted — @Model.AppointmentTimeFormatted</p>
+                </div>
+
+                <p class="text-sm text-gray-700 mb-5">¿Estás seguro de que deseas continuar?</p>
+
+                <div class="flex justify-end gap-3">
+                    <button type="button" onclick="closeCancelModal()"
+                            class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-semibold py-2.5 px-5 rounded-lg transition">
+                        No, mantener cita
+                    </button>
+                    <form asp-controller="PatientAppointments" asp-action="CancelConfirmed"
+                          asp-route-id="@Model.AppointmentId" method="post" id="cancelForm">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" id="btnConfirmCancel"
+                                class="bg-red-600 hover:bg-red-700 text-white text-sm font-semibold py-2.5 px-5 rounded-lg transition">
+                            <i class="fas fa-times-circle mr-1"></i> Sí, cancelar cita
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @section Scripts {
+        <script>
+            function openCancelModal() {
+                document.getElementById('cancelModalOverlay').classList.remove('hidden');
+            }
+            function closeCancelModal() {
+                document.getElementById('cancelModalOverlay').classList.add('hidden');
+            }
+            // Cerrar al hacer clic fuera del modal
+            document.getElementById('cancelModalOverlay').addEventListener('click', function (e) {
+                if (e.target === this) closeCancelModal();
+            });
+            // Evitar doble submit al confirmar
+            document.getElementById('cancelForm').addEventListener('submit', function () {
+                const btn = document.getElementById('btnConfirmCancel');
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Cancelando...';
+            });
+        </script>
+    }
+}

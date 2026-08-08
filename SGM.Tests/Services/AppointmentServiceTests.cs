@@ -18,6 +18,7 @@ namespace SGMC.Tests.Services
         private readonly Mock<IDoctorRepository> _doctorRepositoryMock;
         private readonly Mock<IDoctorAvailabilityRepository> _availabilityRepositoryMock;
         private readonly Mock<IAppointmentNotificationService> _notificationServiceMock;
+        private readonly Mock<IReminderService> _reminderServiceMock;
         private readonly Mock<ILogger<AppointmentService>> _loggerMock;
         private readonly AppointmentService _service;
 
@@ -28,6 +29,7 @@ namespace SGMC.Tests.Services
             _doctorRepositoryMock = new Mock<IDoctorRepository>();
             _availabilityRepositoryMock = new Mock<IDoctorAvailabilityRepository>();
             _notificationServiceMock = new Mock<IAppointmentNotificationService>();
+            _reminderServiceMock = new Mock<IReminderService>();
             _loggerMock = new Mock<ILogger<AppointmentService>>();
 
             _service = new AppointmentService(
@@ -36,6 +38,7 @@ namespace SGMC.Tests.Services
                 _doctorRepositoryMock.Object,
                 _availabilityRepositoryMock.Object,
                 _notificationServiceMock.Object,
+                _reminderServiceMock.Object,
                 _loggerMock.Object
             );
         }
