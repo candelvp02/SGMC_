@@ -125,7 +125,46 @@ namespace SGMC.Web.Controllers
 
             return View(RescheduleAppointmentViewModel.FromDto(result.Datos));
         }
+        // POST: /PatientAppointments/CancelConfirmed/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CancelConfirmed(int id)
+        {
+            var patientId = GetCurrentPatientId();
+            if (patientId == null)
+                return RedirectToAction("Login", "Account");
 
+            var appointmentResult = await _appointmentService.GetByIdAsync(id);
+
+            if (!appointmentResult.Exitoso || appointmentResult.Datos == null)
+            {
+                TempData["Error"] = "Cita no encontrada.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            if (appointmentResult.Datos.PatientId != patientId.Value)
+            {
+                TempData["Error"] = "No tienes permiso para cancelar esta cita.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            if (appointmentResult.Datos.StatusId != 1 && appointmentResult.Datos.StatusId != 2)
+            {
+                TempData["Error"] = "Solo puedes cancelar citas en estado Pendiente o Confirmada.";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+
+            var result = await _appointmentService.CancelAsync(id);
+
+            if (!result.Exitoso)
+            {
+                TempData["Error"] = result.Mensaje;
+                return RedirectToAction(nameof(Details), new { id });
+            }
+
+            TempData["Success"] = "Tu cita fue cancelada correctamente. El médico ha sido notificado por correo.";
+            return RedirectToAction(nameof(Index));
+        }
         private int? GetCurrentPatientId()
         {
             var claim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
