@@ -104,7 +104,50 @@
             </div>
         </div>
 
-<!-- Acciones -->
+@if (Model.HasClinicalRecord)
+        {
+            <!-- Diagnostico y Tratamiento - SOLO LECTURA, sin botones de edicion -->
+            <div class="border-t border-gray-100 px-6 py-5 bg-gray-50">
+                <div class="flex items-center gap-2 mb-4">
+                    <i class="fas fa-notes-medical text-indigo-600"></i>
+                    <h3 class="text-sm font-bold text-gray-700 uppercase tracking-wide">
+                        Diagnostico y Tratamiento
+                    </h3>
+                    <span class="ml-auto inline-flex items-center gap-1 text-xs text-gray-400">
+                        <i class="fas fa-lock"></i> Solo lectura
+                    </span>
+                </div>
+
+                <div class="bg-white rounded-lg border border-gray-200 divide-y divide-gray-100">
+                    <div class="px-4 py-3">
+                        <p class="text-xs text-gray-400 mb-1">Diagnostico</p>
+                        <p class="text-sm text-gray-800">@Model.Diagnosis</p>
+                    </div>
+                    <div class="px-4 py-3">
+                        <p class="text-xs text-gray-400 mb-1">Tratamiento</p>
+                        <p class="text-sm text-gray-800">@Model.Treatment</p>
+                    </div>
+                    @if (!string.IsNullOrWhiteSpace(Model.ClinicalNotes))
+                    {
+                        <div class="px-4 py-3">
+                            <p class="text-xs text-gray-400 mb-1">Notas adicionales</p>
+                            <p class="text-sm text-gray-600">@Model.ClinicalNotes</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+        else if (Model.IsCompleted)
+        {
+            <div class="border-t border-gray-100 px-6 py-5 bg-gray-50">
+                <p class="text-sm text-gray-400 italic">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    El medico aun no ha registrado diagnostico para esta consulta.
+                </p>
+            </div>
+        }
+
+        <!-- Acciones -->
         <div class="px-6 py-4 bg-gray-50 flex justify-end gap-3">
             @if (Model.CanCancel)
             {

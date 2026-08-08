@@ -12,13 +12,16 @@ namespace SGMC.Web.Controllers
     {
         private readonly IAppointmentService _appointmentService;
         private readonly IPatientService _patientService;
+        private readonly IMedicalRecordService _medicalRecordService;
 
         public PatientAppointmentsController(
             IAppointmentService appointmentService,
-            IPatientService patientService)
+            IPatientService patientService,
+            IMedicalRecordService medicalRecordService)
         {
             _appointmentService = appointmentService;
             _patientService = patientService;
+            _medicalRecordService = medicalRecordService;
         }
 
         // GET: /PatientAppointments
@@ -88,7 +91,25 @@ namespace SGMC.Web.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            return View(AppointmentDetailsViewModel.FromDto(result.Datos));
+            var viewModel = AppointmentDetailsViewModel.FromDto(result.Datos);
+
+            // Task 111: cargar diagnostico/tratamiento SOLO LECTURA si el medico lo registro
+            var recordsResult = await _medicalRecordService.GetByPatientIdAsync(patientId.Value);
+            if (recordsResult != null && recordsResult.Exitoso && recordsResult.Datos != null)
+            {
+                var matchingRecord = recordsResult.Datos.FirstOrDefault(r =>
+                    r.DoctorId == result.Datos.DoctorId &&
+                    r.DateOfVisit.Date == result.Datos.AppointmentDate.Date);
+
+                if (matchingRecord != null)
+                {
+                    viewModel.Diagnosis = matchingRecord.Diagnosis;
+                    viewModel.Treatment = matchingRecord.Treatment;
+                    viewModel.ClinicalNotes = matchingRecord.Notes;
+                }
+            }
+
+            return View(viewModel);
         }
 
         // GET: /PatientAppointments/Reschedule/5
