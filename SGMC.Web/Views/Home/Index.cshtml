@@ -1,5 +1,39 @@
 ﻿@{
     ViewData["Title"] = "Página de Inicio";
+
+    string title = "Sistema de Gestión de Citas";
+    string subtitle = "Administra todas tus citas de manera eficiente";
+    string buttonText = "Iniciar Sesión";
+    string controller = "Account";
+    string action = "Login";
+
+    if (User.Identity?.IsAuthenticated == true)
+    {
+        if (User.IsInRole("Administrador"))
+        {
+            title = "Bienvenido, Administrador";
+            subtitle = "Gestiona citas, doctores, pacientes y más desde un solo lugar";
+            buttonText = "Ir a Administración de Citas";
+            controller = "AppointmentAdm";
+            action = "Index";
+        }
+        else if (User.IsInRole("Médico"))
+        {
+            title = "Bienvenido, Doctor";
+            subtitle = "Revisa tus citas y solicitudes pendientes de pacientes";
+            buttonText = "Ver Mis Citas";
+            controller = "DoctorAppointments";
+            action = "Index";
+        }
+        else if (User.IsInRole("Paciente"))
+        {
+            title = "Bienvenido";
+            subtitle = "Consulta tus citas médicas y su estado";
+            buttonText = "Ver Mis Citas";
+            controller = "PatientAppointments";
+            action = "Index";
+        }
+    }
 }
 
 <div class="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -12,16 +46,16 @@
         </div>
 
         <h1 class="text-3xl font-bold text-gray-800 mb-3">
-            Sistema de Gestión de Citas
+            @title
         </h1>
 
         <p class="text-gray-500 mb-6">
-            Administra todas tus citas de manera eficiente
+            @subtitle
         </p>
 
-        <a asp-controller="AppointmentAdm" asp-action="Index"
+        <a asp-controller="@controller" asp-action="@action"
            class="inline-flex items-center justify-center w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200">
-            Ir a Administración de Citas
+            @buttonText
             <svg class="ml-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
             </svg>

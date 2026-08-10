@@ -2,10 +2,17 @@
 
 @if (!string.IsNullOrEmpty(Model.Message))
 {
-    <div class="alert alert-@Model.Type alert-dismissible fade show" role="alert">
-        <i class="bi bi-@(GetIcon(Model.Type))"></i>
-        @Model.Message
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    var styles = Model.Type switch
+    {
+        "success" => "bg-green-50 border-green-300 text-green-800",
+        "danger" => "bg-red-50 border-red-300 text-red-800",
+        "warning" => "bg-yellow-50 border-yellow-300 text-yellow-800",
+        _ => "bg-sky-50 border-sky-300 text-sky-800"
+    };
+
+    <div class="flex items-center gap-3 border px-4 py-3 rounded-lg mb-5 @styles">
+        <i class="fas fa-@(GetIcon(Model.Type)) text-lg"></i>
+        <span>@Model.Message</span>
     </div>
 }
 
@@ -13,9 +20,8 @@
     string GetIcon(string type) => type switch
     {
         "success" => "check-circle",
-        "danger" => "exclamation-triangle",
-        "warning" => "exclamation-circle",
-        "info" => "info-circle",
+        "danger" => "exclamation-circle",
+        "warning" => "exclamation-triangle",
         _ => "info-circle"
     };
 }

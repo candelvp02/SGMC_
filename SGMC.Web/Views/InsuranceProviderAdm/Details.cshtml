@@ -1,45 +1,40 @@
-﻿@model SGMC.Application.Dto.Insurance.InsuranceProviderDto
+@model SGMC.Application.Dto.Insurance.InsuranceProviderDto
 @{
     ViewData["Title"] = "Detalles del Proveedor";
 }
 
-<h1>Detalles del Proveedor</h1>
+<div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 pb-10">
 
-<div>
-    <hr />
-    <dl class="row">
-        <dt class="col-sm-3">ID</dt>
-        <dd class="col-sm-9">@Model.InsuranceProviderId</dd>
+    <h1 class="text-2xl font-bold text-gray-800 mb-6">Detalles del Proveedor</h1>
 
-        <dt class="col-sm-3">Nombre</dt>
-        <dd class="col-sm-9">@Model.Name</dd>
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-5">
+        <dl class="text-sm divide-y divide-gray-100">
+            <div class="flex justify-between py-2"><dt class="text-gray-500">ID</dt><dd class="text-gray-800">@Model.InsuranceProviderId</dd></div>
+            <div class="flex justify-between py-2"><dt class="text-gray-500">Nombre</dt><dd class="font-semibold text-gray-800">@Model.Name</dd></div>
+            <div class="flex justify-between py-2"><dt class="text-gray-500">Teléfono</dt><dd class="text-gray-800">@Model.PhoneNumber</dd></div>
+            <div class="flex justify-between py-2"><dt class="text-gray-500">Email</dt><dd class="text-gray-800">@Model.Email</dd></div>
+            <div class="flex justify-between py-2"><dt class="text-gray-500">Sitio Web</dt><dd class="text-gray-800">@Model.Website</dd></div>
+            <div class="flex justify-between py-2"><dt class="text-gray-500">Dirección</dt><dd class="text-gray-800 text-right max-w-xs">@Model.Address</dd></div>
+            <div class="flex justify-between items-center py-2">
+                <dt class="text-gray-500">Estado</dt>
+                <dd>
+                    @if (Model.IsActive)
+                    {
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-800">Activo</span>
+                    }
+                    else
+                    {
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-800">Inactivo</span>
+                    }
+                </dd>
+            </div>
+        </dl>
+    </div>
 
-        <dt class="col-sm-3">Teléfono</dt>
-        <dd class="col-sm-9">@Model.PhoneNumber</dd>
-
-        <dt class="col-sm-3">Email</dt>
-        <dd class="col-sm-9">@Model.Email</dd>
-
-        <dt class="col-sm-3">Sitio Web</dt>
-        <dd class="col-sm-9">@Model.Website</dd>
-
-        <dt class="col-sm-3">Dirección</dt>
-        <dd class="col-sm-9">@Model.Address</dd>
-
-        <dt class="col-sm-3">Estado</dt>
-        <dd class="col-sm-9">
-            @if (Model.IsActive)
-            {
-                <span class="badge bg-success">Activo</span>
-            }
-            else
-            {
-                <span class="badge bg-danger">Inactivo</span>
-            }
-        </dd>
-    </dl>
-</div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model.InsuranceProviderId" class="btn btn-warning">Editar</a> |
-    <a asp-action="Index" class="btn btn-secondary">Volver a la Lista</a>
+    <div class="flex gap-2">
+        <a asp-action="Edit" asp-route-id="@Model.InsuranceProviderId"
+           class="inline-flex items-center gap-1.5 bg-yellow-500 hover:bg-yellow-600 text-white text-sm font-semibold py-2 px-4 rounded-lg transition">Editar</a>
+        <a asp-action="Index"
+           class="inline-flex items-center gap-1.5 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-semibold py-2 px-4 rounded-lg transition">Volver a la Lista</a>
+    </div>
 </div>

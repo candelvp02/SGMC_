@@ -60,13 +60,34 @@ namespace SGMC.Web.Services
         public async Task<ApiResponse<bool>> DeleteAsync(int id)
         {
             var response = await _httpClient.DeleteAsync($"Doctors/{id}");
+            var content = await response.Content.ReadAsStringAsync();
 
             if (!response.IsSuccessStatusCode)
             {
+                var errorMessage = $"HTTP {(int)response.StatusCode}: {response.ReasonPhrase}";
+
+                if (!string.IsNullOrWhiteSpace(content))
+                {
+                    try
+                    {
+                        var errorResult = JsonSerializer.Deserialize<OperationResultDto<object>>(content, _jsonOptions);
+                        var detalle = errorResult?.Errores != null && errorResult.Errores.Count > 0
+                            ? string.Join(" ", errorResult.Errores)
+                            : errorResult?.Mensaje;
+
+                        if (!string.IsNullOrWhiteSpace(detalle))
+                            errorMessage = detalle;
+                    }
+                    catch (JsonException)
+                    {
+                        // El cuerpo no es un OperationResult válido; se mantiene el mensaje HTTP genérico.
+                    }
+                }
+
                 return new ApiResponse<bool>
                 {
                     Success = false,
-                    ErrorMessage = $"HTTP {(int)response.StatusCode}: {response.ReasonPhrase}"
+                    ErrorMessage = errorMessage
                 };
             }
 
@@ -80,15 +101,36 @@ namespace SGMC.Web.Services
         private async Task<ApiResponse<T>> HandleResponse<T>(HttpResponseMessage response)
         {
             var apiResponse = new ApiResponse<T>();
+            var content = await response.Content.ReadAsStringAsync();
 
             if (!response.IsSuccessStatusCode)
             {
                 apiResponse.Success = false;
                 apiResponse.ErrorMessage = $"HTTP {(int)response.StatusCode}: {response.ReasonPhrase}";
+
+                if (!string.IsNullOrWhiteSpace(content))
+                {
+                    try
+                    {
+                        var errorResult = JsonSerializer.Deserialize<OperationResultDto<T>>(content, _jsonOptions);
+                        if (errorResult != null)
+                        {
+                            var detalle = errorResult.Errores != null && errorResult.Errores.Count > 0
+                                ? string.Join(" ", errorResult.Errores)
+                                : errorResult.Mensaje;
+
+                            if (!string.IsNullOrWhiteSpace(detalle))
+                                apiResponse.ErrorMessage = detalle;
+                        }
+                    }
+                    catch (JsonException)
+                    {
+                        // El cuerpo no es un OperationResult válido; se mantiene el mensaje HTTP genérico.
+                    }
+                }
+
                 return apiResponse;
             }
-
-            var content = await response.Content.ReadAsStringAsync();
 
             if (string.IsNullOrWhiteSpace(content))
             {

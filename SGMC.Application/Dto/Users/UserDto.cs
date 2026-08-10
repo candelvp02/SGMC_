@@ -19,7 +19,8 @@ namespace SGMC.Application.Dto.Users
     {
         public int UserId { get; set; }
         public string Email { get; set; } = string.Empty;
-        public int? RoleId { get; internal set; }
+        public int? RoleId { get; set; }
+        public bool IsActive { get; set; }
 
         private static UserDto? MapToDto(User? u)
         {

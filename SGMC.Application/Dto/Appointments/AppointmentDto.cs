@@ -47,6 +47,7 @@
         public int CancelledAppointments { get; set; }
         public int PendingAppointments { get; set; }
         public int CompletedAppointments { get; set; }
+        public int RejectedAppointments { get; set; }
 
         public decimal CancellationRate { get; set; }
         public decimal ConfirmationRate { get; set; }
