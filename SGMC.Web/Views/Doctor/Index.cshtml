@@ -4,56 +4,72 @@
     ViewData["Title"] = "Doctores";
 }
 
-<h1>Gestión de Doctores</h1>
+<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 pb-10">
 
-@if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
-{
-    <div class="alert alert-danger">@ViewBag.ErrorMessage</div>
-}
+    <h1 class="text-2xl font-bold text-gray-800 mb-6">Gestión de Doctores</h1>
 
-<p>
-    <a asp-action="Create" class="btn btn-primary">Crear Nuevo Doctor</a>
-</p>
+    @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
+    {
+        <div class="flex items-center gap-3 bg-red-50 border border-red-300 text-red-800 px-4 py-3 rounded-lg mb-5">
+            <i class="fas fa-exclamation-circle text-red-500 text-lg"></i>
+            <span>@ViewBag.ErrorMessage</span>
+        </div>
+    }
 
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Nombre Completo</th>
-            <th>Especialidad</th>
-            <th>Número de Licencia</th>
-            <th>Teléfono</th>
-            <th>Años de Experiencia</th>
-            <th>Activo</th>
-            <th>Acciones</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var doctor in Model)
-        {
-            <tr>
-                <td>@doctor.DoctorId</td>
-                <td>@doctor.FullName</td>
-                <td>@doctor.SpecialtyName</td>
-                <td>@doctor.LicenseNumber</td>
-                <td>@doctor.PhoneNumber</td>
-                <td>@doctor.YearsOfExperience</td>
-                <td>
-                    @if (doctor.IsActive)
-                    {
-                        <span class="badge bg-success">Activo</span>
-                    }
-                    else
-                    {
-                        <span class="badge bg-danger">Inactivo</span>
-                    }
-                </td>
-                <td>
-                    <a asp-action="Edit" asp-route-id="@doctor.DoctorId" class="btn btn-sm btn-warning">Editar</a>
-                    <a asp-action="Details" asp-route-id="@doctor.DoctorId" class="btn btn-sm btn-info">Detalles</a>
-                    <a asp-action="Delete" asp-route-id="@doctor.DoctorId" class="btn btn-sm btn-danger">Eliminar</a>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+    <div class="mb-5">
+        <a asp-action="Create"
+           class="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2 px-4 rounded-lg transition">
+            <i class="fas fa-plus"></i> Crear Nuevo Doctor
+        </a>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-x-auto">
+        <table class="min-w-full text-sm text-left">
+            <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
+                <tr>
+                    <th class="px-4 py-3">ID</th>
+                    <th class="px-4 py-3">Nombre Completo</th>
+                    <th class="px-4 py-3">Especialidad</th>
+                    <th class="px-4 py-3">Número de Licencia</th>
+                    <th class="px-4 py-3">Teléfono</th>
+                    <th class="px-4 py-3">Años de Experiencia</th>
+                    <th class="px-4 py-3">Activo</th>
+                    <th class="px-4 py-3">Acciones</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                @foreach (var doctor in Model)
+                {
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-3">@doctor.DoctorId</td>
+                        <td class="px-4 py-3 font-medium text-gray-800">@doctor.FullName</td>
+                        <td class="px-4 py-3">@doctor.SpecialtyName</td>
+                        <td class="px-4 py-3">@doctor.LicenseNumber</td>
+                        <td class="px-4 py-3">@doctor.PhoneNumber</td>
+                        <td class="px-4 py-3">@doctor.YearsOfExperience</td>
+                        <td class="px-4 py-3">
+                            @if (doctor.IsActive)
+                            {
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-800">Activo</span>
+                            }
+                            else
+                            {
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-800">Inactivo</span>
+                            }
+                        </td>
+                        <td class="px-4 py-3">
+                            <div class="flex gap-2">
+                                <a asp-action="Edit" asp-route-id="@doctor.DoctorId"
+                                   class="inline-flex items-center gap-1 bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-semibold py-1.5 px-3 rounded-lg transition">Editar</a>
+                                <a asp-action="Details" asp-route-id="@doctor.DoctorId"
+                                   class="inline-flex items-center gap-1 bg-sky-500 hover:bg-sky-600 text-white text-xs font-semibold py-1.5 px-3 rounded-lg transition">Detalles</a>
+                                <a asp-action="Delete" asp-route-id="@doctor.DoctorId"
+                                   class="inline-flex items-center gap-1 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold py-1.5 px-3 rounded-lg transition">Eliminar</a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

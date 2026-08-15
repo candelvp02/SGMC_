@@ -29,9 +29,9 @@ namespace SGMC.Web.Controllers
         public async Task<ActionResult> Index([FromQuery] ReportFilterDto filter)
         {
             if (filter.StartDate == null)
-                filter.StartDate = DateTime.Now.AddMonths(-1);
+                filter.StartDate = new DateTime(DateTime.Now.Year, 1, 1);
             if (filter.EndDate == null)
-                filter.EndDate = DateTime.Now;
+                filter.EndDate = new DateTime(DateTime.Now.Year, 12, 31);
 
             // 1. Obtener las estadísticas
             var statsResult = await _reportService.GetAppointmentStatisticsAsync(filter);
@@ -50,7 +50,7 @@ namespace SGMC.Web.Controllers
                     PatientName = dto.PatientName,
                     DoctorName = dto.DoctorName,
                     StatusName = dto.StatusName,
-                    StatusColor = GetStatusColor(dto.StatusName) 
+                    StatusColor = GetStatusColor(dto.StatusName)
                 }).ToList();
             }
 
@@ -137,17 +137,22 @@ namespace SGMC.Web.Controllers
                 new StatusSelectViewModel { StatusId = 1, StatusName = "Pendiente" },
                 new StatusSelectViewModel { StatusId = 2, StatusName = "Confirmada" },
                 new StatusSelectViewModel { StatusId = 3, StatusName = "Cancelada" },
-                new StatusSelectViewModel { StatusId = 4, StatusName = "Completada" }
+                new StatusSelectViewModel { StatusId = 4, StatusName = "Completada" },
+                new StatusSelectViewModel { StatusId = 5, StatusName = "Rechazada" }
             };
         }
         private string GetStatusColor(string? statusName)
         {
+            // Misma paleta usada en el resto de la app (ver _StatusBadge.cshtml
+            // y AppointmentViewModel.StatusBadgeClass) para que los colores
+            // signifiquen lo mismo en todas las pantallas.
             return statusName switch
             {
-                "Pendiente" => "warning",
-                "Confirmada" => "info",
-                "Completada" => "success",
-                "Cancelada" => "danger",
+                "Pendiente" => "warning",   // amarillo
+                "Confirmada" => "success",  // verde
+                "Completada" => "info",     // celeste
+                "Cancelada" => "danger",    // rojo
+                "Rechazada" => "secondary", // gris
                 _ => "secondary"
             };
         }

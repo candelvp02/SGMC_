@@ -1,0 +1,28 @@
+@model SGMC.Application.Dto.Users.UserDto
+@{
+    ViewData["Title"] = "Eliminar Usuario";
+}
+
+<div class="max-w-xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 pb-10">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h1 class="text-xl font-bold text-gray-800 mb-2">Eliminar Usuario</h1>
+        <p class="text-red-600 font-semibold mb-4">¿Está seguro de que desea desactivar este usuario?</p>
+
+        <dl class="text-sm divide-y divide-gray-100 border-t border-gray-100 mb-5">
+            <div class="flex justify-between py-2"><dt class="text-gray-500">ID</dt><dd class="text-gray-800">@Model.UserId</dd></div>
+            <div class="flex justify-between py-2"><dt class="text-gray-500">Correo Electrónico</dt><dd class="font-semibold text-gray-800">@Model.Email</dd></div>
+            <div class="flex justify-between py-2"><dt class="text-gray-500">Rol</dt><dd class="text-gray-800">@Model.RoleName</dd></div>
+            <div class="flex justify-between py-2"><dt class="text-gray-500">Estado</dt><dd class="text-gray-800">@(Model.IsActive ? "Activo" : "Inactivo")</dd></div>
+        </dl>
+
+        <form asp-action="Delete" class="flex gap-2">
+            <input type="hidden" asp-for="UserId" />
+            <input type="submit" value="Eliminar"
+                   class="inline-flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold py-2 px-4 rounded-lg transition cursor-pointer" />
+            <a asp-action="Index"
+               class="inline-flex items-center gap-1.5 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-semibold py-2 px-4 rounded-lg transition">
+                Cancelar
+            </a>
+        </form>
+    </div>
+</div>

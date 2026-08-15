@@ -1,104 +1,79 @@
-﻿@model SGMC.Application.Dto.Users.PatientDto
+@model SGMC.Application.Dto.Users.PatientDto
 
 @{
     ViewData["Title"] = "Desactivar Paciente";
 }
 
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-md-8 offset-md-2">
-            <div class="card border-danger">
-                <div class="card-header bg-danger text-white">
-                    <h3 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Confirmar Desactivación</h3>
-                </div>
-                <div class="card-body">
-                    <div class="alert alert-warning" role="alert">
-                        <h5 class="alert-heading">¡Atención!</h5>
-                        <p>Está a punto de desactivar el registro del siguiente paciente. Esta acción cambiará el estado del paciente a inactivo.</p>
-                        <hr>
-                        <p class="mb-0">¿Está seguro de que desea continuar?</p>
+<div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 pb-10">
+
+    <div class="bg-white rounded-xl shadow-sm border border-red-200 overflow-hidden">
+        <div class="bg-red-600 text-white px-5 py-4">
+            <h1 class="text-lg font-bold flex items-center gap-2">
+                <i class="fas fa-triangle-exclamation"></i> Confirmar Desactivación
+            </h1>
+        </div>
+
+        <div class="p-5">
+            <div class="bg-yellow-50 border border-yellow-300 text-yellow-800 rounded-lg px-4 py-3 mb-5">
+                <h2 class="font-semibold mb-1">¡Atención!</h2>
+                <p class="text-sm">Está a punto de desactivar el registro del siguiente paciente. Esta acción cambiará el estado del paciente a inactivo.</p>
+                <hr class="border-yellow-300 my-2" />
+                <p class="text-sm mb-0">¿Está seguro de que desea continuar?</p>
+            </div>
+
+            <!-- Resumen del Paciente -->
+            <div class="bg-gray-50 rounded-lg border border-gray-100 p-4 mb-5">
+                <h2 class="font-semibold text-gray-700 text-sm mb-3">Información del Paciente</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 text-sm">
+                    <div class="flex justify-between"><dt class="text-gray-500">ID Paciente:</dt><dd class="text-gray-800">@Model.PatientId</dd></div>
+                    <div class="flex justify-between"><dt class="text-gray-500">Email:</dt><dd class="text-gray-800">@Model.Email</dd></div>
+                    <div class="flex justify-between"><dt class="text-gray-500">Nombre:</dt><dd class="font-semibold text-gray-800">@Model.FullName</dd></div>
+                    <div class="flex justify-between items-center"><dt class="text-gray-500">Tipo de Sangre:</dt><dd><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-800">@Model.BloodType</span></dd></div>
+                    <div class="flex justify-between"><dt class="text-gray-500">Cédula:</dt><dd class="text-gray-800">@Model.IdentificationNumber</dd></div>
+                    <div class="flex justify-between"><dt class="text-gray-500">Proveedor de Seguro:</dt><dd class="text-gray-800">@Model.InsuranceProviderName</dd></div>
+                    <div class="flex justify-between"><dt class="text-gray-500">Teléfono:</dt><dd class="text-gray-800">@Model.PhoneNumber</dd></div>
+                    <div class="flex justify-between items-center">
+                        <dt class="text-gray-500">Estado Actual:</dt>
+                        <dd>
+                            @if (Model.IsActive)
+                            {
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-800">Activo</span>
+                            }
+                            else
+                            {
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-800">Inactivo</span>
+                            }
+                        </dd>
                     </div>
-
-                    <!-- Resumen del Paciente -->
-                    <div class="card mb-3">
-                        <div class="card-body">
-                            <h5 class="card-title">Información del Paciente</h5>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <dl class="row">
-                                        <dt class="col-sm-6">ID Paciente:</dt>
-                                        <dd class="col-sm-6">@Model.PatientId</dd>
-
-                                        <dt class="col-sm-6">Nombre:</dt>
-                                        <dd class="col-sm-6"><strong>@Model.FullName</strong></dd>
-
-                                        <dt class="col-sm-6">Cédula:</dt>
-                                        <dd class="col-sm-6">@Model.IdentificationNumber</dd>
-
-                                        <dt class="col-sm-6">Teléfono:</dt>
-                                        <dd class="col-sm-6">@Model.PhoneNumber</dd>
-                                    </dl>
-                                </div>
-                                <div class="col-md-6">
-                                    <dl class="row">
-                                        <dt class="col-sm-6">Email:</dt>
-                                        <dd class="col-sm-6">@Model.Email</dd>
-
-                                        <dt class="col-sm-6">Tipo de Sangre:</dt>
-                                        <dd class="col-sm-6">
-                                            <span class="badge bg-danger">@Model.BloodType</span>
-                                        </dd>
-
-                                        <dt class="col-sm-6">Proveedor de Seguro:</dt>
-                                        <dd class="col-sm-6">@Model.InsuranceProviderName</dd>
-
-                                        <dt class="col-sm-6">Estado Actual:</dt>
-                                        <dd class="col-sm-6">
-                                            @if (Model.IsActive)
-                                            {
-                                                <span class="badge bg-success">Activo</span>
-                                            }
-                                            else
-                                            {
-                                                <span class="badge bg-secondary">Inactivo</span>
-                                            }
-                                        </dd>
-                                    </dl>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Formulario de Confirmación -->
-                    <form asp-action="DeleteConfirmed" method="post">
-                        <input type="hidden" name="id" value="@Model.PatientId" />
-
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <a asp-action="Index" class="btn btn-secondary">
-                                <i class="bi bi-x-circle"></i> Cancelar
-                            </a>
-                            <button type="submit" class="btn btn-danger">
-                                <i class="bi bi-check-circle"></i> Confirmar Desactivación
-                            </button>
-                        </div>
-                    </form>
                 </div>
             </div>
 
-            <!-- Notas Adicionales -->
-            <div class="alert alert-info mt-3" role="alert">
-                <h6 class="alert-heading"><i class="bi bi-info-circle"></i> Nota Importante</h6>
-                <ul class="mb-0">
-                    <li>El paciente será marcado como inactivo en el sistema</li>
-                    <li>Los datos históricos del paciente se mantendrán en el sistema</li>
-                    <li>Las citas futuras asociadas pueden verse afectadas</li>
-                    <li>El paciente puede ser reactivado posteriormente si es necesario</li>
-                </ul>
-            </div>
+            <!-- Formulario de Confirmación -->
+            <form asp-action="DeleteConfirmed" method="post" class="flex justify-end gap-2">
+                <input type="hidden" name="id" value="@Model.PatientId" />
+                <a asp-action="Index"
+                   class="inline-flex items-center gap-1.5 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-semibold py-2 px-4 rounded-lg transition">
+                    <i class="fas fa-circle-xmark"></i> Cancelar
+                </a>
+                <button type="submit"
+                        class="inline-flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold py-2 px-4 rounded-lg transition">
+                    <i class="fas fa-check-circle"></i> Confirmar Desactivación
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Notas Adicionales -->
+    <div class="flex items-start gap-3 bg-sky-50 border border-sky-300 text-sky-800 px-4 py-3 rounded-lg mt-4">
+        <i class="fas fa-circle-info mt-1"></i>
+        <div>
+            <h3 class="font-semibold mb-1">Nota Importante</h3>
+            <ul class="list-disc list-inside text-sm space-y-0.5">
+                <li>El paciente será marcado como inactivo en el sistema</li>
+                <li>Los datos históricos del paciente se mantendrán en el sistema</li>
+                <li>Las citas futuras asociadas pueden verse afectadas</li>
+                <li>El paciente puede ser reactivado posteriormente si es necesario</li>
+            </ul>
         </div>
     </div>
 </div>
-
-@section Styles {
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-}

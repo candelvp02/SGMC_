@@ -1,178 +1,131 @@
-﻿@model SGMC.Application.Dto.Users.PatientDto
+@model SGMC.Application.Dto.Users.PatientDto
 
 @{
     ViewData["Title"] = "Detalles del Paciente";
 }
 
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-md-10 offset-md-1">
-            <div class="card">
-                <div class="card-header bg-info text-white">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h3 class="mb-0">Detalles del Paciente</h3>
-                        @if (Model != null && Model.IsActive)
-                        {
-                            <span class="badge bg-success">Activo</span>
-                        }
-                        else if (Model != null)
-                        {
-                            <span class="badge bg-danger">Inactivo</span>
-                        }
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 pb-10">
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="bg-sky-500 text-white px-5 py-4 flex justify-between items-center">
+            <h1 class="text-lg font-bold">Detalles del Paciente</h1>
+            @if (Model != null && Model.IsActive)
+            {
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-green-100 text-green-800">Activo</span>
+            }
+            else if (Model != null)
+            {
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-red-100 text-red-800">Inactivo</span>
+            }
+        </div>
+
+        <div class="p-5">
+            @if (ViewBag.ErrorMessage != null)
+            {
+                <div class="flex items-center gap-3 bg-red-50 border border-red-300 text-red-800 px-4 py-3 rounded-lg mb-4">
+                    <i class="fas fa-exclamation-circle text-red-500"></i> @ViewBag.ErrorMessage
+                </div>
+            }
+            @if (Model == null)
+            {
+                <div class="flex items-center gap-3 bg-red-50 border border-red-300 text-red-800 px-4 py-3 rounded-lg">
+                    <i class="fas fa-exclamation-circle text-red-500"></i> No se pudo cargar la información del paciente.
+                </div>
+            }
+            else
+            {
+                <!-- Información Personal -->
+                <div class="bg-gray-50 rounded-lg border border-gray-100 mb-4">
+                    <div class="px-4 py-2.5 border-b border-gray-100 font-semibold text-gray-700 text-sm flex items-center gap-2">
+                        <i class="fas fa-id-badge text-gray-400"></i> Información Personal
+                    </div>
+                    <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        <dl class="space-y-2">
+                            <div class="flex justify-between"><dt class="text-gray-500">ID Paciente:</dt><dd class="text-gray-800">@Model.PatientId</dd></div>
+                            <div class="flex justify-between"><dt class="text-gray-500">Nombre Completo:</dt><dd class="font-semibold text-gray-800">@Model.FullName</dd></div>
+                            <div class="flex justify-between"><dt class="text-gray-500">Cédula:</dt><dd class="text-gray-800">@Model.IdentificationNumber</dd></div>
+                            <div class="flex justify-between">
+                                <dt class="text-gray-500">Fecha de Nacimiento:</dt>
+                                <dd class="text-gray-800">
+                                    @if (Model.DateOfBirth.HasValue)
+                                    {
+                                        @Model.DateOfBirth.Value.ToString("dd/MM/yyyy")
+                                    }
+                                    else
+                                    {
+                                        <em class="text-gray-400">No especificada</em>
+                                    }
+                                </dd>
+                            </div>
+                        </dl>
+                        <dl class="space-y-2">
+                            <div class="flex justify-between"><dt class="text-gray-500">Género:</dt><dd class="text-gray-800">@(Model.Gender == "M" ? "Masculino" : Model.Gender == "F" ? "Femenino" : "No especificado")</dd></div>
+                            <div class="flex justify-between items-center"><dt class="text-gray-500">Tipo de Sangre:</dt><dd><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-800">@Model.BloodType</span></dd></div>
+                            <div class="flex justify-between"><dt class="text-gray-500">Email:</dt><dd class="text-blue-600"><a href="mailto:@Model.Email">@Model.Email</a></dd></div>
+                        </dl>
                     </div>
                 </div>
-                <div class="card-body">
-                    @if (ViewBag.ErrorMessage != null)
-                    {
-                        <div class="alert alert-danger">
-                            @ViewBag.ErrorMessage
-                        </div>
-                    }
-                    @if (Model == null)
-                    {
-                        <div class="alert alert-danger">
-                            No se pudo cargar la información del paciente.
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="card mb-3">
-                            <div class="card-header bg-light">
-                                <h5 class="mb-0"><i class="bi bi-person-badge"></i> Información Personal</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <dl class="row">
-                                            <dt class="col-sm-5">ID Paciente:</dt>
-                                            <dd class="col-sm-7">@Model.PatientId</dd>
 
-                                            <dt class="col-sm-5">Nombre Completo:</dt>
-                                            <dd class="col-sm-7"><strong>@Model.FullName</strong></dd>
-
-                                            <dt class="col-sm-5">Cédula:</dt>
-                                            <dd class="col-sm-7">@Model.IdentificationNumber</dd>
-
-                                            <dt class="col-sm-5">Fecha de Nacimiento:</dt>
-                                            <dd class="col-sm-7">
-                                                @if (Model.DateOfBirth.HasValue)
-                                                {
-                                                    @Model.DateOfBirth.Value.ToString("dd/MM/yyyy")
-                                                }
-                                                else
-                                                {
-                                                    <em>No especificada</em>
-                                                }
-                                            </dd>
-                                        </dl>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <dl class="row">
-                                            <dt class="col-sm-5">Género:</dt>
-                                            <dd class="col-sm-7">
-                                                @(Model.Gender == "M" ? "Masculino" : Model.Gender == "F" ? "Femenino" : "No especificado")
-                                            </dd>
-
-                                            <dt class="col-sm-5">Tipo de Sangre:</dt>
-                                            <dd class="col-sm-7">
-                                                <span class="badge bg-danger">@Model.BloodType</span>
-                                            </dd>
-
-                                            <dt class="col-sm-5">Email:</dt>
-                                            <dd class="col-sm-7">
-                                                <a href="mailto:@Model.Email">@Model.Email</a>
-                                            </dd>
-                                        </dl>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="card mb-3">
-                            <div class="card-header bg-light">
-                                <h5 class="mb-0"><i class="bi bi-telephone"></i> Información de Contacto</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <dl class="row">
-                                            <dt class="col-sm-5">Teléfono:</dt>
-                                            <dd class="col-sm-7">
-                                                <a href="tel:@Model.PhoneNumber">@Model.PhoneNumber</a>
-                                            </dd>
-
-                                            <dt class="col-sm-5">Dirección:</dt>
-                                            <dd class="col-sm-7">@Model.Address</dd>
-                                        </dl>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <dl class="row">
-                                            <dt class="col-sm-6">Contacto de Emergencia:</dt>
-                                            <dd class="col-sm-6"><strong>@Model.EmergencyContactName</strong></dd>
-
-                                            <dt class="col-sm-6">Teléfono de Emergencia:</dt>
-                                            <dd class="col-sm-6">
-                                                <a href="tel:@Model.EmergencyContactPhone">@Model.EmergencyContactPhone</a>
-                                            </dd>
-                                        </dl>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="card mb-3">
-                            <div class="card-header bg-light">
-                                <h5 class="mb-0"><i class="bi bi-heart-pulse"></i> Información Médica</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <dl class="row">
-                                            <dt class="col-sm-5">Proveedor de Seguro:</dt>
-                                            <dd class="col-sm-7">
-                                                <span class="badge bg-primary">@Model.InsuranceProviderName</span>
-                                            </dd>
-                                        </dl>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <dl class="row">
-                                            <dt class="col-sm-5">Alergias:</dt>
-                                            <dd class="col-sm-7">
-                                                @if (!string.IsNullOrWhiteSpace(Model.Allergies))
-                                                {
-                                                    <div class="alert alert-warning mb-0 py-1">
-                                                        <i class="bi bi-exclamation-triangle"></i> @Model.Allergies
-                                                    </div>
-                                                }
-                                                else
-                                                {
-                                                    <em>Sin alergias registradas</em>
-                                                }
-                                            </dd>
-                                        </dl>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
-                            <a asp-action="Index" class="btn btn-secondary">
-                                <i class="bi bi-arrow-left"></i> Volver al Listado
-                            </a>
-                            <a asp-action="Edit" asp-route-id="@Model.PatientId" class="btn btn-warning">
-                                <i class="bi bi-pencil"></i> Editar
-                            </a>
-                            <a asp-action="Delete" asp-route-id="@Model.PatientId" class="btn btn-danger">
-                                <i class="bi bi-trash"></i> Desactivar
-                            </a>
-                        </div>
-                    }
+                <!-- Información de Contacto -->
+                <div class="bg-gray-50 rounded-lg border border-gray-100 mb-4">
+                    <div class="px-4 py-2.5 border-b border-gray-100 font-semibold text-gray-700 text-sm flex items-center gap-2">
+                        <i class="fas fa-phone text-gray-400"></i> Información de Contacto
+                    </div>
+                    <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        <dl class="space-y-2">
+                            <div class="flex justify-between"><dt class="text-gray-500">Teléfono:</dt><dd class="text-blue-600"><a href="tel:@Model.PhoneNumber">@Model.PhoneNumber</a></dd></div>
+                            <div class="flex justify-between"><dt class="text-gray-500">Dirección:</dt><dd class="text-gray-800 text-right max-w-[60%]">@Model.Address</dd></div>
+                        </dl>
+                        <dl class="space-y-2">
+                            <div class="flex justify-between"><dt class="text-gray-500">Contacto de Emergencia:</dt><dd class="font-semibold text-gray-800">@Model.EmergencyContactName</dd></div>
+                            <div class="flex justify-between"><dt class="text-gray-500">Teléfono de Emergencia:</dt><dd class="text-blue-600"><a href="tel:@Model.EmergencyContactPhone">@Model.EmergencyContactPhone</a></dd></div>
+                        </dl>
+                    </div>
                 </div>
-            </div>
+
+                <!-- Información Médica -->
+                <div class="bg-gray-50 rounded-lg border border-gray-100 mb-4">
+                    <div class="px-4 py-2.5 border-b border-gray-100 font-semibold text-gray-700 text-sm flex items-center gap-2">
+                        <i class="fas fa-heart-pulse text-gray-400"></i> Información Médica
+                    </div>
+                    <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        <div class="flex justify-between items-center">
+                            <dt class="text-gray-500">Proveedor de Seguro:</dt>
+                            <dd><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">@Model.InsuranceProviderName</span></dd>
+                        </div>
+                        <div class="flex justify-between items-start">
+                            <dt class="text-gray-500">Alergias:</dt>
+                            <dd class="text-right max-w-[70%]">
+                                @if (!string.IsNullOrWhiteSpace(Model.Allergies))
+                                {
+                                    <span class="inline-flex items-center gap-1 bg-yellow-50 border border-yellow-300 text-yellow-800 px-2 py-1 rounded text-xs">
+                                        <i class="fas fa-triangle-exclamation"></i> @Model.Allergies
+                                    </span>
+                                }
+                                else
+                                {
+                                    <em class="text-gray-400">Sin alergias registradas</em>
+                                }
+                            </dd>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-2 mt-5">
+                    <a asp-action="Index"
+                       class="inline-flex items-center gap-1.5 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-semibold py-2 px-4 rounded-lg transition">
+                        <i class="fas fa-arrow-left"></i> Volver al Listado
+                    </a>
+                    <a asp-action="Edit" asp-route-id="@Model.PatientId"
+                       class="inline-flex items-center gap-1.5 bg-yellow-500 hover:bg-yellow-600 text-white text-sm font-semibold py-2 px-4 rounded-lg transition">
+                        <i class="fas fa-pen"></i> Editar
+                    </a>
+                    <a asp-action="Delete" asp-route-id="@Model.PatientId"
+                       class="inline-flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold py-2 px-4 rounded-lg transition">
+                        <i class="fas fa-trash"></i> Desactivar
+                    </a>
+                </div>
+            }
         </div>
     </div>
 </div>
-
-@section Styles {
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-}

@@ -17,6 +17,8 @@ namespace SGMC.Web.Controllers
         // GET: Doctor
         public async Task<ActionResult> Index()
         {
+            ViewBag.ErrorMessage = TempData["ErrorMessage"];
+
             var apiResult = await _doctorApiClient.GetAllAsync();
 
             if (!apiResult.Success || apiResult.Data == null)
@@ -93,6 +95,7 @@ namespace SGMC.Web.Controllers
             var updateDto = new UpdateDoctorDto
             {
                 DoctorId = dto.DoctorId,
+                SpecialtyId = dto.SpecialtyId,
                 PhoneNumber = dto.PhoneNumber,
                 YearsOfExperience = dto.YearsOfExperience,
                 Education = dto.Education,
@@ -100,6 +103,7 @@ namespace SGMC.Web.Controllers
                 ConsultationFee = dto.ConsultationFee,
                 ClinicAddress = dto.ClinicAddress,
                 LicenseExpirationDate = dto.LicenseExpirationDate,
+                IsActive = dto.IsActive,
             };
 
             return View(updateDto);
@@ -159,14 +163,14 @@ namespace SGMC.Web.Controllers
 
                 if (!apiResult.Success)
                 {
-                    ViewBag.ErrorMessage = apiResult.ErrorMessage ?? "No se pudo eliminar el doctor en la API.";
+                    TempData["ErrorMessage"] = apiResult.ErrorMessage ?? "No se pudo eliminar el doctor en la API.";
                 }
 
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
-                ViewBag.ErrorMessage = $"Error al eliminar doctor: {ex.Message}";
+                TempData["ErrorMessage"] = $"Error al eliminar doctor: {ex.Message}";
                 return RedirectToAction(nameof(Index));
             }
         }

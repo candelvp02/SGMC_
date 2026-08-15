@@ -680,6 +680,9 @@ namespace SGMC.Application.Services
                 else
                     appointments = await _repository.GetAllWithDetailsAsync();
 
+                if (filter.StatusId.HasValue && (filter.PatientId.HasValue || filter.DoctorId.HasValue))
+                    appointments = appointments.Where(a => a.StatusId == filter.StatusId.Value);
+
                 var list = appointments.Select(MapToDto).ToList();
                 return OperationResult<List<AppointmentDto>>.Exito(list, "Citas obtenidas correctamente.");
             }

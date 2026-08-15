@@ -1,4 +1,4 @@
-﻿@model SGMC.Web.Models.Appointment.DoctorPendingAppointmentsViewModel
+@model SGMC.Web.Models.Appointment.DoctorPendingAppointmentsViewModel
 @{
     ViewData["Title"] = "Solicitudes Pendientes";
 }
@@ -30,29 +30,7 @@
         </div>
     }
 
-    {{-- Selector de médico (temporal, mientras no exista login de médico) --}}
-    <form method="get" asp-action="Pending" class="mb-6">
-        <label for="doctorId" class="block text-sm font-semibold text-gray-700 mb-1">Selecciona tu perfil de médico</label>
-        <select id="doctorId" name="doctorId" class="form-select w-full sm:w-96 rounded-lg border-gray-300"
-                onchange="this.form.submit()">
-            <option value="">-- Selecciona un médico --</option>
-            @foreach (var doctor in Model.Doctors)
-            {
-                <option value="@doctor.DoctorId" selected="@(doctor.DoctorId == Model.SelectedDoctorId)">
-                    @doctor.FullName — @doctor.SpecialtyName
-                </option>
-            }
-        </select>
-    </form>
-
-    @if (!Model.SelectedDoctorId.HasValue)
-    {
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-10 text-center">
-            <i class="fas fa-user-md text-gray-300 text-4xl mb-3"></i>
-            <p class="text-gray-500">Selecciona un médico para ver sus solicitudes pendientes.</p>
-        </div>
-    }
-    else if (!Model.PendingAppointments.Any())
+    @if (!Model.PendingAppointments.Any())
     {
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-10 text-center">
             <i class="fas fa-check-circle text-green-300 text-4xl mb-3"></i>
@@ -86,7 +64,6 @@
                         <form method="post" asp-action="Confirm" onsubmit="return confirm('¿Confirmar esta cita?');">
                             @Html.AntiForgeryToken()
                             <input type="hidden" name="id" value="@appt.AppointmentId" />
-                            <input type="hidden" name="doctorId" value="@Model.SelectedDoctorId" />
                             <button type="submit"
                                     class="inline-flex items-center gap-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold py-2 px-4 rounded-lg transition">
                                 <i class="fas fa-check"></i> Confirmar
@@ -96,7 +73,6 @@
                         <form method="post" asp-action="Reject" onsubmit="return confirm('¿Rechazar esta solicitud? El paciente deberá elegir otra fecha.');">
                             @Html.AntiForgeryToken()
                             <input type="hidden" name="id" value="@appt.AppointmentId" />
-                            <input type="hidden" name="doctorId" value="@Model.SelectedDoctorId" />
                             <button type="submit"
                                     class="inline-flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold py-2 px-4 rounded-lg transition">
                                 <i class="fas fa-times"></i> Rechazar

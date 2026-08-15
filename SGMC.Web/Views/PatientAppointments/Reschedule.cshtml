@@ -1,127 +1,125 @@
-﻿@model SGMC.Web.Models.Appointment.RescheduleAppointmentViewModel
+@model SGMC.Web.Models.Appointment.RescheduleAppointmentViewModel
 @{
     ViewData["Title"] = "Reprogramar Cita";
 }
 
-<div class="container py-4">
-    <h2 class="mb-1 fw-bold text-primary">
-        <i class="bi bi-calendar-event me-2"></i>Reprogramar Cita
-    </h2>
-    <p class="text-muted mb-4">Selecciona una nueva fecha y hora disponible con el mismo médico.</p>
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <h1 class="text-2xl font-bold text-blue-600 mb-1 flex items-center gap-2">
+        <i class="fas fa-calendar-days"></i> Reprogramar Cita
+    </h1>
+    <p class="text-gray-500 mb-6">Selecciona una nueva fecha y hora disponible con el mismo médico.</p>
 
-    {{-- Resumen de la cita actual --}}
-    <div class="alert alert-secondary d-flex justify-content-between align-items-center mb-4">
+    @* Resumen de la cita actual *@
+    <div class="flex justify-between items-center bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 mb-6">
         <div>
-            <div class="fw-semibold">@Model.DoctorName</div>
-            <div class="text-muted small">
+            <div class="font-semibold text-gray-800">@Model.DoctorName</div>
+            <div class="text-gray-500 text-sm">
                 Cita actual:
                 @Model.CurrentAppointmentDate.ToString("dddd d 'de' MMMM, HH:mm", new System.Globalization.CultureInfo("es-DO"))
-                — <span class="badge bg-warning text-dark">@Model.CurrentStatusName</span>
+                — <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">@Model.CurrentStatusName</span>
             </div>
         </div>
     </div>
 
-    {{-- Barra de progreso (2 pasos, el médico ya está fijo) --}}
-    <div class="d-flex align-items-center mb-4 gap-2">
-        <div class="step-item active" id="step-indicator-1">
+    @* Barra de progreso (2 pasos, el médico ya está fijo) *@
+    <div class="flex items-center gap-2 mb-6">
+        <div class="step-item active flex flex-col items-center gap-1" id="step-indicator-1">
             <span class="step-circle">1</span>
-            <span class="step-label d-none d-md-inline">Nueva fecha y hora</span>
+            <span class="step-label hidden md:inline">Nueva fecha y hora</span>
         </div>
-        <div class="step-line flex-grow-1"></div>
-        <div class="step-item" id="step-indicator-2">
+        <div class="step-line flex-grow"></div>
+        <div class="step-item flex flex-col items-center gap-1" id="step-indicator-2">
             <span class="step-circle">2</span>
-            <span class="step-label d-none d-md-inline">Confirmar</span>
+            <span class="step-label hidden md:inline">Confirmar</span>
         </div>
     </div>
 
-    <div id="alertContainer"></div>
+    <div id="alertContainer" class="mb-4"></div>
 
-    {{-- ═══ PASO 1: Seleccionar nueva fecha y hora ═══ --}}
-    <div id="step1" class="wizard-step card shadow-sm border-0 mb-3">
-        <div class="card-body p-4">
-            <h5 class="card-title mb-3">Paso 1 — Selecciona la nueva fecha y hora</h5>
+    @* ═══ PASO 1: Seleccionar nueva fecha y hora ═══ *@
+    <div id="step1" class="wizard-step bg-white rounded-xl shadow-sm border border-gray-100 mb-4">
+        <div class="p-5">
+            <h2 class="font-semibold text-gray-800 mb-4">Paso 1 — Selecciona la nueva fecha y hora</h2>
 
-            <div class="mb-3">
-                <label for="appointmentDate" class="form-label fw-semibold">Fecha</label>
-                <input type="date" id="appointmentDate" class="form-control"
+            <div class="mb-4">
+                <label for="appointmentDate" class="block text-sm font-semibold text-gray-700 mb-1">Fecha</label>
+                <input type="date" id="appointmentDate"
+                       class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                        min="@DateTime.Now.AddDays(1).ToString("yyyy-MM-dd")" />
             </div>
 
             <div id="slotsContainer" class="mt-3">
-                <p class="text-muted">Selecciona una fecha para ver los horarios disponibles del médico.</p>
+                <p class="text-gray-500 text-sm">Selecciona una fecha para ver los horarios disponibles del médico.</p>
             </div>
 
-            <div class="mt-4 d-flex justify-content-between">
+            <div class="mt-5 flex justify-between">
                 <a asp-controller="PatientAppointments" asp-action="Details" asp-route-id="@Model.AppointmentId"
-                   class="btn btn-outline-secondary">
-                    <i class="bi bi-arrow-left me-1"></i> Cancelar
+                   class="inline-flex items-center gap-1.5 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-semibold py-2 px-4 rounded-lg transition">
+                    <i class="fas fa-arrow-left"></i> Cancelar
                 </a>
-                <button id="btnStep1Next" class="btn btn-primary" disabled>
-                    Siguiente <i class="bi bi-arrow-right ms-1"></i>
+                <button id="btnStep1Next" class="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold py-2 px-4 rounded-lg transition" disabled>
+                    Siguiente <i class="fas fa-arrow-right"></i>
                 </button>
             </div>
         </div>
     </div>
 
-    {{-- ═══ PASO 2: Confirmar reprogramación ═══ --}}
-    <div id="step2" class="wizard-step card shadow-sm border-0 mb-3 d-none">
-        <div class="card-body p-4">
-            <h5 class="card-title mb-3">Paso 2 — Confirma la reprogramación</h5>
+    @* ═══ PASO 2: Confirmar reprogramación ═══ *@
+    <div id="step2" class="wizard-step bg-white rounded-xl shadow-sm border border-gray-100 mb-4 hidden">
+        <div class="p-5">
+            <h2 class="font-semibold text-gray-800 mb-4">Paso 2 — Confirma la reprogramación</h2>
 
-            <div class="table-responsive">
-                <table class="table table-borderless">
-                    <tbody>
-                        <tr>
-                            <th class="text-muted" style="width:40%">Médico</th>
-                            <td class="fw-semibold">@Model.DoctorName</td>
-                        </tr>
-                        <tr>
-                            <th class="text-muted">Fecha y hora anterior</th>
-                            <td class="text-decoration-line-through text-muted">
-                                @Model.CurrentAppointmentDate.ToString("dd/MM/yyyy HH:mm")
-                            </td>
-                        </tr>
-                        <tr>
-                            <th class="text-muted">Nueva fecha y hora</th>
-                            <td id="confirmDateTime" class="fw-semibold text-primary"></td>
-                        </tr>
-                        <tr>
-                            <th class="text-muted">Nuevo estado</th>
-                            <td><span class="badge bg-warning text-dark">Pendiente</span></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+            <table class="w-full text-sm mb-4">
+                <tbody class="divide-y divide-gray-100">
+                    <tr>
+                        <th class="text-left text-gray-500 font-normal py-2 w-2/5">Médico</th>
+                        <td class="font-semibold text-gray-800 py-2">@Model.DoctorName</td>
+                    </tr>
+                    <tr>
+                        <th class="text-left text-gray-500 font-normal py-2">Fecha y hora anterior</th>
+                        <td class="line-through text-gray-400 py-2">@Model.CurrentAppointmentDate.ToString("dd/MM/yyyy HH:mm")</td>
+                    </tr>
+                    <tr>
+                        <th class="text-left text-gray-500 font-normal py-2">Nueva fecha y hora</th>
+                        <td id="confirmDateTime" class="font-semibold text-blue-600 py-2"></td>
+                    </tr>
+                    <tr>
+                        <th class="text-left text-gray-500 font-normal py-2">Nuevo estado</th>
+                        <td class="py-2"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">Pendiente</span></td>
+                    </tr>
+                </tbody>
+            </table>
 
-            <div class="alert alert-info d-flex align-items-start gap-2 mt-2">
-                <i class="bi bi-info-circle-fill mt-1"></i>
+            <div class="flex items-start gap-2 bg-sky-50 border border-sky-300 text-sky-800 px-4 py-3 rounded-lg mt-2">
+                <i class="fas fa-circle-info mt-1"></i>
                 <span>
                     Al reprogramar, la cita volverá a estado <strong>Pendiente</strong> hasta que el médico
                     la confirme nuevamente. Se enviará un correo con los nuevos datos al médico y a ti.
                 </span>
             </div>
 
-            <div class="mt-4 d-flex justify-content-between">
-                <button id="btnStep2Back" class="btn btn-outline-secondary">
-                    <i class="bi bi-arrow-left me-1"></i> Atrás
+            <div class="mt-5 flex justify-between">
+                <button id="btnStep2Back" class="inline-flex items-center gap-1.5 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-semibold py-2 px-4 rounded-lg transition">
+                    <i class="fas fa-arrow-left"></i> Atrás
                 </button>
-                <button id="btnConfirm" class="btn btn-success px-4">
-                    <i class="bi bi-check-circle me-1"></i> Confirmar reprogramación
+                <button id="btnConfirm" class="inline-flex items-center gap-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold py-2 px-5 rounded-lg transition">
+                    <i class="fas fa-check-circle"></i> Confirmar reprogramación
                 </button>
             </div>
         </div>
     </div>
 
-    {{-- ═══ PASO 3: Éxito ═══ --}}
-    <div id="step3" class="wizard-step card shadow-sm border-0 d-none">
-        <div class="card-body p-4 text-center">
+    @* ═══ PASO 3: Éxito ═══ *@
+    <div id="step3" class="wizard-step bg-white rounded-xl shadow-sm border border-gray-100 hidden">
+        <div class="p-8 text-center">
             <div class="mb-3">
-                <i class="bi bi-check-circle-fill text-success" style="font-size:3rem"></i>
+                <i class="fas fa-circle-check text-green-500 text-5xl"></i>
             </div>
-            <h5 class="fw-bold">¡Cita reprogramada con éxito!</h5>
-            <p class="text-muted">Tu cita quedó <strong>Pendiente</strong> de confirmación por el médico.</p>
-            <p class="text-muted small">Recibirás un correo con los nuevos datos en breve.</p>
-            <a asp-controller="PatientAppointments" asp-action="Index" class="btn btn-primary mt-2">
+            <h2 class="font-bold text-lg text-gray-800">¡Cita reprogramada con éxito!</h2>
+            <p class="text-gray-500 mt-1">Tu cita quedó <strong>Pendiente</strong> de confirmación por el médico.</p>
+            <p class="text-gray-400 text-sm mt-1">Recibirás un correo con los nuevos datos en breve.</p>
+            <a asp-controller="PatientAppointments" asp-action="Index"
+               class="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2 px-4 rounded-lg transition mt-4">
                 Ver mis citas
             </a>
         </div>
@@ -130,19 +128,12 @@
 
 @section Styles {
     <style>
-        .step-item {
-            display: flex;
-            align-items: center;
-            gap: .4rem;
-            flex-direction: column;
-        }
-
         .step-circle {
             width: 2rem;
             height: 2rem;
             border-radius: 50%;
-            background: #dee2e6;
-            color: #6c757d;
+            background: #e5e7eb;
+            color: #6b7280;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -152,23 +143,23 @@
         }
 
         .step-item.active .step-circle {
-            background: #0d6efd;
+            background: #2563eb;
             color: #fff;
         }
 
         .step-item.done .step-circle {
-            background: #198754;
+            background: #16a34a;
             color: #fff;
         }
 
         .step-label {
             font-size: .78rem;
-            color: #6c757d;
+            color: #6b7280;
         }
 
         .step-line {
             height: 2px;
-            background: #dee2e6;
+            background: #e5e7eb;
         }
 
         .slot-btn {
@@ -176,9 +167,9 @@
         }
 
             .slot-btn.selected {
-                background: #0d6efd;
+                background: #2563eb;
                 color: #fff;
-                border-color: #0d6efd;
+                border-color: #2563eb;
             }
     </style>
 }
@@ -188,19 +179,24 @@
         const state = {
             appointmentId:   @Model.AppointmentId,
             doctorId:        @Model.DoctorId,
-            doctorName:      '@Model.DoctorName',
+            doctorName: '@Model.DoctorName',
             appointmentDate: null,
-            selectedTime:    null
+            selectedTime: null
         };
 
-        const API = 'https://localhost:7038/api';
+        const API = 'https://localhost:7098/api';
+
+        const alertStyles = {
+            danger: 'bg-red-50 border-red-300 text-red-800',
+            warning: 'bg-yellow-50 border-yellow-300 text-yellow-800',
+            success: 'bg-green-50 border-green-300 text-green-800',
+            info: 'bg-sky-50 border-sky-300 text-sky-800'
+        };
 
         function showAlert(msg, type = 'danger') {
+            const styles = alertStyles[type] || alertStyles.danger;
             document.getElementById('alertContainer').innerHTML =
-                `<div class="alert alert-${type} alert-dismissible fade show" role="alert">
-                    ${msg}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                 </div>`;
+                `<div class="flex items-center gap-3 border px-4 py-3 rounded-lg ${styles}">${msg}</div>`;
         }
 
         function clearAlert() {
@@ -208,8 +204,8 @@
         }
 
         function goToStep(n) {
-            document.querySelectorAll('.wizard-step').forEach(el => el.classList.add('d-none'));
-            document.getElementById(`step${n}`).classList.remove('d-none');
+            document.querySelectorAll('.wizard-step').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`step${n}`).classList.remove('hidden');
 
             for (let i = 1; i <= 2; i++) {
                 const ind = document.getElementById(`step-indicator-${i}`);
@@ -220,39 +216,46 @@
             clearAlert();
         }
 
-        // ── Paso 1: cargar horarios disponibles del MISMO médico ─────────────────
-        document.getElementById('appointmentDate').addEventListener('change', async function () {
+        document.getElementById('appointmentDate').addEventListener('change', async function() {
             state.appointmentDate = this.value;
-            state.selectedTime    = null;
+            state.selectedTime = null;
             document.getElementById('btnStep1Next').disabled = true;
 
             const container = document.getElementById('slotsContainer');
-            container.innerHTML = '<p class="text-muted">Cargando horarios...</p>';
+            container.innerHTML = '<p class="text-gray-500 text-sm">Cargando horarios...</p>';
 
             try {
-                const res  = await fetch(
+                const res = await fetch(
                     `${API}/appointments/availability?doctorId=${state.doctorId}&date=${this.value}`);
-                const data = await res.json();
-                const slots = data.datos || [];
+                const data = await res.json().catch(() => null);
+
+                if (!res.ok) {
+                    throw new Error((data && data.mensaje) || `Error del servidor (${res.status})`);
+                }
+
+                const slots = (data && data.datos) || [];
 
                 if (!slots.length) {
                     container.innerHTML =
-                        '<div class="alert alert-warning">El médico no tiene disponibilidad en esta fecha.</div>';
+                        '<div class="flex items-center gap-3 bg-yellow-50 border border-yellow-300 text-yellow-800 px-4 py-3 rounded-lg">El médico no tiene disponibilidad en esta fecha.</div>';
                     return;
                 }
 
                 container.innerHTML = `
-                    <p class="fw-semibold mb-2">Horarios disponibles:</p>
-                    <div class="d-flex flex-wrap gap-2">
-                        ${slots.map(s => `
-                            <button type="button"
-                                    class="btn btn-outline-primary slot-btn"
-                                    onclick="selectSlot('${s.startTime}', this)">
-                                ${s.startTime}
-                            </button>`).join('')}
-                    </div>`;
-            } catch {
-                container.innerHTML = '<div class="alert alert-danger">Error al cargar horarios.</div>';
+                            <p class="font-semibold text-gray-700 mb-2 text-sm">Horarios disponibles:</p>
+                            <div class="flex flex-wrap gap-2">
+                                ${slots.map(s => `
+                                    <button type="button"
+                                            class="slot-btn border border-blue-600 text-blue-600 hover:bg-blue-50 text-sm font-semibold py-1.5 px-3 rounded-lg transition"
+                                            onclick="selectSlot('${s.startTime}', this)">
+                                        ${s.startTime}
+                                    </button>`).join('')}
+                            </div>`;
+            } catch (err) {
+                console.error('Error al cargar horarios:', err);
+                const detail = err && err.message ? err.message : 'No se pudo conectar con el servidor.';
+                container.innerHTML =
+                    `<div class="flex items-center gap-3 bg-red-50 border border-red-300 text-red-800 px-4 py-3 rounded-lg">Error al cargar horarios: ${detail}</div>`;
             }
         });
 
@@ -273,16 +276,14 @@
 
         document.getElementById('btnStep2Back').addEventListener('click', () => goToStep(1));
 
-        // ── Paso 2: verificación en tiempo real + confirmar reprogramación ────────
         document.getElementById('btnConfirm').addEventListener('click', async () => {
             const btn = document.getElementById('btnConfirm');
             btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Verificando...';
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verificando...';
 
             const newAppointmentDate = `${state.appointmentDate}T${state.selectedTime}:00`;
 
             try {
-                // Verificación en tiempo real antes de confirmar (mismo endpoint de Task 132)
                 const checkRes = await fetch(
                     `${API}/appointments/check-slot?doctorId=${state.doctorId}&appointmentDate=${newAppointmentDate}`);
                 const checkData = await checkRes.json();
@@ -290,20 +291,19 @@
                 if (!checkData.disponible) {
                     showAlert(checkData.mensaje);
                     btn.disabled = false;
-                    btn.innerHTML = '<i class="bi bi-check-circle me-1"></i> Confirmar reprogramación';
+                    btn.innerHTML = '<i class="fas fa-check-circle"></i> Confirmar reprogramación';
                     return;
                 }
 
-                // Task 140: PUT transaccional de reprogramación
                 const payload = {
-                    appointmentId:      state.appointmentId,
+                    appointmentId: state.appointmentId,
                     newAppointmentDate: newAppointmentDate
                 };
 
                 const res = await fetch(`${API}/appointments/${state.appointmentId}/reschedule`, {
-                    method:  'PUT',
+                    method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body:    JSON.stringify(payload)
+                    body: JSON.stringify(payload)
                 });
                 const data = await res.json();
 
@@ -312,12 +312,12 @@
                 } else {
                     showAlert(data.mensaje || 'No se pudo reprogramar la cita. Selecciona otro horario.');
                     btn.disabled = false;
-                    btn.innerHTML = '<i class="bi bi-check-circle me-1"></i> Confirmar reprogramación';
+                    btn.innerHTML = '<i class="fas fa-check-circle"></i> Confirmar reprogramación';
                 }
             } catch {
                 showAlert('Error de conexión. Por favor intenta de nuevo.');
                 btn.disabled = false;
-                btn.innerHTML = '<i class="bi bi-check-circle me-1"></i> Confirmar reprogramación';
+                btn.innerHTML = '<i class="fas fa-check-circle"></i> Confirmar reprogramación';
             }
         });
     </script>

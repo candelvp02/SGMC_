@@ -127,7 +127,7 @@ namespace SGMC.Web.Services
             _jsonOptions = new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true,
-                WriteIndented = true  
+                WriteIndented = true
             };
         }
 
@@ -363,16 +363,16 @@ namespace SGMC.Web.Services
         {
             var apiResponse = new ApiResponse<T>();
 
-            if (!response.IsSuccessStatusCode)
-            {
-                apiResponse.Success = false;
-                apiResponse.ErrorMessage = $"HTTP {(int)response.StatusCode}: {response.ReasonPhrase}";
-                return apiResponse;
-            }
-
             if (content == null)
             {
                 content = await response.Content.ReadAsStringAsync();
+            }
+
+            if (!response.IsSuccessStatusCode)
+            {
+                apiResponse.Success = false;
+                apiResponse.ErrorMessage = ExtractErrorMessage(content, response);
+                return apiResponse;
             }
 
             if (string.IsNullOrWhiteSpace(content))
@@ -405,6 +405,39 @@ namespace SGMC.Web.Services
                 apiResponse.Success = false;
                 apiResponse.ErrorMessage = $"JSON Error: {ex.Message}";
                 return apiResponse;
+            }
+        }
+
+        // Intenta extraer el mensaje y la lista de "errores" del cuerpo de una respuesta
+        // no exitosa (400, 409, etc.); si el cuerpo no viene en el formato esperado,
+        // cae de vuelta al mensaje genérico HTTP.
+        private static string ExtractErrorMessage(string? content, HttpResponseMessage response)
+        {
+            var fallback = $"HTTP {(int)response.StatusCode}: {response.ReasonPhrase}";
+
+            if (string.IsNullOrWhiteSpace(content))
+                return fallback;
+
+            try
+            {
+                var opResult = JsonSerializer.Deserialize<OperationResultDto<object>>(
+                    content,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                if (opResult == null)
+                    return fallback;
+
+                if (opResult.Errores != null && opResult.Errores.Count > 0)
+                    return string.Join(" ", opResult.Errores);
+
+                if (!string.IsNullOrWhiteSpace(opResult.Mensaje))
+                    return opResult.Mensaje;
+
+                return fallback;
+            }
+            catch (JsonException)
+            {
+                return fallback;
             }
         }
     }

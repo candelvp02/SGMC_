@@ -19,10 +19,11 @@ namespace SGMC.Web.Controllers
         // Constructor completo: usado por ASP.NET Core DI en producción,
         // habilita Pending/Confirm/Reject/Reminder (necesitan la lista de
         // doctores y el servicio de recordatorios).
+        [Microsoft.Extensions.DependencyInjection.ActivatorUtilitiesConstructor]
         public DoctorAppointmentsController(
-            IAppointmentService appointmentService,
-            IDoctorService doctorService,
-            IReminderService reminderService)
+                    IAppointmentService appointmentService,
+                    IDoctorService doctorService,
+                    IReminderService reminderService)
         {
             _appointmentService = appointmentService;
             _doctorService = doctorService;
@@ -146,31 +147,31 @@ namespace SGMC.Web.Controllers
             return View(AppointmentDetailsViewModel.FromDto(result.Datos));
         }
 
-        // GET: /DoctorAppointments/Pending?doctorId=5
-        public async Task<IActionResult> Pending(int? doctorId)
+        // GET: /DoctorAppointments/Pending
+        public async Task<IActionResult> Pending()
         {
+            var doctorId = GetCurrentDoctorId();
+            if (doctorId == null)
+                return RedirectToAction("Login", "Account");
+
             var viewModel = new DoctorPendingAppointmentsViewModel
             {
-                SelectedDoctorId = doctorId,
-                Doctors = await GetDoctorsList()
+                SelectedDoctorId = doctorId
             };
 
-            if (doctorId.HasValue && doctorId.Value > 0)
-            {
-                var filter = new AppointmentFilterDto { DoctorId = doctorId.Value, StatusId = 1 };
-                var result = await _appointmentService.GetFilteredAppointmentsAsync(filter);
+            var filter = new AppointmentFilterDto { DoctorId = doctorId.Value, StatusId = 1 };
+            var result = await _appointmentService.GetFilteredAppointmentsAsync(filter);
 
-                if (!result.Exitoso || result.Datos == null)
-                {
-                    TempData["Error"] = result.Mensaje;
-                }
-                else
-                {
-                    viewModel.PendingAppointments = result.Datos
-                        .OrderBy(a => a.AppointmentDate)
-                        .Select(PendingAppointmentViewModel.FromDto)
-                        .ToList();
-                }
+            if (!result.Exitoso || result.Datos == null)
+            {
+                TempData["Error"] = result.Mensaje;
+            }
+            else
+            {
+                viewModel.PendingAppointments = result.Datos
+                    .OrderBy(a => a.AppointmentDate)
+                    .Select(PendingAppointmentViewModel.FromDto)
+                    .ToList();
             }
 
             return View(viewModel);
@@ -179,25 +180,25 @@ namespace SGMC.Web.Controllers
         // POST: /DoctorAppointments/Confirm/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Confirm(int id, int doctorId)
+        public async Task<IActionResult> Confirm(int id)
         {
             var result = await _appointmentService.ConfirmAsync(id);
 
             TempData[result.Exitoso ? "Success" : "Error"] = result.Mensaje;
 
-            return RedirectToAction(nameof(Pending), new { doctorId });
+            return RedirectToAction(nameof(Pending));
         }
 
         // POST: /DoctorAppointments/Reject/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Reject(int id, int doctorId)
+        public async Task<IActionResult> Reject(int id)
         {
             var result = await _appointmentService.RejectAsync(id);
 
             TempData[result.Exitoso ? "Success" : "Error"] = result.Mensaje;
 
-            return RedirectToAction(nameof(Pending), new { doctorId });
+            return RedirectToAction(nameof(Pending));
         }
 
         // GET: /DoctorAppointments/Reminder/5

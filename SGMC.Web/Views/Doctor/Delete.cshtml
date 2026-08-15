@@ -1,25 +1,29 @@
-﻿@model SGMC.Application.Dto.Users.DoctorDto
+@model SGMC.Application.Dto.Users.DoctorDto
 @using SGMC.Application.Dto.System
 @{
     ViewData["Title"] = "Eliminar Doctor";
 }
-<h1>Eliminar Doctor</h1>
-<h3 class="text-danger">¿Está seguro de que desea eliminar este doctor?</h3>
-<div>
-    <hr />
-    <dl class="row">
-        <dt class="col-sm-3">ID</dt>
-        <dd class="col-sm-9">@Model.DoctorId</dd>
-        <dt class="col-sm-3">Nombre Completo</dt>
-        <dd class="col-sm-9"><strong>@Model.FullName</strong></dd>
-        <dt class="col-sm-3">Especialidad</dt>
-        <dd class="col-sm-9">@Model.SpecialtyName</dd>
-        <dt class="col-sm-3">Número de Licencia</dt>
-        <dd class="col-sm-9">@Model.LicenseNumber</dd>
-    </dl>
-    <form asp-action="Delete">
-        <input type="hidden" asp-for="DoctorId" />
-        <input type="submit" value="Eliminar" class="btn btn-danger" /> |
-        <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
-    </form>
+
+<div class="max-w-xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 pb-10">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h1 class="text-xl font-bold text-gray-800 mb-2">Eliminar Doctor</h1>
+        <p class="text-red-600 font-semibold mb-4">¿Está seguro de que desea eliminar este doctor?</p>
+
+        <dl class="text-sm divide-y divide-gray-100 border-t border-gray-100 mb-5">
+            <div class="flex justify-between py-2"><dt class="text-gray-500">ID</dt><dd class="text-gray-800">@Model.DoctorId</dd></div>
+            <div class="flex justify-between py-2"><dt class="text-gray-500">Nombre Completo</dt><dd class="font-semibold text-gray-800">@Model.FullName</dd></div>
+            <div class="flex justify-between py-2"><dt class="text-gray-500">Especialidad</dt><dd class="text-gray-800">@Model.SpecialtyName</dd></div>
+            <div class="flex justify-between py-2"><dt class="text-gray-500">Número de Licencia</dt><dd class="text-gray-800">@Model.LicenseNumber</dd></div>
+        </dl>
+
+        <form asp-action="Delete" class="flex gap-2">
+            <input type="hidden" asp-for="DoctorId" />
+            <input type="submit" value="Eliminar"
+                   class="inline-flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold py-2 px-4 rounded-lg transition cursor-pointer" />
+            <a asp-action="Index"
+               class="inline-flex items-center gap-1.5 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-semibold py-2 px-4 rounded-lg transition">
+                Cancelar
+            </a>
+        </form>
+    </div>
 </div>

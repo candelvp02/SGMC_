@@ -1,23 +1,24 @@
-﻿@model SGMC.Application.Dto.Medical.SpecialtyDto
+@model SGMC.Application.Dto.Medical.SpecialtyDto
 @{
     ViewData["Title"] = "Eliminar Especialidad";
 }
 
-<h1>Eliminar Especialidad</h1>
+<div class="max-w-xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 pb-10">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h1 class="text-xl font-bold text-gray-800 mb-2">Eliminar Especialidad</h1>
+        <p class="text-red-600 font-semibold mb-4">¿Está seguro de que desea eliminar esta especialidad?</p>
 
-<h3 class="text-danger">¿Está seguro de que desea eliminar esta especialidad?</h3>
-<div>
-    <hr />
-    <dl class="row">
-        <dt class="col-sm-2">ID:</dt>
-        <dd class="col-sm-10">@Model.SpecialtyId</dd>
-        <dt class="col-sm-2">Nombre:</dt>
-        <dd class="col-sm-10"><strong>@Model.SpecialtyName</strong></dd>
-    </dl>
+        <dl class="text-sm divide-y divide-gray-100 border-t border-gray-100 mb-5">
+            <div class="flex justify-between py-2"><dt class="text-gray-500">ID</dt><dd class="text-gray-800">@Model.SpecialtyId</dd></div>
+            <div class="flex justify-between py-2"><dt class="text-gray-500">Nombre</dt><dd class="font-semibold text-gray-800">@Model.SpecialtyName</dd></div>
+        </dl>
 
-    <form asp-action="Delete">
-        <input type="hidden" asp-for="SpecialtyId" />
-        <input type="submit" value="Eliminar" class="btn btn-danger" />
-        <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
-    </form>
+        <form asp-action="Delete" class="flex gap-2">
+            <input type="hidden" asp-for="SpecialtyId" />
+            <input type="submit" value="Eliminar"
+                   class="inline-flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold py-2 px-4 rounded-lg transition cursor-pointer" />
+            <a asp-action="Index"
+               class="inline-flex items-center gap-1.5 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-semibold py-2 px-4 rounded-lg transition">Cancelar</a>
+        </form>
+    </div>
 </div>
