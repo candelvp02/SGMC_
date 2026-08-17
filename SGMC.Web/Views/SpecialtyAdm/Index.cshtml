@@ -3,48 +3,69 @@
     ViewData["Title"] = "Especialidades";
 }
 
-<h1>Gestión de Especialidades</h1>
-<p><a asp-action="Create" class="btn btn-primary">Crear Nueva Especialidad</a></p>
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 pb-10">
 
-@if (TempData["SuccessMessage"] != null)
-{
-    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
-}
-@if (ViewBag.ErrorMessage != null)
-{
-    <div class="alert alert-danger">@ViewBag.ErrorMessage</div>
-}
+    <h1 class="text-2xl font-bold text-gray-800 mb-6">Gestión de Especialidades</h1>
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Nombre</th>
-            <th>Estado</th>
-            <th>Acciones</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
-            <tr>
-                <td>@item.SpecialtyId</td>
-                <td>@item.SpecialtyName</td>
-                <td>
-                    @if (item.IsActive)
-                    {
-                        <span class="badge bg-success">Activo</span>
-                    }
-                    else
-                    {
-                        <span class="badge bg-danger">Inactivo</span>
-                    }
-                </td>
-                <td>
-                    <a asp-action="Edit" asp-route-id="@item.SpecialtyId" class="btn btn-sm btn-warning">Editar</a> |
-                    <a asp-action="Delete" asp-route-id="@item.SpecialtyId" class="btn btn-sm btn-danger">Eliminar</a>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+    <div class="mb-5">
+        <a asp-action="Create"
+           class="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2 px-4 rounded-lg transition">
+            <i class="fas fa-plus"></i> Crear Nueva Especialidad
+        </a>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="flex items-center gap-3 bg-green-50 border border-green-300 text-green-800 px-4 py-3 rounded-lg mb-5">
+            <i class="fas fa-check-circle text-green-500 text-lg"></i>
+            <span>@TempData["SuccessMessage"]</span>
+        </div>
+    }
+    @if (ViewBag.ErrorMessage != null)
+    {
+        <div class="flex items-center gap-3 bg-red-50 border border-red-300 text-red-800 px-4 py-3 rounded-lg mb-5">
+            <i class="fas fa-exclamation-circle text-red-500 text-lg"></i>
+            <span>@ViewBag.ErrorMessage</span>
+        </div>
+    }
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-x-auto">
+        <table class="min-w-full text-sm text-left">
+            <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
+                <tr>
+                    <th class="px-4 py-3">ID</th>
+                    <th class="px-4 py-3">Nombre</th>
+                    <th class="px-4 py-3">Estado</th>
+                    <th class="px-4 py-3">Acciones</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                @foreach (var item in Model)
+                {
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-3">@item.SpecialtyId</td>
+                        <td class="px-4 py-3 font-medium text-gray-800">@item.SpecialtyName</td>
+                        <td class="px-4 py-3">
+                            @if (item.IsActive)
+                            {
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-800">Activo</span>
+                            }
+                            else
+                            {
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-800">Inactivo</span>
+                            }
+                        </td>
+                        <td class="px-4 py-3">
+                            <div class="flex gap-2">
+                                <a asp-action="Edit" asp-route-id="@item.SpecialtyId"
+                                   class="inline-flex items-center gap-1 bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-semibold py-1.5 px-3 rounded-lg transition">Editar</a>
+                                <a asp-action="Delete" asp-route-id="@item.SpecialtyId"
+                                   class="inline-flex items-center gap-1 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold py-1.5 px-3 rounded-lg transition">Eliminar</a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -63,7 +63,7 @@ namespace SGMC.Application.Services
                 {
                     Email = dto.Email.ToLower().Trim(),
                     PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
-                    RoleId = 3, // Paciente
+                    RoleId = 1, // Paciente
                     IsActive = false, //En espera a autenticación.
                     CreatedAt = DateTime.Now
                 };

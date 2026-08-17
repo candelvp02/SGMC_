@@ -167,6 +167,7 @@ namespace SGMC.Application.Services
                     CancelledAppointments = appointmentsList.Count(a => a.StatusId == 3),
                     PendingAppointments = appointmentsList.Count(a => a.StatusId == 1),
                     CompletedAppointments = appointmentsList.Count(a => a.StatusId == 4),
+                    RejectedAppointments = appointmentsList.Count(a => a.StatusId == 5),
                     StartDate = filter.StartDate ?? DateTime.Now.AddMonths(-1),
                     EndDate = filter.EndDate ?? DateTime.Now
                 };

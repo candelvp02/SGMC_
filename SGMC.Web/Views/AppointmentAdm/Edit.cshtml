@@ -4,87 +4,86 @@
     ViewData["Title"] = "Editar Cita";
 }
 
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-md-8 offset-md-2">
-            <div class="card">
-                <div class="card-header bg-warning text-dark">
-                    <h3 class="mb-0"><i class="bi bi-pencil"></i> Editar Cita</h3>
+<div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 pb-10">
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="bg-yellow-500 text-white px-5 py-4">
+            <h1 class="text-lg font-bold flex items-center gap-2"><i class="fas fa-pen"></i> Editar Cita</h1>
+        </div>
+
+        <div class="p-5">
+            @if (ViewBag.ErrorMessage != null)
+            {
+                <div class="flex items-center gap-3 bg-red-50 border border-red-300 text-red-800 px-4 py-3 rounded-lg mb-4">
+                    <i class="fas fa-triangle-exclamation text-red-500"></i> @ViewBag.ErrorMessage
                 </div>
-                <div class="card-body">
-                    @if (ViewBag.ErrorMessage != null)
-                    {
-                        <div class="alert alert-danger alert-dismissible fade show">
-                            @ViewBag.ErrorMessage
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            }
+
+            <form asp-action="Edit" method="post">
+                <input type="hidden" asp-for="AppointmentId" />
+                <input type="hidden" asp-for="CreatedAt" />
+                <div asp-validation-summary="ModelOnly" class="text-red-600 text-sm mb-3"></div>
+
+                <!-- Información de Solo Lectura -->
+                <fieldset class="border border-gray-200 rounded-lg p-4 mb-5">
+                    <legend class="px-2 text-sm font-semibold text-gray-600">Información de la Cita</legend>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Paciente</label>
+                            <input type="text" class="w-full border border-gray-200 bg-gray-50 rounded-lg px-3 py-2 text-gray-600" value="@Model.PatientName" readonly />
                         </div>
-                    }
-
-                    <form asp-action="Edit" method="post">
-                        <input type="hidden" asp-for="AppointmentId" />
-                        <input type="hidden" asp-for="CreatedAt" />
-                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-
-                        <!-- Información de Solo Lectura -->
-                        <fieldset class="border p-3 mb-4">
-                            <legend class="w-auto px-2">Información de la Cita</legend>
-
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Paciente</label>
-                                    <input type="text" class="form-control" value="@Model.PatientName" readonly />
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Doctor</label>
-                                    <input type="text" class="form-control" value="@Model.DoctorName" readonly />
-                                </div>
-                            </div>
-                        </fieldset>
-
-                        <!-- Campos Editables -->
-                        <fieldset class="border p-3 mb-4">
-                            <legend class="w-auto px-2">Modificar Datos</legend>
-
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label asp-for="AppointmentDate" class="form-label">Fecha y Hora</label>
-                                    <input asp-for="AppointmentDate" type="datetime-local" class="form-control" />
-                                    <span asp-validation-for="AppointmentDate" class="text-danger"></span>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label asp-for="StatusId" class="form-label">Estado</label>
-                                    <select asp-for="StatusId" class="form-select">
-                                        <option value="">-- Seleccione --</option>
-                                        @if (Model.Statuses != null)
-                                        {
-                                            @foreach (var status in Model.Statuses)
-                                            {
-                                                <option value="@status.StatusId">@status.StatusName</option>
-                                            }
-                                        }
-                                    </select>
-                                    <span asp-validation-for="StatusId" class="text-danger"></span>
-                                </div>
-                            </div>
-
-                            <div class="mb-3">
-                                <label asp-for="Notes" class="form-label">Notas</label>
-                                <textarea asp-for="Notes" class="form-control" rows="3"></textarea>
-                                <span asp-validation-for="Notes" class="text-danger"></span>
-                            </div>
-                        </fieldset>
-
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <a asp-action="Index" class="btn btn-secondary">
-                                <i class="bi bi-arrow-left"></i> Cancelar
-                            </a>
-                            <button type="submit" class="btn btn-warning">
-                                <i class="bi bi-save"></i> Guardar Cambios
-                            </button>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Doctor</label>
+                            <input type="text" class="w-full border border-gray-200 bg-gray-50 rounded-lg px-3 py-2 text-gray-600" value="@Model.DoctorName" readonly />
                         </div>
-                    </form>
+                    </div>
+                </fieldset>
+
+                <!-- Campos Editables -->
+                <fieldset class="border border-gray-200 rounded-lg p-4 mb-5">
+                    <legend class="px-2 text-sm font-semibold text-gray-600">Modificar Datos</legend>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label asp-for="AppointmentDate" class="block text-sm font-semibold text-gray-700 mb-1">Fecha y Hora</label>
+                            <input asp-for="AppointmentDate" type="datetime-local"
+                                   class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                            <span asp-validation-for="AppointmentDate" class="text-red-500 text-xs mt-1"></span>
+                        </div>
+                        <div>
+                            <label asp-for="StatusId" class="block text-sm font-semibold text-gray-700 mb-1">Estado</label>
+                            <select asp-for="StatusId" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="">-- Seleccione --</option>
+                                @if (Model.Statuses != null)
+                                {
+                                    @foreach (var status in Model.Statuses)
+                                    {
+                                        <option value="@status.StatusId">@status.StatusName</option>
+                                    }
+                                }
+                            </select>
+                            <span asp-validation-for="StatusId" class="text-red-500 text-xs mt-1"></span>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <label asp-for="Notes" class="block text-sm font-semibold text-gray-700 mb-1">Notas</label>
+                        <textarea asp-for="Notes" rows="3"
+                                  class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                        <span asp-validation-for="Notes" class="text-red-500 text-xs mt-1"></span>
+                    </div>
+                </fieldset>
+
+                <div class="flex justify-end gap-2">
+                    <a asp-action="Index"
+                       class="inline-flex items-center gap-1.5 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-semibold py-2 px-4 rounded-lg transition">
+                        <i class="fas fa-arrow-left"></i> Cancelar
+                    </a>
+                    <button type="submit"
+                            class="inline-flex items-center gap-1.5 bg-yellow-500 hover:bg-yellow-600 text-white text-sm font-semibold py-2 px-4 rounded-lg transition">
+                        <i class="fas fa-save"></i> Guardar Cambios
+                    </button>
                 </div>
-            </div>
+            </form>
         </div>
     </div>
 </div>

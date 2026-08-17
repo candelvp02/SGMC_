@@ -92,7 +92,9 @@ namespace SGMC.Web.Controllers
             var updateDto = new UpdateUserDto
             {
                 UserId = result.Datos.UserId,
-                Email = result.Datos.Email
+                Email = result.Datos.Email,
+                RoleId = result.Datos.RoleId,
+                IsActive = result.Datos.IsActive
             };
 
             return View(updateDto);

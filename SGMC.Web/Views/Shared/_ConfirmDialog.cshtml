@@ -1,23 +1,26 @@
-﻿@model (string Title, string Message, string ConfirmText, string CancelText)
+@model (string Title, string Message, string ConfirmText, string CancelText)
 
-<div class="modal fade" id="confirmModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-warning">
-                <h5 class="modal-title">@Model.Title</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                @Model.Message
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                    @Model.CancelText
-                </button>
-                <button type="button" class="btn btn-danger" id="confirmBtn">
-                    @Model.ConfirmText
-                </button>
-            </div>
+<div id="confirmModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+    <div class="bg-white rounded-xl shadow-lg w-full max-w-md overflow-hidden">
+        <div class="bg-yellow-500 text-white px-5 py-3 flex justify-between items-center">
+            <h2 class="font-semibold">@Model.Title</h2>
+            <button type="button" class="text-white/80 hover:text-white" onclick="document.getElementById('confirmModal').classList.add('hidden')">
+                <i class="fas fa-xmark"></i>
+            </button>
+        </div>
+        <div class="p-5 text-sm text-gray-700">
+            @Model.Message
+        </div>
+        <div class="px-5 py-4 border-t border-gray-100 flex justify-end gap-2">
+            <button type="button"
+                    class="inline-flex items-center gap-1.5 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-semibold py-2 px-4 rounded-lg transition"
+                    onclick="document.getElementById('confirmModal').classList.add('hidden')">
+                @Model.CancelText
+            </button>
+            <button type="button" id="confirmBtn"
+                    class="inline-flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold py-2 px-4 rounded-lg transition">
+                @Model.ConfirmText
+            </button>
         </div>
     </div>
 </div>

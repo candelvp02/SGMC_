@@ -1,68 +1,80 @@
-﻿@model SGMC.Application.Dto.System.UpdateDoctorDto
+@model SGMC.Application.Dto.System.UpdateDoctorDto
 
 @{
     ViewData["Title"] = "Editar Doctor";
 }
 
-<h1>Editar Doctor</h1>
+<div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 pb-10">
 
-@if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
-{
-    <div class="alert alert-danger">@ViewBag.ErrorMessage</div>
-}
+    <h1 class="text-2xl font-bold text-gray-800 mb-6">Editar Doctor</h1>
 
-<hr />
-<div class="row">
-    <div class="col-md-6">
+    @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
+    {
+        <div class="flex items-center gap-3 bg-red-50 border border-red-300 text-red-800 px-4 py-3 rounded-lg mb-5">
+            <i class="fas fa-exclamation-circle text-red-500 text-lg"></i>
+            <span>@ViewBag.ErrorMessage</span>
+        </div>
+    }
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
         <form asp-action="Edit">
             <input type="hidden" asp-for="DoctorId" />
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="IsActive" />
+            <div asp-validation-summary="ModelOnly" class="text-red-600 text-sm mb-3"></div>
 
-            <div class="form-group mb-3">
-                <label asp-for="PhoneNumber" class="control-label"></label>
-                <input asp-for="PhoneNumber" class="form-control" />
-                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+            <div class="mb-4">
+                <label asp-for="SpecialtyId" class="block text-sm font-semibold text-gray-700 mb-1"></label>
+                @await Component.InvokeAsync("SpecialtySelect", new { selectedId = (short?)Model.SpecialtyId, fieldName = "SpecialtyId" })
+                <span asp-validation-for="SpecialtyId" class="text-red-500 text-xs mt-1"></span>
             </div>
 
-            <div class="form-group mb-3">
-                <label asp-for="YearsOfExperience" class="control-label"></label>
-                <input asp-for="YearsOfExperience" class="form-control" type="number" />
-                <span asp-validation-for="YearsOfExperience" class="text-danger"></span>
+            <div class="mb-4">
+                <label asp-for="PhoneNumber" class="block text-sm font-semibold text-gray-700 mb-1"></label>
+                <input asp-for="PhoneNumber" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                <span asp-validation-for="PhoneNumber" class="text-red-500 text-xs mt-1"></span>
             </div>
 
-            <div class="form-group mb-3">
-                <label asp-for="Education" class="control-label"></label>
-                <textarea asp-for="Education" class="form-control" rows="3"></textarea>
-                <span asp-validation-for="Education" class="text-danger"></span>
+            <div class="mb-4">
+                <label asp-for="YearsOfExperience" class="block text-sm font-semibold text-gray-700 mb-1"></label>
+                <input asp-for="YearsOfExperience" type="number" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                <span asp-validation-for="YearsOfExperience" class="text-red-500 text-xs mt-1"></span>
             </div>
 
-            <div class="form-group mb-3">
-                <label asp-for="Bio" class="control-label"></label>
-                <textarea asp-for="Bio" class="form-control" rows="3"></textarea>
-                <span asp-validation-for="Bio" class="text-danger"></span>
+            <div class="mb-4">
+                <label asp-for="Education" class="block text-sm font-semibold text-gray-700 mb-1"></label>
+                <textarea asp-for="Education" rows="3" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                <span asp-validation-for="Education" class="text-red-500 text-xs mt-1"></span>
             </div>
 
-            <div class="form-group mb-3">
-                <label asp-for="ConsultationFee" class="control-label"></label>
-                <input asp-for="ConsultationFee" class="form-control" type="number" step="0.01" />
-                <span asp-validation-for="ConsultationFee" class="text-danger"></span>
+            <div class="mb-4">
+                <label asp-for="Bio" class="block text-sm font-semibold text-gray-700 mb-1"></label>
+                <textarea asp-for="Bio" rows="3" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                <span asp-validation-for="Bio" class="text-red-500 text-xs mt-1"></span>
             </div>
 
-            <div class="form-group mb-3">
-                <label asp-for="ClinicAddress" class="control-label"></label>
-                <textarea asp-for="ClinicAddress" class="form-control" rows="2"></textarea>
-                <span asp-validation-for="ClinicAddress" class="text-danger"></span>
+            <div class="mb-4">
+                <label asp-for="ConsultationFee" class="block text-sm font-semibold text-gray-700 mb-1"></label>
+                <input asp-for="ConsultationFee" type="number" step="0.01" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                <span asp-validation-for="ConsultationFee" class="text-red-500 text-xs mt-1"></span>
             </div>
 
-            <div class="form-group mb-3">
-                <label asp-for="LicenseExpirationDate" class="control-label"></label>
-                <input asp-for="LicenseExpirationDate" class="form-control" type="date" />
-                <span asp-validation-for="LicenseExpirationDate" class="text-danger"></span>
+            <div class="mb-4">
+                <label asp-for="ClinicAddress" class="block text-sm font-semibold text-gray-700 mb-1"></label>
+                <textarea asp-for="ClinicAddress" rows="2" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                <span asp-validation-for="ClinicAddress" class="text-red-500 text-xs mt-1"></span>
             </div>
 
-            <div class="form-group">
-                <input type="submit" value="Guardar" class="btn btn-primary" />
-                <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+            <div class="mb-5">
+                <label asp-for="LicenseExpirationDate" class="block text-sm font-semibold text-gray-700 mb-1"></label>
+                <input asp-for="LicenseExpirationDate" type="date" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                <span asp-validation-for="LicenseExpirationDate" class="text-red-500 text-xs mt-1"></span>
+            </div>
+
+            <div class="flex gap-2">
+                <input type="submit" value="Guardar"
+                       class="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2 px-4 rounded-lg transition cursor-pointer" />
+                <a asp-action="Index"
+                   class="inline-flex items-center gap-1.5 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-semibold py-2 px-4 rounded-lg transition">Cancelar</a>
             </div>
         </form>
     </div>

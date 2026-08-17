@@ -165,6 +165,7 @@ namespace SGMC.Application.Services
                 }
 
                 user.RoleId = dto.RoleId;
+                user.IsActive = dto.IsActive;
                 user.UpdatedAt = DateTime.Now;
 
                 await _userRepository.UpdateAsync(user);

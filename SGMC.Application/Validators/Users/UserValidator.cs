@@ -43,7 +43,7 @@ namespace SGMC.Application.Validators.Users
                 errores.Add("Formato de email inválido.");
 
             // Valida RoleId
-            if (dto.RoleId <= 0)
+            if (dto.RoleId is null or <= 0)
                 errores.Add("El ID del rol es requerido.");
 
             return errores.Count > 0
