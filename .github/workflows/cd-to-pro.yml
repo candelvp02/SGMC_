@@ -27,7 +27,7 @@ env:
 
 on:
   push:
-    branches: [ "dev" ]
+    branches: [ "pro" ]
   workflow_dispatch:
 
 permissions:
